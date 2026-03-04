@@ -70,12 +70,9 @@ export class LeaveWorkScene extends Phaser.Scene {
   private bossImage!: Phaser.GameObjects.Image;
   private bossEmojiText!: Phaser.GameObjects.Text; // fallback
   private bossLabel!: Phaser.GameObjects.Text;
-  private useBossTextures = false;
-
   // Player
   private playerImage!: Phaser.GameObjects.Image;
   private playerEmojiText!: Phaser.GameObjects.Text;
-  private usePlayerTextures = false;
 
   // Dumping
   private isDumping = false;
@@ -106,8 +103,7 @@ export class LeaveWorkScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(stage.bgColor);
 
     this.generateFallbackTextures();
-    this.useBossTextures = this.textures.exists('boss-front');
-    this.usePlayerTextures = this.textures.exists('player-sit');
+    // texture existence checked at runtime via this.textures.exists()
 
     // ── Background: 회식 테이블 ──
     const tableBg = this.add.graphics();

@@ -104,7 +104,6 @@ export class MorningScene extends Phaser.Scene {
   private isDragging = false; // true if pointer moved enough → aim mode
 
   // Power charge
-  private isCharging = false;
   private chargeStartTime = 0;
   private chargePower = 0;
   private gaugeBar!: Phaser.GameObjects.Graphics;
@@ -131,7 +130,7 @@ export class MorningScene extends Phaser.Scene {
     this.textCells = [];
     this.totalTypos = 0;
     this.correctedTypos = 0;
-    this.isCharging = false;
+
     this.isAiming = false;
     this.isDragging = false;
     this.chargePower = 0;
@@ -219,7 +218,7 @@ export class MorningScene extends Phaser.Scene {
       this.aimStartX = pointer.x;
 
       // Don't charge yet — wait to see if it's a drag or a hold
-      this.isCharging = false;
+  
       this.chargePower = 0;
       this.chargeStartTime = this.time.now;
     });
@@ -232,7 +231,7 @@ export class MorningScene extends Phaser.Scene {
       if (!this.isDragging && Math.abs(dx) > this.DRAG_THRESHOLD) {
         // Crossed threshold → this is a drag (aim mode)
         this.isDragging = true;
-        this.isCharging = false;
+    
         this.chargePower = 0;
         this.gaugeBar.clear();
       }
@@ -253,14 +252,14 @@ export class MorningScene extends Phaser.Scene {
         // Was aiming → just set the angle, don't fire
         this.isAiming = false;
         this.isDragging = false;
-        this.isCharging = false;
+    
         this.gaugeBar.clear();
         return;
       }
 
       // Was holding still → fire!
       this.isAiming = false;
-      this.isCharging = false;
+  
       this.gaugeBar.clear();
 
       // Calculate power from hold duration

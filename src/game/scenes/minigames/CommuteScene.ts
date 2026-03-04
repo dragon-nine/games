@@ -150,7 +150,7 @@ export class CommuteScene extends Phaser.Scene {
 
     const leftLabel = this.add.text(leftBtnX, btnY - 8, '🔄', { fontSize: '28px' })
       .setOrigin(0.5).setDepth(201);
-    const leftDirText = this.add.text(leftBtnX, btnY + 20, '방향전환', {
+    this.add.text(leftBtnX, btnY + 20, '방향전환', {
       fontFamily: 'sans-serif', fontSize: '14px', color: '#ffffff',
     }).setOrigin(0.5).setDepth(201);
 
