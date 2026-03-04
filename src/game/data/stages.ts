@@ -2,63 +2,58 @@ import type { StageDef } from '../../types/game';
 
 export const STAGES: StageDef[] = [
   {
-    id: 1, name: '지옥의 출근길', emoji: '⏰', time: '07:00', period: 'AM', bgColor: '#0a0a14',
-    minigames: [
-      { id: 1, sceneKey: 'AlarmScene', name: '알람 0.1초 컷', description: '스마트폰을 끄는 진짜 방법을 찾아라' },
-    ],
+    id: 1,
+    category: '출근',
+    name: '천국의 계단',
+    emoji: '🏃',
+    time: '07:00',
+    period: 'AM',
+    bgColor: '#0a0a14',
+    timeLimit: 60,
+    minigame: { id: 1, sceneKey: 'CommuteScene', name: '천국의 계단', description: '아 늦었다! 출근!!' },
   },
   {
-    id: 2, name: '사무실 생존기', emoji: '💬', time: '08:30', period: 'AM', bgColor: '#1a2a4e',
-    minigames: [
-      { id: 11, sceneKey: 'BootingScene', name: '메신저 오타', description: '물리적으로 서버를 다운시켜라' },
-    ],
+    id: 2,
+    category: '오전',
+    name: '보고서 오탈자',
+    emoji: '📝',
+    time: '09:00',
+    period: 'AM',
+    bgColor: '#1a2a4e',
+    timeLimit: 60,
+    minigame: { id: 2, sceneKey: 'MorningScene', name: '보고서 오탈자', description: '지우개를 던져서 오타를 수정해!' },
   },
   {
-    id: 3, name: '점심시간의 혈투', emoji: '✊', time: '12:00', period: 'PM', bgColor: '#f5e6d0',
-    minigames: [
-      { id: 21, sceneKey: 'MenuRouletteScene', name: '가위바위보', description: '을의 생존법을 깨달아라' },
-    ],
+    id: 3,
+    category: '점심',
+    name: '메뉴 받아내기',
+    emoji: '🍱',
+    time: '12:00',
+    period: 'PM',
+    bgColor: '#f5e6d0',
+    timeLimit: 60,
+    minigame: { id: 3, sceneKey: 'LunchScene', name: '메뉴 받아내기', description: '떨어지는 메뉴를 바구니로 받아내!' },
   },
   {
-    id: 4, name: '회의실 미스터리', emoji: '🗣️', time: '13:30', period: 'PM', bgColor: '#d5d8f0',
-    minigames: [
-      { id: 31, sceneKey: 'SleepFightScene', name: '빈말 퍼레이드', description: '영혼 없는 앵무새가 되어라' },
-    ],
+    id: 4,
+    category: '오후 회의',
+    name: '회의록 작성',
+    emoji: '📋',
+    time: '14:00',
+    period: 'PM',
+    bgColor: '#c5c8d8',
+    timeLimit: 60,
+    minigame: { id: 4, sceneKey: 'AfternoonScene', name: '회의록 작성', description: '막내야 받아적어!' },
   },
   {
-    id: 5, name: '보고서의 늪', emoji: '📄', time: '15:00', period: 'PM', bgColor: '#c5c8d8',
-    minigames: [
-      { id: 41, sceneKey: 'FileSaveScene', name: '저장의 저주', description: '불변의 법칙을 깨달아라' },
-    ],
-  },
-  {
-    id: 6, name: '몰래 딴짓하기', emoji: '🖥️', time: '16:30', period: 'PM', bgColor: '#b8bcc8',
-    minigames: [
-      { id: 51, sceneKey: 'AltTabScene', name: '웹서핑 숨기기', description: '물리적 차단이 답이다' },
-    ],
-  },
-  {
-    id: 7, name: '빌런 대처', emoji: '🦵', time: '18:00', period: 'PM', bgColor: '#2e1810',
-    minigames: [
-      { id: 65, sceneKey: 'ChargingScene', name: '다리 떠는 빌런', description: '친환경 에너지를 만들어라' },
-    ],
-  },
-  {
-    id: 8, name: '야근의 그림자', emoji: '📱', time: '20:00', period: 'PM', bgColor: '#12121e',
-    minigames: [
-      { id: 75, sceneKey: 'MosquitoScene', name: '가족 거짓말', description: 'AI 오토 파일럿을 가동하라' },
-    ],
-  },
-  {
-    id: 9, name: '회식의 기술', emoji: '🚪', time: '21:30', period: 'PM', bgColor: '#2d1810',
-    minigames: [
-      { id: 81, sceneKey: 'SomekScene', name: '술자리 탈출', description: '영수증 밧줄로 탈출하라' },
-    ],
-  },
-  {
-    id: 10, name: '퇴사 가즈아', emoji: '✈️', time: '23:00', period: 'PM', bgColor: '#1a0a0a',
-    minigames: [
-      { id: 91, sceneKey: 'ResignScene', name: '사직서 투척', description: '종이비행기로 정확히 투하하라' },
-    ],
+    id: 5,
+    category: '퇴근',
+    name: '술 버리기',
+    emoji: '🍺',
+    time: '18:00',
+    period: 'PM',
+    bgColor: '#2e1810',
+    timeLimit: 60,
+    minigame: { id: 5, sceneKey: 'LeaveWorkScene', name: '술 버리기', description: '부장님 몰래 술을 버려라!' },
   },
 ];

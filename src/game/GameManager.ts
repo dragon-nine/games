@@ -1,26 +1,27 @@
 import { STAGES } from './data/stages';
-import { NARRATIVES } from './data/narrative';
-import type { MinigameDef, StageResult, Grade, NarrativeDef } from '../types/game';
+import type { StageResult, Grade, GradeKey, RankingEntry } from '../types/game';
 
 const GRADES: Grade[] = [
-  { key: 'sage', emoji: '🏆', title: '해탈한 현자', comment: '직장이 놀이터인 사람' },
-  { key: 'pro', emoji: '😊', title: '프로 직장인', comment: '다 해내긴 했는데... 괜찮으세요?' },
-  { key: 'burnout', emoji: '🔥', title: '번아웃 전사', comment: '퇴사 사유: 전부 다' },
-  { key: 'angry', emoji: '😤', title: '분노의 직장인', comment: '오늘자 퇴사 예정자' },
-  { key: 'newbie', emoji: '💀', title: '사회초년생', comment: '첫 출근인가요...?' },
+  { key: 'S', emoji: '🏆', title: '퇴근의 달인', comment: '이 정도면 CEO감이시네요', minScore: 5000 },
+  { key: 'A', emoji: '😊', title: '프로 직장인', comment: '칼퇴의 품격이 느껴집니다', minScore: 3000 },
+  { key: 'B', emoji: '😐', title: '평범한 회사원', comment: '무난하게 하루를 보냈습니다', minScore: 1500 },
+  { key: 'C', emoji: '😤', title: '고군분투 사원', comment: '내일은 좀 나아지겠죠...?', minScore: 500 },
+  { key: 'D', emoji: '💀', title: '사회초년생', comment: '첫 출근인가요...?', minScore: 0 },
 ];
+
+const RANKING_STORAGE_KEY = 'worker-nightmare-ranking';
+const MAX_RANKING_ENTRIES = 10;
 
 class GameManagerClass {
   private _currentStageIndex = 0;
-  private _stress = 0;
   private _results: StageResult[] = [];
 
   get currentStageIndex() { return this._currentStageIndex; }
-  get stress() { return this._stress; }
   get results() { return [...this._results]; }
+  get totalStages() { return STAGES.length; }
 
-  get successCount(): number {
-    return this._results.filter(r => r.success).length;
+  get totalScore(): number {
+    return this._results.reduce((sum, r) => sum + r.score, 0);
   }
 
   get progress(): number {
@@ -39,22 +40,8 @@ class GameManagerClass {
     return STAGES[this._currentStageIndex] ?? STAGES[STAGES.length - 1];
   }
 
-  getNarrative(): NarrativeDef {
-    return NARRATIVES[this._currentStageIndex] ?? NARRATIVES[NARRATIVES.length - 1];
-  }
-
-  getRandomMinigame(stageId: number): MinigameDef {
-    const stage = STAGES.find(s => s.id === stageId)!;
-    return stage.minigames[Math.floor(Math.random() * stage.minigames.length)];
-  }
-
-  recordResult(stageId: number, success: boolean) {
-    this._results.push({ stageId, success });
-    this._stress = Math.min(100, this._stress + (success ? 5 : 15));
-  }
-
-  addStress(amount: number) {
-    this._stress = Math.min(100, Math.max(0, this._stress + amount));
+  recordResult(stageId: number, score: number, completed: boolean, timeRemaining: number) {
+    this._results.push({ stageId, score, completed, timeRemaining });
   }
 
   advanceStage() {
@@ -62,23 +49,55 @@ class GameManagerClass {
   }
 
   getGrade(): Grade {
-    const s = this.successCount;
-    const stress = this._stress;
-
-    if (s === 10 && stress < 50) return GRADES[0]; // 해탈한 현자
-    if (s === 10) return GRADES[1]; // 프로 직장인
-    if (s >= 7) return GRADES[2]; // 번아웃 전사
-    if (s >= 4) return GRADES[3]; // 분노의 직장인
-    return GRADES[4]; // 사회초년생
+    const total = this.totalScore;
+    for (const grade of GRADES) {
+      if (total >= grade.minScore) return grade;
+    }
+    return GRADES[GRADES.length - 1];
   }
 
-  jumpToStage(index: number) {
-    this._currentStageIndex = Math.max(0, Math.min(index, STAGES.length - 1));
+  getRanking(): RankingEntry[] {
+    try {
+      const data = localStorage.getItem(RANKING_STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveRanking(nickname: string): RankingEntry {
+    const entry: RankingEntry = {
+      nickname,
+      totalScore: this.totalScore,
+      grade: this.getGrade().key as GradeKey,
+      date: new Date().toISOString().slice(0, 10),
+    };
+
+    const ranking = this.getRanking();
+    ranking.push(entry);
+    ranking.sort((a, b) => b.totalScore - a.totalScore);
+    const trimmed = ranking.slice(0, MAX_RANKING_ENTRIES);
+
+    try {
+      localStorage.setItem(RANKING_STORAGE_KEY, JSON.stringify(trimmed));
+    } catch {
+      // storage full
+    }
+
+    return entry;
+  }
+
+  getAllStages() {
+    return STAGES;
+  }
+
+  debugJumpTo(stageIndex: number) {
+    this._currentStageIndex = stageIndex;
+    this._results = [];
   }
 
   reset() {
     this._currentStageIndex = 0;
-    this._stress = 0;
     this._results = [];
   }
 }

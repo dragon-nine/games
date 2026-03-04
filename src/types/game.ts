@@ -7,39 +7,36 @@ export interface MinigameDef {
 
 export interface StageDef {
   id: number;
+  category: string;
   name: string;
   emoji: string;
   time: string;
   period: 'AM' | 'PM';
   bgColor: string;
-  minigames: MinigameDef[];
-}
-
-export interface ChatMessage {
-  sender?: string;
-  text: string;
-  type: 'left' | 'right' | 'thought' | 'system';
-}
-
-export interface NarrativeDef {
-  stageIndex: number;
-  time: string;
-  period: 'AM' | 'PM';
-  bgColor: string;
-  isPrologue?: boolean;
-  messages: ChatMessage[];
+  timeLimit: number; // seconds
+  minigame: MinigameDef;
 }
 
 export interface StageResult {
   stageId: number;
-  success: boolean;
+  score: number; // 0~100
+  completed: boolean;
+  timeRemaining: number; // seconds left
 }
 
-export type GradeKey = 'sage' | 'pro' | 'burnout' | 'angry' | 'newbie';
+export type GradeKey = 'S' | 'A' | 'B' | 'C' | 'D';
 
 export interface Grade {
   key: GradeKey;
   emoji: string;
   title: string;
   comment: string;
+  minScore: number;
+}
+
+export interface RankingEntry {
+  nickname: string;
+  totalScore: number;
+  grade: GradeKey;
+  date: string;
 }

@@ -12,7 +12,7 @@ export class BootScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#0a0a14');
 
-    // 미세 파티클 (새벽 먼지)
+    // Particles
     for (let i = 0; i < 20; i++) {
       const x = Phaser.Math.Between(0, width);
       const y = Phaser.Math.Between(0, height);
@@ -28,23 +28,19 @@ export class BootScene extends Phaser.Scene {
       });
     }
 
-    // 타이틀 — 페이드인
+    // Title
     const title1 = this.add.text(width / 2, height * 0.25, '직장인', {
-      fontFamily: 'sans-serif', fontSize: '52px', color: '#ffffff',
-      fontStyle: 'bold',
+      fontFamily: 'sans-serif', fontSize: '52px', color: '#ffffff', fontStyle: 'bold',
     }).setOrigin(0.5).setAlpha(0);
 
     const title2 = this.add.text(width / 2, height * 0.4, '잔혹사', {
-      fontFamily: 'sans-serif', fontSize: '68px', color: '#e94560',
-      fontStyle: 'bold',
+      fontFamily: 'sans-serif', fontSize: '68px', color: '#e94560', fontStyle: 'bold',
     }).setOrigin(0.5).setAlpha(0);
 
-    // 서브타이틀
     const sub = this.add.text(width / 2, height * 0.54, '당신의 하루를 견뎌내세요', {
       fontFamily: 'sans-serif', fontSize: '18px', color: '#555577',
     }).setOrigin(0.5).setAlpha(0);
 
-    // 타이틀 등장 애니메이션
     this.tweens.add({ targets: title1, alpha: 1, y: height * 0.23, duration: 800, delay: 300, ease: 'Power2' });
     this.tweens.add({ targets: title2, alpha: 1, y: height * 0.38, duration: 800, delay: 600, ease: 'Power2' });
     this.tweens.add({
@@ -54,7 +50,7 @@ export class BootScene extends Phaser.Scene {
       },
     });
 
-    // 시작 버튼 — 딜레이 후 등장
+    // Start button
     const btn = this.add.rectangle(width / 2, height * 0.72, 280, 60, 0xe94560)
       .setInteractive({ useHandCursor: true }).setAlpha(0);
     const btnText = this.add.text(width / 2, height * 0.72, '출근하기', {
@@ -64,7 +60,6 @@ export class BootScene extends Phaser.Scene {
     this.tweens.add({
       targets: [btn, btnText], alpha: 1, duration: 600, delay: 1400,
       onComplete: () => {
-        // 버튼 펄스
         this.tweens.add({ targets: btn, scaleX: 1.03, scaleY: 1.03, duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       },
     });
@@ -72,17 +67,52 @@ export class BootScene extends Phaser.Scene {
     btn.on('pointerover', () => btn.setFillStyle(0xd63651));
     btn.on('pointerout', () => btn.setFillStyle(0xe94560));
     btn.on('pointerdown', () => {
-      // 페이드아웃 후 내러티브 시작
       this.cameras.main.fadeOut(500, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('NarrativeScene');
+        const stage = GameManager.getCurrentStage();
+        this.scene.start('MinigameIntroScene', {
+          stageId: stage.id,
+          stageName: stage.name,
+          stageEmoji: stage.emoji,
+          minigameName: stage.minigame.name,
+          minigameDesc: stage.minigame.description,
+          minigameSceneKey: stage.minigame.sceneKey,
+        });
       });
     });
 
-    // 크레딧
+    // Credits
     this.add.text(width / 2, height * 0.92, 'DragonNine Studio', {
       fontFamily: 'sans-serif', fontSize: '12px', color: '#333344',
     }).setOrigin(0.5);
+
+    // ── Debug: 스테이지 바로가기 버튼 ──
+    if (import.meta.env.DEV) {
+      const stages = GameManager.getAllStages();
+      const debugY = height * 0.84;
+      const totalW = stages.length * 56;
+      const startX = width / 2 - totalW / 2 + 28;
+
+      for (let i = 0; i < stages.length; i++) {
+        const s = stages[i];
+        const bx = startX + i * 56;
+        const dbg = this.add.text(bx, debugY, s.emoji, {
+          fontSize: '28px', backgroundColor: '#222244', padding: { x: 6, y: 4 },
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0.7);
+
+        this.add.text(bx, debugY + 22, s.category, {
+          fontFamily: 'sans-serif', fontSize: '10px', color: '#8888aa',
+        }).setOrigin(0.5);
+
+        dbg.on('pointerover', () => dbg.setAlpha(1));
+        dbg.on('pointerout', () => dbg.setAlpha(0.7));
+        dbg.on('pointerdown', () => {
+          GameManager.debugJumpTo(i);
+          const stage = GameManager.getCurrentStage();
+          this.scene.start(stage.minigame.sceneKey, { stageId: stage.id, debug: true });
+        });
+      }
+    }
 
     emitGameState({ scene: 'BootScene', progress: 0, allCleared: false, stress: 0 });
   }

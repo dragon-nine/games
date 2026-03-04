@@ -27,34 +27,41 @@ export class MinigameIntroScene extends Phaser.Scene {
     const stage = GameManager.getCurrentStage();
     this.cameras.main.setBackgroundColor(stage.bgColor);
 
-    // 간소화된 인트로: 스테이지 번호 + 게임 이름 + 카운트다운
-    this.add.text(width / 2, height * 0.2, `${stage.time} ${stage.period}`, {
+    // Category + time
+    this.add.text(width / 2, height * 0.15, `${stage.category}`, {
       fontFamily: 'sans-serif', fontSize: '16px', color: '#888899',
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.3, `STAGE ${this.introData.stageId}`, {
-      fontFamily: 'sans-serif', fontSize: '18px', color: '#e94560',
-      fontStyle: 'bold', letterSpacing: 4,
+    this.add.text(width / 2, height * 0.25, `${stage.time} ${stage.period}`, {
+      fontFamily: 'sans-serif', fontSize: '14px', color: '#666688',
     }).setOrigin(0.5);
 
-    // 미니게임 이름
-    const title = this.add.text(width / 2, height * 0.44, this.introData.minigameName, {
+    this.add.text(width / 2, height * 0.32, `STAGE ${this.introData.stageId} / ${GameManager.totalStages}`, {
+      fontFamily: 'sans-serif', fontSize: '18px', color: '#e94560',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    // Game name
+    const title = this.add.text(width / 2, height * 0.46, this.introData.minigameName, {
       fontFamily: 'sans-serif', fontSize: '42px', color: '#ffffff',
       fontStyle: 'bold', align: 'center',
       wordWrap: { width: width - 100 },
     }).setOrigin(0.5).setAlpha(0);
 
-    // 미니게임 설명
-    const desc = this.add.text(width / 2, height * 0.56, this.introData.minigameDesc, {
-      fontFamily: 'sans-serif', fontSize: '18px', color: '#aaaacc',
-      align: 'center',
+    const desc = this.add.text(width / 2, height * 0.58, this.introData.minigameDesc, {
+      fontFamily: 'sans-serif', fontSize: '18px', color: '#aaaacc', align: 'center',
     }).setOrigin(0.5).setAlpha(0);
 
-    this.tweens.add({ targets: title, alpha: 1, y: height * 0.42, duration: 300, ease: 'Back.easeOut' });
+    // Time limit
+    this.add.text(width / 2, height * 0.68, '⏱ 제한시간: 60초', {
+      fontFamily: 'sans-serif', fontSize: '16px', color: '#e94560',
+    }).setOrigin(0.5).setAlpha(0.7);
+
+    this.tweens.add({ targets: title, alpha: 1, y: height * 0.44, duration: 300, ease: 'Back.easeOut' });
     this.tweens.add({ targets: desc, alpha: 1, duration: 300, delay: 150 });
 
-    // 카운트다운
-    const countText = this.add.text(width / 2, height * 0.76, '', {
+    // Countdown
+    const countText = this.add.text(width / 2, height * 0.82, '', {
       fontFamily: 'sans-serif', fontSize: '72px', color: '#e94560', fontStyle: 'bold',
     }).setOrigin(0.5);
 
@@ -87,11 +94,11 @@ export class MinigameIntroScene extends Phaser.Scene {
       scene: 'MinigameIntroScene',
       stageId: this.introData.stageId,
       progress: GameManager.progress,
-      allCleared: GameManager.allCleared,
-      stress: GameManager.stress,
+      allCleared: false,
+      stress: 0,
       time: stage.time,
       period: stage.period,
-      successCount: GameManager.successCount,
+      totalScore: GameManager.totalScore,
     });
   }
 }

@@ -1,8 +1,8 @@
 .frame {
-  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   background: linear-gradient(145deg, var(--color-phone-bezel-start), var(--color-phone-bezel-end));
   border-radius: var(--phone-radius);
   padding: var(--phone-bezel);
@@ -36,6 +36,7 @@
 .screen {
   width: 100%;
   flex: 1;
+  min-height: 0;
   border-radius: calc(var(--phone-radius) - var(--phone-bezel));
   overflow: hidden;
   position: relative;
