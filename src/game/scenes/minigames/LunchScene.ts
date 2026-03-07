@@ -433,7 +433,9 @@ export class LunchScene extends Phaser.Scene {
   private scheduleSpawn() {
     if (this.gameOver || this.phase !== 'catch') return;
 
-    this.spawnEvent = this.time.delayedCall(SPAWN_INTERVAL, () => {
+    const elapsed = this.catchStartTime > 0 ? (this.time.now - this.catchStartTime) / 1000 : 0;
+    const interval = Math.max(500, 1100 - elapsed * 15);
+    this.spawnEvent = this.time.delayedCall(interval, () => {
       this.spawnItem();
       this.scheduleSpawn();
     });
@@ -456,7 +458,10 @@ export class LunchScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     const container = this.add.container(x, -20, [text]);
-    this.fallingItems.push({ container, label, isCorrect, speed: FALL_SPEED });
+    const elapsed = this.catchStartTime > 0 ? (this.time.now - this.catchStartTime) / 1000 : 0;
+    const baseSpeed = 200 + elapsed * 3;
+    const speed = baseSpeed * Phaser.Math.FloatBetween(0.6, 1.5);
+    this.fallingItems.push({ container, label, isCorrect, speed });
   }
 
   /* ── Catch / Effects ── */

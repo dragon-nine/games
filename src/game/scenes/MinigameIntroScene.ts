@@ -57,6 +57,15 @@ export class MinigameIntroScene extends Phaser.Scene {
       fontFamily: 'sans-serif', fontSize: '16px', color: '#e94560',
     }).setOrigin(0.5).setAlpha(0.7);
 
+    // Operation guide
+    const guide = stage.minigame.guide;
+    if (guide) {
+      this.add.text(width / 2, height * 0.75, guide, {
+        fontFamily: 'sans-serif', fontSize: '14px', color: '#88aacc',
+        align: 'center',
+      }).setOrigin(0.5).setAlpha(0.8);
+    }
+
     this.tweens.add({ targets: title, alpha: 1, y: height * 0.44, duration: 300, ease: 'Back.easeOut' });
     this.tweens.add({ targets: desc, alpha: 1, duration: 300, delay: 150 });
 

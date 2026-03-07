@@ -162,14 +162,9 @@ export class CommuteScene extends Phaser.Scene {
 
     leftBg.on('pointerdown', () => {
       if (this.gameOver || this.isFalling) return;
-      // 토글: up → 반대 레인 방향, 이미 반대면 → up
-      if (this.facingDir === 'up') {
-        this.facingDir = this.currentLane === 'left' ? 'right' : 'left';
-      } else {
-        this.facingDir = 'up';
-      }
-      this.playerSprite.setFlipX(this.facingDir === 'left');
-      this.updateDirArrow();
+      // 방향전환 = 반대 레인으로 한 칸 올라가기
+      this.facingDir = this.currentLane === 'left' ? 'right' : 'left';
+      this.tryStep();
 
       this.tweens.add({
         targets: leftBg, scaleX: 0.95, scaleY: 0.95,

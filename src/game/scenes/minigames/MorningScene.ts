@@ -117,6 +117,13 @@ export class MorningScene extends Phaser.Scene {
   private readonly MIN_ANGLE = -Math.PI * 0.88; // ~160° (far left)
   private readonly MAX_ANGLE = -Math.PI * 0.12; // ~20° (far right)
 
+  // Trajectory (wall bounce)
+  private currentTrajectory: { x: number; y: number }[] = [];
+  private currentTrajectoryLength = 0;
+  private wallL = 30;
+  private wallR = 0;
+  private topY = 80;
+
   constructor() {
     super({ key: 'MorningScene' });
   }
@@ -136,6 +143,8 @@ export class MorningScene extends Phaser.Scene {
     this.chargePower = 0;
     this.eraserFlying = false;
     this.aimAngle = -Math.PI / 2;
+    this.currentTrajectory = [];
+    this.currentTrajectoryLength = 0;
   }
 
   create() {
@@ -145,6 +154,9 @@ export class MorningScene extends Phaser.Scene {
 
     this.charCenterX = width / 2;
     this.charCenterY = height - 120;
+    this.wallL = 30;
+    this.wallR = width - 30;
+    this.topY = 80;
 
     // ── HUD ──
     this.scoreText = this.add.text(20, 20, '점수: 0', {
@@ -203,6 +215,7 @@ export class MorningScene extends Phaser.Scene {
       const elapsed = (this.time.now - this.chargeStartTime) / 1000;
       this.chargePower = Math.min(elapsed / 2, 1);
       this.drawGauge();
+      this.drawAimLine();
     }
   }
 
@@ -272,32 +285,151 @@ export class MorningScene extends Phaser.Scene {
   }
 
   /* ══════════════════════════════════════
-     Aim line rendering
+     Aim line rendering (wall-bounce trajectory)
      ══════════════════════════════════════ */
 
   private drawAimLine() {
     this.aimLine.clear();
 
-    const lineLen = 100;
-    const endX = this.charCenterX + Math.cos(this.aimAngle) * lineLen;
-    const endY = this.charCenterY + Math.sin(this.aimAngle) * lineLen;
+    const trajPoints = this.computeTrajectoryPoints(this.aimAngle);
+    const totalLen = this.computePathLength(trajPoints);
+    this.currentTrajectory = trajPoints;
+    this.currentTrajectoryLength = totalLen;
 
-    // Dotted aim line
-    const segments = 8;
+    // Full trajectory (faint)
+    for (let i = 1; i < trajPoints.length; i++) {
+      this.drawDottedSegment(
+        trajPoints[i - 1].x, trajPoints[i - 1].y,
+        trajPoints[i].x, trajPoints[i].y,
+        0xff6b6b, 0.15,
+      );
+    }
+
+    // Charged portion (bright)
+    const chargedDist = this.chargePower * totalLen;
+    let remaining = chargedDist;
+    for (let i = 1; i < trajPoints.length; i++) {
+      if (remaining <= 0) break;
+      const p0 = trajPoints[i - 1];
+      const p1 = trajPoints[i];
+      const dx = p1.x - p0.x;
+      const dy = p1.y - p0.y;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      if (remaining >= segLen) {
+        this.drawDottedSegment(p0.x, p0.y, p1.x, p1.y, 0xff6b6b, 0.7);
+        remaining -= segLen;
+      } else {
+        const t = remaining / segLen;
+        this.drawDottedSegment(p0.x, p0.y, p0.x + dx * t, p0.y + dy * t, 0xff6b6b, 0.7);
+        remaining = 0;
+      }
+    }
+
+    // Bounce point markers
+    for (let i = 1; i < trajPoints.length - 1; i++) {
+      this.aimLine.fillStyle(0xffffff, 0.3);
+      this.aimLine.fillCircle(trajPoints[i].x, trajPoints[i].y, 4);
+    }
+
+    // Landing dot
+    if (chargedDist > 0) {
+      const landingPos = this.findPositionOnPath(trajPoints, chargedDist);
+      this.aimDot.setPosition(landingPos.x, landingPos.y);
+      this.aimDot.setAlpha(0.9);
+    } else {
+      this.aimDot.setPosition(trajPoints[0].x, trajPoints[0].y - 30);
+      this.aimDot.setAlpha(0.3);
+    }
+  }
+
+  private drawDottedSegment(x0: number, y0: number, x1: number, y1: number, color: number, alpha: number) {
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const segments = Math.max(1, Math.floor(len / 12));
     for (let i = 0; i < segments; i++) {
       const t0 = i / segments;
       const t1 = (i + 0.5) / segments;
-      const x0 = this.charCenterX + Math.cos(this.aimAngle) * lineLen * t0;
-      const y0 = this.charCenterY + Math.sin(this.aimAngle) * lineLen * t0;
-      const x1 = this.charCenterX + Math.cos(this.aimAngle) * lineLen * t1;
-      const y1 = this.charCenterY + Math.sin(this.aimAngle) * lineLen * t1;
+      this.aimLine.lineStyle(3, color, alpha);
+      this.aimLine.lineBetween(
+        x0 + dx * t0, y0 + dy * t0,
+        x0 + dx * t1, y0 + dy * t1,
+      );
+    }
+  }
 
-      this.aimLine.lineStyle(3, 0xff6b6b, 0.6);
-      this.aimLine.lineBetween(x0, y0, x1, y1);
+  /* ══════════════════════════════════════
+     Trajectory computation (wall bounce)
+     ══════════════════════════════════════ */
+
+  private computeTrajectoryPoints(angle: number): { x: number; y: number }[] {
+    const points: { x: number; y: number }[] = [];
+    const startX = this.charCenterX;
+    const startY = this.charCenterY - 60;
+
+    let x = startX;
+    let y = startY;
+    let dx = Math.cos(angle);
+    let dy = Math.sin(angle);
+
+    points.push({ x, y });
+
+    for (let i = 0; i < 10; i++) {
+      let tMin = Infinity;
+      let hitType: 'left' | 'right' | 'top' = 'top';
+
+      if (dx < 0) {
+        const t = (this.wallL - x) / dx;
+        if (t > 0.001 && t < tMin) { tMin = t; hitType = 'left'; }
+      }
+      if (dx > 0) {
+        const t = (this.wallR - x) / dx;
+        if (t > 0.001 && t < tMin) { tMin = t; hitType = 'right'; }
+      }
+      if (dy < 0) {
+        const t = (this.topY - y) / dy;
+        if (t > 0.001 && t < tMin) { tMin = t; hitType = 'top'; }
+      }
+
+      if (tMin === Infinity || tMin <= 0) break;
+
+      x += dx * tMin;
+      y += dy * tMin;
+      points.push({ x, y });
+
+      if (hitType === 'top') break;
+      dx = -dx; // reflect off side wall
     }
 
-    // Move aim dot to end
-    this.aimDot.setPosition(endX, endY);
+    return points;
+  }
+
+  private computePathLength(points: { x: number; y: number }[]): number {
+    let len = 0;
+    for (let i = 1; i < points.length; i++) {
+      const dx = points[i].x - points[i - 1].x;
+      const dy = points[i].y - points[i - 1].y;
+      len += Math.sqrt(dx * dx + dy * dy);
+    }
+    return len;
+  }
+
+  private findPositionOnPath(points: { x: number; y: number }[], distance: number): { x: number; y: number } {
+    let remaining = distance;
+    for (let i = 1; i < points.length; i++) {
+      const dx = points[i].x - points[i - 1].x;
+      const dy = points[i].y - points[i - 1].y;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      if (remaining <= segLen) {
+        const t = remaining / segLen;
+        return {
+          x: points[i - 1].x + dx * t,
+          y: points[i - 1].y + dy * t,
+        };
+      }
+      remaining -= segLen;
+    }
+    return points[points.length - 1];
   }
 
   /* ══════════════════════════════════════
@@ -433,35 +565,34 @@ export class MorningScene extends Phaser.Scene {
     if (this.eraserFlying) return;
     this.eraserFlying = true;
 
-    const startX = this.charCenterX;
-    const startY = this.charCenterY - 60;
+    const trajPoints = this.computeTrajectoryPoints(angle);
+    const totalLen = this.computePathLength(trajPoints);
+    const travelDist = power * totalLen;
+    const endPos = this.findPositionOnPath(trajPoints, travelDist);
 
-    // Travel distance based on power: 80 ~ 500px (짧게 누르면 가까이)
-    const dist = 80 + power * power * 420;
-    const targetX = startX + Math.cos(angle) * dist;
-    const targetY = startY + Math.sin(angle) * dist;
+    const startX = trajPoints[0].x;
+    const startY = trajPoints[0].y;
 
-    // Clamp targetY to report area
-    const clampedY = Phaser.Math.Clamp(targetY, 90, 540);
-    const travelRatio = Math.abs(startY - clampedY) / Math.abs(startY - targetY) || 1;
-    const clampedX = startX + (targetX - startX) * travelRatio;
-
-    // Create eraser
     const eraser = this.add.rectangle(startX, startY, 28, 16, 0xf8a5c2).setDepth(85);
     const eraserEmoji = this.add.text(startX, startY, '🧽', { fontSize: '16px' })
       .setOrigin(0.5).setDepth(86);
 
-    // 컬링 느낌: 느리게 출발 → 감속하며 멈춤 (power 낮을수록 더 느림)
-    const duration = 600 + (1 - power) * 500;
+    const duration = 300 + (1 - power) * 500;
+    const tracker = { t: 0 };
 
     this.tweens.add({
-      targets: [eraser, eraserEmoji],
-      x: clampedX,
-      y: clampedY,
+      targets: tracker,
+      t: 1,
       duration,
       ease: 'Cubic.easeOut',
+      onUpdate: () => {
+        const dist = tracker.t * travelDist;
+        const pos = this.findPositionOnPath(trajPoints, dist);
+        eraser.setPosition(pos.x, pos.y);
+        eraserEmoji.setPosition(pos.x, pos.y);
+      },
       onComplete: () => {
-        this.resolveHit(clampedX, clampedY, eraser, eraserEmoji);
+        this.resolveHit(endPos.x, endPos.y, eraser, eraserEmoji);
       },
     });
   }

@@ -293,20 +293,26 @@ export class LeaveWorkScene extends Phaser.Scene {
     const diff = Math.min(elapsed / 60, 1);
 
     const safeDur = () => Phaser.Math.Between(
-      Math.max(800, 2000 - diff * 800),
-      Math.max(1500, 3500 - diff * 1500),
+      Math.max(600, 1600 - diff * 900),
+      Math.max(1000, 2800 - diff * 1600),
     );
     const dangerDur = () => Phaser.Math.Between(
-      1000 + Math.floor(diff * 500),
-      2000 + Math.floor(diff * 1000),
+      1200 + Math.floor(diff * 600),
+      2200 + Math.floor(diff * 1200),
     );
 
-    const safeCount = Phaser.Math.Between(1, 3);
+    const safeCount = Phaser.Math.Between(1, Math.max(1, 3 - Math.floor(diff * 2)));
     const safeStates: BossState[] = ['left', 'right', 'drink', 'order'];
 
     for (let i = 0; i < safeCount; i++) {
       const s = safeStates[Phaser.Math.Between(0, safeStates.length - 1)];
       phases.push({ state: s, duration: safeDur() });
+    }
+
+    // Fake-out: briefly look away then snap back
+    if (Math.random() < diff * 0.5) {
+      const fakeState = safeStates[Phaser.Math.Between(0, safeStates.length - 1)];
+      phases.push({ state: fakeState, duration: Phaser.Math.Between(300, 700) });
     }
 
     phases.push({ state: 'front', duration: dangerDur() });

@@ -3,6 +3,7 @@ export interface MinigameDef {
   sceneKey: string;
   name: string;
   description: string;
+  guide?: string;
 }
 
 export interface StageDef {
