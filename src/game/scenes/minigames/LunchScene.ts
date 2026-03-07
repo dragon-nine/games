@@ -50,8 +50,8 @@ const GROUP_SIZES = [1, 2, 3, 2];
 const FACE_EMOJIS = ['😀','😃','😄','😁','😆','😊','🤗','🤩','😎','🥳','😺','🐶'];
 
 /** 낙하속도, 생성간격 */
-const FALL_SPEED = 150;
-const SPAWN_INTERVAL = 1200;
+// Speed is dynamic: base 200 + elapsed * 3, per-item variation 0.6x~1.5x
+// Spawn interval is dynamic: max(500, 1100 - elapsed * 15)
 /** 오답 비율: 이 확률로 오답이 나옴 */
 const WRONG_RATIO = 0.45;
 /** 오답 중 헷갈리는 변형 vs 완전 다른 것 (50:50) */

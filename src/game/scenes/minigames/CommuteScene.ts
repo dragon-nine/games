@@ -43,8 +43,6 @@ export class CommuteScene extends Phaser.Scene {
   // Lane positions (will be set in create)
   private laneX = { left: 0, right: 0 };
 
-  // Direction: 'up' = 같은 레인 유지, 'left'/'right' = 해당 레인으로 이동
-  private facingDir: 'up' | 'left' | 'right' = 'up';
   private dirArrow!: Phaser.GameObjects.Text;
 
   // Current lane the player is on
@@ -73,7 +71,6 @@ export class CommuteScene extends Phaser.Scene {
     this.isFalling = false;
     this.comboCount = 0;
     this.bestCombo = 0;
-    this.facingDir = 'up';
     this.currentLane = 'left';
   }
 
@@ -314,42 +311,43 @@ export class CommuteScene extends Phaser.Scene {
     const nextPlat = this.platforms[nextIdx];
     if (!nextPlat) return;
 
-    if (targetLane === nextPlat.lane) {
-      // 성공!
-      this.currentPlatIdx = nextIdx;
-      this.currentLane = targetLane;
-      this.score++;
-      this.comboCount++;
-      if (this.comboCount > this.bestCombo) this.bestCombo = this.comboCount;
-      this.scoreText.setText(`${this.score} 계단`);
-
-      this.playerSprite.setFlipX(false);
-
-      // Step animation
-      this.setPlayerTexture('player-step');
-      this.time.delayedCall(100, () => {
-        if (!this.isFalling) this.setPlayerTexture('player-idle');
-      });
-
-      // Ensure platforms ahead
-      while (this.platforms.length - this.currentPlatIdx < 15) {
-        this.addNextPlatform();
-      }
-
-      // Scroll to new position
-      this.scrollToPlayer(nextPlat);
-
-      // 방향전환 버튼 라벨 업데이트 (레인이 바뀌었을 수 있으므로)
-      this.updateSwitchBtnLabel();
-
-      if (this.comboCount > 0 && this.comboCount % 10 === 0) {
-        this.showPopup(`${this.comboCount} 콤보!`, '#ffd700');
-      }
-
-      this.cleanupOldPlatforms();
-    } else {
+    // 다음 계단이 targetLane이 아니면 추락
+    if (targetLane !== nextPlat.lane) {
       this.onFall(targetLane);
+      return;
     }
+
+    // 성공
+    this.currentPlatIdx = nextIdx;
+    this.currentLane = targetLane;
+    this.score++;
+    this.comboCount++;
+    if (this.comboCount > this.bestCombo) this.bestCombo = this.comboCount;
+    this.scoreText.setText(`${this.score} 계단`);
+
+    this.playerSprite.setFlipX(false);
+
+    // Step animation
+    this.setPlayerTexture('player-step');
+    this.time.delayedCall(100, () => {
+      if (!this.isFalling) this.setPlayerTexture('player-idle');
+    });
+
+    // Ensure platforms ahead
+    while (this.platforms.length - this.currentPlatIdx < 15) {
+      this.addNextPlatform();
+    }
+
+    // Scroll to new position
+    this.scrollToPlayer(nextPlat);
+
+    this.updateSwitchBtnLabel();
+
+    if (this.comboCount > 0 && this.comboCount % 10 === 0) {
+      this.showPopup(`${this.comboCount} 콤보!`, '#ffd700');
+    }
+
+    this.cleanupOldPlatforms();
   }
 
   private scrollToPlayer(plat: Platform) {

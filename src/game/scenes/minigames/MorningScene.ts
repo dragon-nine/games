@@ -118,8 +118,6 @@ export class MorningScene extends Phaser.Scene {
   private readonly MAX_ANGLE = -Math.PI * 0.12; // ~20° (far right)
 
   // Trajectory (wall bounce)
-  private currentTrajectory: { x: number; y: number }[] = [];
-  private currentTrajectoryLength = 0;
   private wallL = 30;
   private wallR = 0;
   private topY = 80;
@@ -143,8 +141,6 @@ export class MorningScene extends Phaser.Scene {
     this.chargePower = 0;
     this.eraserFlying = false;
     this.aimAngle = -Math.PI / 2;
-    this.currentTrajectory = [];
-    this.currentTrajectoryLength = 0;
   }
 
   create() {
@@ -293,8 +289,6 @@ export class MorningScene extends Phaser.Scene {
 
     const trajPoints = this.computeTrajectoryPoints(this.aimAngle);
     const totalLen = this.computePathLength(trajPoints);
-    this.currentTrajectory = trajPoints;
-    this.currentTrajectoryLength = totalLen;
 
     // Full trajectory (faint)
     for (let i = 1; i < trajPoints.length; i++) {
