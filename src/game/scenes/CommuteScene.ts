@@ -247,12 +247,14 @@ export class CommuteScene extends Phaser.Scene {
   /* ── Crash ── */
 
   private onForwardCrash() {
+    this.isFalling = true;
     this.player.setHurt(true);
     this.cameras.main.shake(200, 0.015);
     this.player.animateForwardCrash(() => this.endGame());
   }
 
   private onCrash() {
+    this.isFalling = true;
     this.player.setHurt(true);
     this.cameras.main.shake(200, 0.015);
     this.endGame();
