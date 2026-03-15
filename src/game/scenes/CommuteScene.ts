@@ -7,6 +7,7 @@ import {
 import { Road } from '../Road';
 import { Player } from '../Player';
 import { HUD } from '../HUD';
+import { Overlay } from '../Overlay';
 import { submitGameCenterLeaderBoardScore, openGameCenterLeaderboard, Analytics, eventLog } from '@apps-in-toss/web-framework';
 
 function safeAnalytics(fn: () => void) {
@@ -273,67 +274,31 @@ export class CommuteScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.bgm?.pause();
 
-    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
-      .setDepth(400);
-    this.tweens.add({ targets: overlay, fillAlpha: 0.8, duration: 400 });
+    const ov = new Overlay(this).open({ fadeIn: true });
 
-    const reviveItems: Phaser.GameObjects.GameObject[] = [];
+    const icon = ov.addText(width / 2, height * 0.28, '💀', { fontSize: '64px' }).setAlpha(0);
+    const title = ov.addText(width / 2, height * 0.38, '부활하시겠습니까?', { fontSize: '28px', color: '#ffffff', fontStyle: 'bold' }).setAlpha(0);
+    const desc = ov.addText(width / 2, height * 0.44, '광고를 보고 이어서 플레이하세요!', { fontSize: '15px', color: '#aaaacc' }).setAlpha(0);
+    const chance = ov.addText(width / 2, height * 0.48, '(1회만 가능)', { fontSize: '13px', color: '#777799' }).setAlpha(0);
 
-    const icon = this.add.text(width / 2, height * 0.28, '💀', {
-      fontSize: '64px',
-    }).setOrigin(0.5).setDepth(401).setAlpha(0);
-
-    const title = this.add.text(width / 2, height * 0.38, '부활하시겠습니까?', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '28px', color: '#ffffff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(401).setAlpha(0);
-
-    const desc = this.add.text(width / 2, height * 0.44, '광고를 보고 이어서 플레이하세요!', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '15px', color: '#aaaacc',
-    }).setOrigin(0.5).setDepth(401).setAlpha(0);
-
-    const chance = this.add.text(width / 2, height * 0.48, '(1회만 가능)', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '13px', color: '#777799',
-    }).setOrigin(0.5).setDepth(401).setAlpha(0);
-
-    // 광고 보기 버튼
-    const adBtn = this.add.rectangle(width / 2, height * 0.57, 250, 56, 0x44aa44)
-      .setInteractive({ useHandCursor: true }).setDepth(401).setAlpha(0);
-    const adText = this.add.text(width / 2, height * 0.57, '▶  광고 보고 부활', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '20px', color: '#ffffff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(402).setAlpha(0);
-
-    adBtn.on('pointerover', () => adBtn.setFillStyle(0x339933));
-    adBtn.on('pointerout', () => adBtn.setFillStyle(0x44aa44));
-    adBtn.on('pointerdown', () => {
+    const ad = ov.addButton(width / 2, height * 0.57, 250, 56, '▶  광고 보고 부활', 0x44aa44, () => {
       this.playSfx('sfx-click', 0.6);
       safeAnalytics(() => eventLog({ log_name: 'revive_ad_click', log_type: 'click', params: { score: this.score } }));
-      this.showAd(reviveItems, overlay, () => this.revive());
+      this.showAd(ov.getItems(), ov.getItems()[0] as Phaser.GameObjects.Rectangle, () => this.revive());
     });
 
-    // 건너뛰기 버튼
-    const skipBtn = this.add.rectangle(width / 2, height * 0.66, 250, 48, 0x555555)
-      .setInteractive({ useHandCursor: true }).setDepth(401).setAlpha(0);
-    const skipText = this.add.text(width / 2, height * 0.66, '건너뛰기', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '18px', color: '#999999',
-    }).setOrigin(0.5).setDepth(402).setAlpha(0);
-
-    skipBtn.on('pointerover', () => skipBtn.setFillStyle(0x666666));
-    skipBtn.on('pointerout', () => skipBtn.setFillStyle(0x555555));
-    skipBtn.on('pointerdown', () => {
+    const skip = ov.addButton(width / 2, height * 0.66, 250, 48, '건너뛰기', 0x555555, () => {
       this.playSfx('sfx-click', 0.6);
       safeAnalytics(() => eventLog({ log_name: 'revive_skip', log_type: 'click', params: { score: this.score } }));
-      reviveItems.forEach(item => item.destroy());
-      overlay.destroy();
+      ov.close();
       this.endGame();
-    });
-
-    reviveItems.push(overlay, icon, title, desc, chance, adBtn, adText, skipBtn, skipText);
+    }, { color: '#999999' });
 
     this.time.delayedCall(300, () => {
-      this.tweens.add({ targets: icon, alpha: 1, duration: 300 });
-      this.tweens.add({ targets: [title, desc, chance], alpha: 1, duration: 300, delay: 100 });
-      this.tweens.add({ targets: [adBtn, adText], alpha: 1, duration: 300, delay: 250 });
-      this.tweens.add({ targets: [skipBtn, skipText], alpha: 1, duration: 300, delay: 400 });
+      ov.fadeInItems([icon], 0);
+      ov.fadeInItems([title, desc, chance], 100);
+      ov.fadeInItems([ad.bg, ad.text], 250);
+      ov.fadeInItems([skip.bg, skip.text], 400);
     });
   }
 
@@ -492,6 +457,7 @@ export class CommuteScene extends Phaser.Scene {
     this.player.setHurt(false);
 
     this.hud.timeLeft = START_TIME;
+    this.hud.elapsed = 30; // 보너스 0.3초부터 재시작
     this.hud.updateTimerBar();
     this.hud.startTimer();
 
@@ -536,57 +502,37 @@ export class CommuteScene extends Phaser.Scene {
     this.submitScore();
 
     const { width, height } = this.scale;
+    const ov = new Overlay(this).open({ fadeIn: true });
 
-    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
-      .setDepth(400);
-    this.tweens.add({ targets: overlay, fillAlpha: 0.7, duration: 500 });
-
-    const resultText = this.add.text(width / 2, height * 0.30, `점수: ${this.score}`, {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '48px', color: '#ffffff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(401).setAlpha(0);
-
-    const comboText = this.add.text(width / 2, height * 0.40, `최대 콤보: ${this.bestCombo}`, {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '22px', color: '#aaaacc',
-    }).setOrigin(0.5).setDepth(401).setAlpha(0);
+    const resultText = ov.addText(width / 2, height * 0.33, `점수: ${this.score}`, {
+      fontSize: '48px', color: '#ffffff', fontStyle: 'bold',
+    }).setAlpha(0);
 
     this.time.delayedCall(500, () => {
-      this.tweens.add({ targets: resultText, alpha: 1, duration: 300 });
-      this.tweens.add({ targets: comboText, alpha: 1, duration: 300, delay: 150 });
+      ov.fadeInItems([resultText]);
     });
 
-    // 리더보드 보기 버튼
-    const lbBtn = this.add.rectangle(width / 2, height * 0.52, 220, 56, 0x3182f6)
-      .setInteractive({ useHandCursor: true }).setDepth(401).setAlpha(0);
-    const lbText = this.add.text(width / 2, height * 0.52, '랭킹 보기', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '24px', color: '#ffffff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(402).setAlpha(0);
-
-    lbBtn.on('pointerover', () => lbBtn.setFillStyle(0x1b6ce5));
-    lbBtn.on('pointerout', () => lbBtn.setFillStyle(0x3182f6));
-    lbBtn.on('pointerdown', () => {
+    const lb = ov.addButton(width / 2, height * 0.48, 220, 56, '랭킹 보기', 0x3182f6, () => {
       this.playSfx('sfx-click', 0.6);
       safeAnalytics(() => Analytics.click({ log_name: 'leaderboard_open' }));
       safeAnalytics(() => openGameCenterLeaderboard());
-    });
+    }, { fontSize: '24px' });
 
-    // 다시하기 버튼
-    const retryBtn = this.add.rectangle(width / 2, height * 0.62, 220, 56, 0xe94560)
-      .setInteractive({ useHandCursor: true }).setDepth(401).setAlpha(0);
-    const retryText = this.add.text(width / 2, height * 0.62, '다시하기', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '24px', color: '#ffffff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(402).setAlpha(0);
-
-    retryBtn.on('pointerover', () => retryBtn.setFillStyle(0xd63651));
-    retryBtn.on('pointerout', () => retryBtn.setFillStyle(0xe94560));
-    retryBtn.on('pointerdown', () => {
+    const retry = ov.addButton(width / 2, height * 0.58, 220, 56, '다시하기', 0xe94560, () => {
       this.playSfx('sfx-click', 0.6);
       safeAnalytics(() => Analytics.click({ log_name: 'game_retry' }));
       this.scene.start('CommuteScene');
-    });
+    }, { fontSize: '24px' });
+
+    const home = ov.addButton(width / 2, height * 0.68, 220, 48, '홈으로', 0x555555, () => {
+      this.playSfx('sfx-click', 0.6);
+      this.scene.start('BootScene');
+    }, { color: '#cccccc' });
 
     this.time.delayedCall(800, () => {
-      this.tweens.add({ targets: [lbBtn, lbText], alpha: 1, duration: 300 });
-      this.tweens.add({ targets: [retryBtn, retryText], alpha: 1, duration: 300, delay: 150 });
+      ov.fadeInItems([lb.bg, lb.text]);
+      ov.fadeInItems([retry.bg, retry.text], 150);
+      ov.fadeInItems([home.bg, home.text], 300);
     });
   }
 

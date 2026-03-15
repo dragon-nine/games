@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Analytics, eventLog } from '@apps-in-toss/web-framework';
+import { Overlay } from '../Overlay';
 
 function safeAnalytics(fn: () => void) {
   try { fn(); } catch { /* 토스 외부 환경에서는 무시 */ }
@@ -124,20 +125,25 @@ export class BootScene extends Phaser.Scene {
       });
     });
 
-    // 홈화면 추가 버튼
-    const homeBtn = this.add.text(width / 2, height * 0.82, '홈 화면에 추가', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '14px', color: '#6666aa',
-    }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true });
+    // 우상단 아이콘들 (홈화면 추가 + 설정)
+    const homeBtn = this.add.text(width - 60, 20, '📲', {
+      fontSize: '26px',
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
 
-    homeBtn.on('pointerover', () => homeBtn.setColor('#8888cc'));
-    homeBtn.on('pointerout', () => homeBtn.setColor('#6666aa'));
     homeBtn.on('pointerdown', () => {
       if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
       safeAnalytics(() => eventLog({ log_name: 'homescreen_guide_open', log_type: 'click', params: { from: 'boot' } }));
       this.showHomeScreenGuide();
     });
 
-    this.tweens.add({ targets: homeBtn, alpha: 1, duration: 600, delay: 1800 });
+    const settingsBtn = this.add.text(width - 20, 20, '⚙', {
+      fontSize: '26px', color: '#555577',
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+
+    settingsBtn.on('pointerdown', () => {
+      if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
+      this.showSettings();
+    });
 
     // Credits
     this.add.text(width / 2, height * 0.90, 'DragonNine Studio', {
@@ -149,77 +155,97 @@ export class BootScene extends Phaser.Scene {
     }).setOrigin(0.5);
   }
 
+  private showSettings() {
+    const { width, height } = this.scale;
+    const ov = new Overlay(this).open().closeOnDimClick();
+
+    ov.addText(width / 2, height * 0.35, '설정', { fontSize: '32px', color: '#ffffff', fontStyle: 'bold' });
+
+    // BGM 토글
+    let bgmMuted = localStorage.getItem('bgmMuted') !== 'false';
+    const bgmBtn = ov.add(this.add.rectangle(width / 2, height * 0.47, 220, 48, 0x333355)
+      .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
+    const bgmLabel = ov.addText(width / 2, height * 0.47,
+      `배경음악  ${bgmMuted ? 'OFF' : 'ON'}`,
+      { fontSize: '18px', color: bgmMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
+
+    bgmBtn.on('pointerdown', () => {
+      bgmMuted = !bgmMuted;
+      localStorage.setItem('bgmMuted', String(bgmMuted));
+      bgmLabel.setText(`배경음악  ${bgmMuted ? 'OFF' : 'ON'}`);
+      bgmLabel.setColor(bgmMuted ? '#ff6666' : '#66ff66');
+      const menuBgm = this.sound.get('bgm-menu');
+      if (bgmMuted) {
+        menuBgm?.stop();
+      } else if (menuBgm && !menuBgm.isPlaying) {
+        menuBgm.play();
+      } else if (!menuBgm) {
+        try { this.sound.add('bgm-menu', { loop: true, volume: 0.4 }).play(); } catch { /* 무시 */ }
+      }
+    });
+
+    // SFX 토글
+    let sfxMuted = localStorage.getItem('sfxMuted') !== 'false';
+    const sfxBtn = ov.add(this.add.rectangle(width / 2, height * 0.55, 220, 48, 0x333355)
+      .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
+    const sfxLabel = ov.addText(width / 2, height * 0.55,
+      `효과음  ${sfxMuted ? 'OFF' : 'ON'}`,
+      { fontSize: '18px', color: sfxMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
+
+    sfxBtn.on('pointerdown', () => {
+      sfxMuted = !sfxMuted;
+      localStorage.setItem('sfxMuted', String(sfxMuted));
+      sfxLabel.setText(`효과음  ${sfxMuted ? 'OFF' : 'ON'}`);
+      sfxLabel.setColor(sfxMuted ? '#ff6666' : '#66ff66');
+    });
+
+    // 닫기
+    ov.addButton(width / 2, height * 0.65, 160, 48, '닫기', 0x555555,
+      () => ov.close(), { color: '#cccccc' });
+    // addButton은 alpha 0으로 생성되므로 즉시 보이게
+    ov.getItems().forEach(item => { if ('setAlpha' in item) (item as Phaser.GameObjects.Components.Alpha).setAlpha(1); });
+  }
+
   /** 홈화면 추가 가이드 표시 (CommuteScene에서도 호출 가능하도록 static-like) */
   showHomeScreenGuide() {
     const { width, height } = this.scale;
-    const items: Phaser.GameObjects.GameObject[] = [];
+    const ov = new Overlay(this).open();
 
-    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
-      .setDepth(600).setInteractive();
-    items.push(overlay);
+    // 닫기 ✕
+    const closeBtn = ov.addText(width - 20, height * 0.05, '✕', { fontSize: '28px', color: '#888888' });
+    closeBtn.setOrigin(1, 0).setInteractive({ useHandCursor: true });
+    closeBtn.on('pointerdown', () => ov.close());
 
-    // 닫기 버튼
-    const closeBtn = this.add.text(width - 20, 20, '✕', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '28px', color: '#888888',
-    }).setOrigin(1, 0).setDepth(601).setInteractive({ useHandCursor: true });
-    items.push(closeBtn);
-
-    // 앱 아이콘 (D9 로고)
-    const iconBg = this.add.circle(width / 2, height * 0.15, 40, 0xe94560).setDepth(601);
-    const iconText = this.add.text(width / 2, height * 0.15, 'D9', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '28px', color: '#ffffff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(602);
-    items.push(iconBg, iconText);
+    // D9 로고
+    ov.add(this.add.circle(width / 2, height * 0.15, 40, 0xe94560).setDepth(Overlay.DEPTH));
+    ov.addText(width / 2, height * 0.15, 'D9', { fontSize: '28px', color: '#ffffff', fontStyle: 'bold' });
 
     // 타이틀
-    const guideTitle = this.add.text(width / 2, height * 0.24, '직장인 잔혹사를\n홈 화면에 추가해보세요', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '24px', color: '#ffffff', fontStyle: 'bold',
-      align: 'center', lineSpacing: 8,
-    }).setOrigin(0.5).setDepth(601);
-    items.push(guideTitle);
+    ov.addText(width / 2, height * 0.24, '직장인 잔혹사를\n홈 화면에 추가해보세요', {
+      fontSize: '24px', color: '#ffffff', fontStyle: 'bold', align: 'center',
+    });
 
     // 스텝 가이드
-    const stepStyle = { fontFamily: 'GMarketSans, sans-serif', fontSize: '16px', color: '#ccccdd', lineSpacing: 6 };
-    const numStyle = { fontFamily: 'GMarketSans, sans-serif', fontSize: '22px', color: '#e94560', fontStyle: 'bold' as const };
-
     const stepY = height * 0.38;
     const stepGap = height * 0.09;
     const leftX = 36;
 
-    // Step 1
-    const n1 = this.add.text(leftX, stepY, '1', numStyle).setDepth(601);
-    const s1 = this.add.text(leftX + 30, stepY, '오른쪽 아래  ⬆  아이콘을 누르고,', stepStyle).setDepth(601);
-    items.push(n1, s1);
+    ov.addText(leftX + 15, stepY, '1', { fontSize: '22px', color: '#e94560', fontStyle: 'bold' });
+    ov.addText(leftX + 45, stepY, '오른쪽 아래  ⬆  아이콘을 누르고,', { fontSize: '16px', color: '#ccccdd' }).setOrigin(0, 0.5);
 
-    // Step 2
-    const n2 = this.add.text(leftX, stepY + stepGap, '2', numStyle).setDepth(601);
-    const s2 = this.add.text(leftX + 30, stepY + stepGap, '새로 뜬 창을 스크롤해서', stepStyle).setDepth(601);
-    items.push(n2, s2);
+    ov.addText(leftX + 15, stepY + stepGap, '2', { fontSize: '22px', color: '#e94560', fontStyle: 'bold' });
+    ov.addText(leftX + 45, stepY + stepGap, '새로 뜬 창을 스크롤해서', { fontSize: '16px', color: '#ccccdd' }).setOrigin(0, 0.5);
 
-    // Step 3
-    const n3 = this.add.text(leftX, stepY + stepGap * 2, '3', numStyle).setDepth(601);
-    const s3 = this.add.text(leftX + 30, stepY + stepGap * 2, '⊕ 홈 화면에 추가  를 선택하세요', stepStyle).setDepth(601);
-    items.push(n3, s3);
+    ov.addText(leftX + 15, stepY + stepGap * 2, '3', { fontSize: '22px', color: '#e94560', fontStyle: 'bold' });
+    ov.addText(leftX + 45, stepY + stepGap * 2, '⊕ 홈 화면에 추가  를 선택하세요', { fontSize: '16px', color: '#ccccdd' }).setOrigin(0, 0.5);
 
-    // 장점 안내
-    const benefit = this.add.text(width / 2, height * 0.72, '앱처럼 빠르게 실행할 수 있어요!', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '14px', color: '#8888aa',
-    }).setOrigin(0.5).setDepth(601);
-    items.push(benefit);
+    ov.addText(width / 2, height * 0.72, '앱처럼 빠르게 실행할 수 있어요!', { fontSize: '14px', color: '#8888aa' });
 
     // 확인 버튼
-    const okBtn = this.add.rectangle(width / 2, height * 0.82, 200, 50, 0xe94560)
-      .setInteractive({ useHandCursor: true }).setDepth(601);
-    const okText = this.add.text(width / 2, height * 0.82, '확인', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '20px', color: '#ffffff', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(602);
-    items.push(okBtn, okText);
-
-    const close = () => items.forEach(item => item.destroy());
-    closeBtn.on('pointerdown', close);
-    okBtn.on('pointerdown', () => {
+    const { bg, text } = ov.addButton(width / 2, height * 0.82, 200, 50, '확인', 0xe94560, () => {
       if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
-      close();
+      ov.close();
     });
+    bg.setAlpha(1); text.setAlpha(1);
   }
 }

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { MAX_TIME, START_TIME } from './constants';
+import { Overlay } from './Overlay';
 
 export class HUD {
   private scene: Phaser.Scene;
@@ -12,10 +13,8 @@ export class HUD {
   private gaugeBarH = 0;
   private pauseIcon!: Phaser.GameObjects.Image;
   private timerRunning = false;
-  private elapsed = 0;
-  private pauseOverlay?: Phaser.GameObjects.Rectangle;
-  private pauseText?: Phaser.GameObjects.Text;
-  private pauseMenuItems: Phaser.GameObjects.GameObject[] = [];
+  elapsed = 0;
+  private pauseOverlay?: Overlay;
 
   private barW = 0;
 
@@ -177,22 +176,17 @@ export class HUD {
       this.scene.time.paused = true;
       this.scene.tweens.pauseAll();
 
-      this.pauseOverlay = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.6)
-        .setDepth(500).setInteractive();
+      const ov = new Overlay(this.scene).open({ onClose: () => this.togglePause() }).closeOnDimClick();
+      this.pauseOverlay = ov;
 
-      this.pauseText = this.scene.add.text(width / 2, height * 0.38, '일시정지', {
-        fontFamily: 'GMarketSans, sans-serif', fontSize: '36px', color: '#ffffff', fontStyle: 'bold',
-      }).setOrigin(0.5).setDepth(501);
+      ov.addText(width / 2, height * 0.38, '일시정지', { fontSize: '36px', color: '#ffffff', fontStyle: 'bold' });
 
-      // ── 배경음악 토글 ──
-      const bgmBtn = this.scene.add.rectangle(width / 2, height * 0.50, 220, 48, 0x333355)
-        .setStrokeStyle(2, 0x6666aa).setDepth(501)
-        .setInteractive({ useHandCursor: true });
-      const bgmLabel = this.scene.add.text(width / 2, height * 0.50,
-        `배경음악  ${this.bgmMuted ? 'OFF' : 'ON'}`, {
-        fontFamily: 'GMarketSans, sans-serif', fontSize: '18px', color: this.bgmMuted ? '#ff6666' : '#66ff66',
-        fontStyle: 'bold',
-      }).setOrigin(0.5).setDepth(502);
+      // 배경음악 토글
+      const bgmBtn = ov.add(this.scene.add.rectangle(width / 2, height * 0.50, 220, 48, 0x333355)
+        .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
+      const bgmLabel = ov.addText(width / 2, height * 0.50,
+        `배경음악  ${this.bgmMuted ? 'OFF' : 'ON'}`,
+        { fontSize: '18px', color: this.bgmMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
 
       bgmBtn.on('pointerdown', () => {
         this.bgmMuted = !this.bgmMuted;
@@ -205,15 +199,12 @@ export class HUD {
         if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
       });
 
-      // ── 효과음 토글 ──
-      const sfxBtn = this.scene.add.rectangle(width / 2, height * 0.58, 220, 48, 0x333355)
-        .setStrokeStyle(2, 0x6666aa).setDepth(501)
-        .setInteractive({ useHandCursor: true });
-      const sfxLabel = this.scene.add.text(width / 2, height * 0.58,
-        `효과음  ${this.sfxMuted ? 'OFF' : 'ON'}`, {
-        fontFamily: 'GMarketSans, sans-serif', fontSize: '18px', color: this.sfxMuted ? '#ff6666' : '#66ff66',
-        fontStyle: 'bold',
-      }).setOrigin(0.5).setDepth(502);
+      // 효과음 토글
+      const sfxBtn = ov.add(this.scene.add.rectangle(width / 2, height * 0.58, 220, 48, 0x333355)
+        .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
+      const sfxLabel = ov.addText(width / 2, height * 0.58,
+        `효과음  ${this.sfxMuted ? 'OFF' : 'ON'}`,
+        { fontSize: '18px', color: this.sfxMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
 
       sfxBtn.on('pointerdown', () => {
         this.sfxMuted = !this.sfxMuted;
@@ -223,26 +214,16 @@ export class HUD {
         if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
       });
 
-      // ── 계속하기 안내 ──
-      const resumeHint = this.scene.add.text(width / 2, height * 0.68, '화면을 터치하면 계속합니다', {
-        fontFamily: 'GMarketSans, sans-serif', fontSize: '14px', color: '#777799',
-      }).setOrigin(0.5).setDepth(501);
+      ov.addText(width / 2, height * 0.68, '화면을 터치하면 계속합니다', { fontSize: '14px', color: '#777799' });
 
-      this.pauseMenuItems = [bgmBtn, bgmLabel, sfxBtn, sfxLabel, resumeHint];
-
-      this.pauseOverlay.on('pointerdown', () => this.togglePause());
       this.pauseIcon.setAlpha(0.5);
     } else {
       this.paused = false;
       this.scene.time.paused = false;
       this.scene.tweens.resumeAll();
 
-      this.pauseOverlay?.destroy();
-      this.pauseText?.destroy();
-      this.pauseMenuItems.forEach(item => item.destroy());
-      this.pauseMenuItems = [];
+      this.pauseOverlay?.close();
       this.pauseOverlay = undefined;
-      this.pauseText = undefined;
       this.pauseIcon.setAlpha(1);
     }
   }
