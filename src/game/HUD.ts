@@ -12,7 +12,7 @@ export class HUD {
   private gaugeBarH = 0;
   private pauseIcon!: Phaser.GameObjects.Image;
   private timerRunning = false;
-  private decayRate = 1;
+  private elapsed = 0;
   private pauseOverlay?: Phaser.GameObjects.Rectangle;
   private pauseText?: Phaser.GameObjects.Text;
   private pauseMenuItems: Phaser.GameObjects.GameObject[] = [];
@@ -22,8 +22,8 @@ export class HUD {
   timeLeft = START_TIME;
   paused = false;
 
-  private bgmMuted = false;
-  private sfxMuted = false;
+  private bgmMuted = localStorage.getItem('bgmMuted') !== 'false';
+  private sfxMuted = localStorage.getItem('sfxMuted') !== 'false';
 
   private onTimeUp: () => void;
   private warningPlayed = false;
@@ -108,15 +108,15 @@ export class HUD {
     });
   }
 
-  addTime(sec: number) {
-    this.timeLeft = Math.min(MAX_TIME, this.timeLeft + sec);
+  addTime() {
+    const bonus = Math.max(0.2, 0.4 - (this.elapsed / 60) * 0.2);
+    this.timeLeft = Math.min(MAX_TIME, this.timeLeft + bonus);
     this.updateTimerBar();
   }
 
   /** 타이머 시작 (첫 액션 시 호출) */
   startTimer() {
     this.timerRunning = true;
-    this.decayRate = 1;
   }
 
   stopTimer() {
@@ -138,8 +138,8 @@ export class HUD {
     if (!this.timerRunning || this.paused) return;
 
     const dt = delta / 1000; // ms → sec
-    this.timeLeft -= dt * this.decayRate;
-    this.decayRate += dt * 0.02; // 서서히 가속
+    this.elapsed += dt;
+    this.timeLeft -= dt; // 일정하게 초당 1초 감소
 
     // Timer warning sound
     if (this.timeLeft <= 3 && this.timeLeft > 0 && !this.warningPlayed) {
@@ -160,7 +160,7 @@ export class HUD {
     this.updateTimerBar();
   }
 
-  private updateTimerBar() {
+  updateTimerBar() {
     const pct = Math.max(0, this.timeLeft / MAX_TIME);
     const fillW = this.gaugeBarW * pct;
     const slant = this.gaugeBarH * 0.424; // 대각선 기울기 (113도)
@@ -208,6 +208,7 @@ export class HUD {
 
       bgmBtn.on('pointerdown', () => {
         this.bgmMuted = !this.bgmMuted;
+        localStorage.setItem('bgmMuted', String(this.bgmMuted));
         this.scene.sound.getAll('bgm-gameplay').forEach(s => {
           (s as Phaser.Sound.WebAudioSound).setMute(this.bgmMuted);
         });
@@ -228,6 +229,7 @@ export class HUD {
 
       sfxBtn.on('pointerdown', () => {
         this.sfxMuted = !this.sfxMuted;
+        localStorage.setItem('sfxMuted', String(this.sfxMuted));
         sfxLabel.setText(`효과음  ${this.sfxMuted ? 'OFF' : 'ON'}`);
         sfxLabel.setColor(this.sfxMuted ? '#ff6666' : '#66ff66');
         if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }

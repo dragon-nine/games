@@ -113,7 +113,7 @@ export class Road {
       this.straightRemaining--;
       return prevType;
     }
-    this.straightRemaining = Math.floor(Math.random() * 5);
+    this.straightRemaining = Math.floor(Math.random() * 3);
     return prevType === 'left' ? 'right' : 'left';
   }
 }

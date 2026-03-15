@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import type { Lane } from '../constants';
 import {
-  PADDING, ACTION_BONUS, START_TIME,
+  PADDING, START_TIME,
   BTN_SIZE, BTN_MARGIN, BTN_BOTTOM_OFFSET, BTN_PRESS_SCALE, BTN_PRESS_DURATION,
 } from '../constants';
 import { Road } from '../Road';
@@ -181,7 +181,7 @@ export class CommuteScene extends Phaser.Scene {
     this.playSfx('sfx-switch', 0.5);
     this.player.switchTo(opposite);
     this.justSwitched = true;
-    this.hud.addTime(ACTION_BONUS);
+    this.hud.addTime();
     this.player.animateSwitch(opposite);
   }
 
@@ -207,7 +207,7 @@ export class CommuteScene extends Phaser.Scene {
     this.currentRowIdx = nextIdx;
     this.score++;
     this.hud.updateScore(this.score);
-    this.hud.addTime(ACTION_BONUS);
+    this.hud.addTime();
     this.comboCount++;
     if (this.comboCount > this.bestCombo) this.bestCombo = this.comboCount;
 
@@ -492,7 +492,7 @@ export class CommuteScene extends Phaser.Scene {
     this.player.setHurt(false);
 
     this.hud.timeLeft = START_TIME;
-    this.hud.addTime(0);
+    this.hud.updateTimerBar();
     this.hud.startTimer();
 
     if (this.bgm) {

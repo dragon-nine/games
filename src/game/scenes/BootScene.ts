@@ -50,10 +50,12 @@ export class BootScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#0a0a14');
 
-    // Menu BGM (autoplay may be blocked by browser policy)
+    // Menu BGM (localStorage 뮤트 설정 반영)
+    const bgmMuted = localStorage.getItem('bgmMuted') !== 'false';
     try {
       if (!this.sound.get('bgm-menu')) {
-        this.sound.add('bgm-menu', { loop: true, volume: 0.4 }).play();
+        const menuBgm = this.sound.add('bgm-menu', { loop: true, volume: 0.4 });
+        if (!bgmMuted) menuBgm.play();
       }
     } catch { /* autoplay 차단 — 무시 */ }
 
@@ -114,7 +116,7 @@ export class BootScene extends Phaser.Scene {
     btn.on('pointerover', () => btn.setFillStyle(0xd63651));
     btn.on('pointerout', () => btn.setFillStyle(0xe94560));
     btn.on('pointerdown', () => {
-      try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
+      if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
       this.sound.get('bgm-menu')?.stop();
       this.cameras.main.fadeOut(500, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
@@ -130,7 +132,7 @@ export class BootScene extends Phaser.Scene {
     homeBtn.on('pointerover', () => homeBtn.setColor('#8888cc'));
     homeBtn.on('pointerout', () => homeBtn.setColor('#6666aa'));
     homeBtn.on('pointerdown', () => {
-      try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
+      if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
       safeAnalytics(() => eventLog({ log_name: 'homescreen_guide_open', log_type: 'click', params: { from: 'boot' } }));
       this.showHomeScreenGuide();
     });
@@ -216,7 +218,7 @@ export class BootScene extends Phaser.Scene {
     const close = () => items.forEach(item => item.destroy());
     closeBtn.on('pointerdown', close);
     okBtn.on('pointerdown', () => {
-      try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
+      if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
       close();
     });
   }

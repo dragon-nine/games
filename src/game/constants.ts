@@ -1,10 +1,6 @@
 // ── Game constants ──
-export const MAX_TIME = 10;               // 최대 시간 (초)
-export const START_TIME = 10;             // 시작 시간 (초)
-export const ACTION_BONUS = 2;            // 액션 성공 시 획득 시간 (초)
-export const TICK_INTERVAL_START = 1000;  // 초기 틱 간격 (ms) — 1초에 1초 감소
-export const TICK_INTERVAL_MIN = 300;     // 최소 틱 간격 (ms) — 이 이상 빨라지지 않음
-export const TICK_ACCEL = 10;             // 틱마다 간격이 줄어드는 양 (ms)
+export const MAX_TIME = 5;                // 최대 시간 (초)
+export const START_TIME = 5;              // 시작 시간 (초)
 export const PADDING = 30;                // 도로 양쪽 여백 (px)
 export const OBSTACLE_CHANCE = 0.8;       // 빈 레인에 장애물 등장 확률 (0~1)
 export const OBSTACLE_SIZE_RATIO = 1.1;   // 장애물 크기 = laneW * ratio
