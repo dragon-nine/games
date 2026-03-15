@@ -5,8 +5,11 @@ export class HUD {
   private scene: Phaser.Scene;
   private scoreText!: Phaser.GameObjects.Text;
   private gaugeFull!: Phaser.GameObjects.Image;
-  private gaugeFullW = 0;
-  private gaugeFullH = 0;
+  private gaugeMask!: Phaser.GameObjects.Graphics;
+  private gaugeBarX = 0;
+  private gaugeBarY = 0;
+  private gaugeBarW = 0;
+  private gaugeBarH = 0;
   private pauseIcon!: Phaser.GameObjects.Image;
   private timerRunning = false;
   private decayRate = 1;
@@ -49,11 +52,19 @@ export class HUD {
     this.scene.add.image(barCenterX, hudY, 'gauge-empty')
       .setDisplaySize(this.barW, barH).setDepth(200);
 
-    // 꽉찬 게이지 (crop으로 줄어듦)
-    this.gaugeFull = this.scene.add.image(sidePadding, hudY - barH / 2, 'gauge-full')
+    // 꽉찬 게이지
+    this.gaugeBarX = sidePadding;
+    this.gaugeBarY = hudY - barH / 2;
+    this.gaugeBarW = this.barW;
+    this.gaugeBarH = barH;
+
+    this.gaugeFull = this.scene.add.image(sidePadding, this.gaugeBarY, 'gauge-full')
       .setOrigin(0, 0).setDisplaySize(this.barW, barH).setDepth(201);
-    this.gaugeFullW = this.gaugeFull.texture.getSourceImage().width;
-    this.gaugeFullH = this.gaugeFull.texture.getSourceImage().height;
+
+    // 대각선 마스크용 Graphics (화면에 안 그려지고 마스크로만 사용)
+    this.gaugeMask = this.scene.make.graphics({ add: false });
+    this.gaugeFull.setMask(this.gaugeMask.createGeometryMask());
+    this.updateTimerBar();
 
     // ── 일시정지 버튼 (게이지바보다 약간 크게, 수직 중앙 정렬) ──
     const pauseX = width - sidePadding - pauseBtnSize / 2;
@@ -129,8 +140,22 @@ export class HUD {
 
   private updateTimerBar() {
     const pct = Math.max(0, this.timeLeft / MAX_TIME);
-    const cropW = Math.max(0, Math.round(this.gaugeFullW * pct));
-    this.gaugeFull.setCrop(0, 0, cropW, this.gaugeFullH);
+    const fillW = this.gaugeBarW * pct;
+    const slant = this.gaugeBarH * 0.424; // 대각선 기울기 (113도)
+
+    const x = this.gaugeBarX;
+    const y = this.gaugeBarY;
+    const h = this.gaugeBarH;
+
+    this.gaugeMask.clear();
+    this.gaugeMask.fillStyle(0xffffff);
+    this.gaugeMask.beginPath();
+    this.gaugeMask.moveTo(x, y);                               // 좌상
+    this.gaugeMask.lineTo(x + fillW, y);                       // 우상
+    this.gaugeMask.lineTo(x + fillW - slant, y + h);           // 우하 (대각선)
+    this.gaugeMask.lineTo(x, y + h);                           // 좌하
+    this.gaugeMask.closePath();
+    this.gaugeMask.fillPath();
   }
 
   togglePause() {
