@@ -99,7 +99,7 @@ export class HUD {
     // Timer warning sound
     if (this.timeLeft <= 3 && this.timeLeft > 0 && !this.warningPlayed) {
       this.warningPlayed = true;
-      if (!this.sfxMuted) this.scene.sound.play('sfx-timer-warning', { volume: 0.5 });
+      if (!this.sfxMuted) try { this.scene.sound.play('sfx-timer-warning', { volume: 0.5 }); } catch { /* 무시 */ }
     } else if (this.timeLeft > 3) {
       this.warningPlayed = false;
     }
@@ -119,7 +119,7 @@ export class HUD {
   }
 
   togglePause() {
-    if (!this.sfxMuted) this.scene.sound.play('sfx-click', { volume: 0.5 });
+    if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
     const { width, height } = this.scene.scale;
 
     if (!this.paused) {
@@ -151,7 +151,7 @@ export class HUD {
         });
         bgmLabel.setText(`배경음악  ${this.bgmMuted ? 'OFF' : 'ON'}`);
         bgmLabel.setColor(this.bgmMuted ? '#ff6666' : '#66ff66');
-        if (!this.sfxMuted) this.scene.sound.play('sfx-click', { volume: 0.5 });
+        if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
       });
 
       // ── 효과음 토글 ──
@@ -168,7 +168,7 @@ export class HUD {
         this.sfxMuted = !this.sfxMuted;
         sfxLabel.setText(`효과음  ${this.sfxMuted ? 'OFF' : 'ON'}`);
         sfxLabel.setColor(this.sfxMuted ? '#ff6666' : '#66ff66');
-        if (!this.sfxMuted) this.scene.sound.play('sfx-click', { volume: 0.5 });
+        if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
       });
 
       // ── 계속하기 안내 ──

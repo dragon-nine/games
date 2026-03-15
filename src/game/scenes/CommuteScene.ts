@@ -9,6 +9,10 @@ import { Player } from '../Player';
 import { HUD } from '../HUD';
 import { submitGameCenterLeaderBoardScore, openGameCenterLeaderboard, Analytics, eventLog } from '@apps-in-toss/web-framework';
 
+function safeAnalytics(fn: () => void) {
+  try { fn(); } catch { /* 토스 외부 환경에서는 무시 */ }
+}
+
 export class CommuteScene extends Phaser.Scene {
   private road!: Road;
   private player!: Player;
@@ -148,12 +152,14 @@ export class CommuteScene extends Phaser.Scene {
     this.gameStarted = true;
     this.hud.startTimer();
 
-    this.bgm = this.sound.add('bgm-gameplay', { loop: true, volume: 0.35 });
-    if (this.hud.isBgmMuted()) (this.bgm as Phaser.Sound.WebAudioSound).setMute(true);
-    this.bgm.play();
+    try {
+      this.bgm = this.sound.add('bgm-gameplay', { loop: true, volume: 0.35 });
+      if (this.hud.isBgmMuted()) (this.bgm as Phaser.Sound.WebAudioSound).setMute(true);
+      this.bgm.play();
+    } catch { /* 오디오 재생 실패 — 무시 */ }
 
-    Analytics.screen({ log_name: 'screen_game' });
-    eventLog({ log_name: 'game_start', log_type: 'event', params: {} });
+    safeAnalytics(() => Analytics.screen({ log_name: 'screen_game' }));
+    safeAnalytics(() => eventLog({ log_name: 'game_start', log_type: 'event', params: {} }));
   }
 
   /* ── Movement ── */
@@ -299,7 +305,7 @@ export class CommuteScene extends Phaser.Scene {
     adBtn.on('pointerout', () => adBtn.setFillStyle(0x44aa44));
     adBtn.on('pointerdown', () => {
       this.playSfx('sfx-click', 0.6);
-      eventLog({ log_name: 'revive_ad_click', log_type: 'click', params: { score: this.score } });
+      safeAnalytics(() => eventLog({ log_name: 'revive_ad_click', log_type: 'click', params: { score: this.score } }));
       this.showAd(reviveItems, overlay, () => this.revive());
     });
 
@@ -314,7 +320,7 @@ export class CommuteScene extends Phaser.Scene {
     skipBtn.on('pointerout', () => skipBtn.setFillStyle(0x555555));
     skipBtn.on('pointerdown', () => {
       this.playSfx('sfx-click', 0.6);
-      eventLog({ log_name: 'revive_skip', log_type: 'click', params: { score: this.score } });
+      safeAnalytics(() => eventLog({ log_name: 'revive_skip', log_type: 'click', params: { score: this.score } }));
       reviveItems.forEach(item => item.destroy());
       overlay.destroy();
       this.endGame();
@@ -357,7 +363,7 @@ export class CommuteScene extends Phaser.Scene {
     // 실제 광고 시도 → 실패 시 자체광고
     const adLoaded = this.tryShowRealAd(cleanup);
     if (!adLoaded) {
-      eventLog({ log_name: 'ad_fallback_house', log_type: 'event', params: {} });
+      safeAnalytics(() => eventLog({ log_name: 'ad_fallback_house', log_type: 'event', params: {} }));
       this.showHouseAd(cleanup);
     }
   }
@@ -455,7 +461,7 @@ export class CommuteScene extends Phaser.Scene {
       fontFamily: 'sans-serif', fontSize: '11px', color: '#444466',
     }).setOrigin(0.5).setDepth(451));
 
-    eventLog({ log_name: 'homescreen_guide_impression', log_type: 'impression', params: { from: 'house_ad' } });
+    safeAnalytics(() => eventLog({ log_name: 'homescreen_guide_impression', log_type: 'impression', params: { from: 'house_ad' } }));
 
     this.time.addEvent({
       delay: 1000,
@@ -492,7 +498,7 @@ export class CommuteScene extends Phaser.Scene {
       (this.bgm as Phaser.Sound.WebAudioSound).resume();
     }
 
-    eventLog({ log_name: 'revive_complete', log_type: 'event', params: { score: this.score } });
+    safeAnalytics(() => eventLog({ log_name: 'revive_complete', log_type: 'event', params: { score: this.score } }));
     this.playSfx('sfx-combo', 0.7);
     this.showPopup('부활!', '#44ff44');
   }
@@ -520,11 +526,11 @@ export class CommuteScene extends Phaser.Scene {
     this.bgm?.stop();
     this.playSfx('sfx-game-over', 0.6);
 
-    eventLog({
+    safeAnalytics(() => eventLog({
       log_name: 'game_over',
       log_type: 'event',
       params: { score: this.score, best_combo: this.bestCombo, revived: this.hasRevived },
-    });
+    }));
 
     this.submitScore();
 
@@ -558,8 +564,8 @@ export class CommuteScene extends Phaser.Scene {
     lbBtn.on('pointerout', () => lbBtn.setFillStyle(0x3182f6));
     lbBtn.on('pointerdown', () => {
       this.playSfx('sfx-click', 0.6);
-      Analytics.click({ log_name: 'leaderboard_open' });
-      openGameCenterLeaderboard();
+      safeAnalytics(() => Analytics.click({ log_name: 'leaderboard_open' }));
+      safeAnalytics(() => openGameCenterLeaderboard());
     });
 
     // 다시하기 버튼
@@ -573,7 +579,7 @@ export class CommuteScene extends Phaser.Scene {
     retryBtn.on('pointerout', () => retryBtn.setFillStyle(0xe94560));
     retryBtn.on('pointerdown', () => {
       this.playSfx('sfx-click', 0.6);
-      Analytics.click({ log_name: 'game_retry' });
+      safeAnalytics(() => Analytics.click({ log_name: 'game_retry' }));
       this.scene.start('CommuteScene');
     });
 
@@ -585,7 +591,7 @@ export class CommuteScene extends Phaser.Scene {
 
   private playSfx(key: string, volume: number) {
     if (!this.hud.isSfxMuted()) {
-      this.sound.play(key, { volume });
+      try { this.sound.play(key, { volume }); } catch { /* 무시 */ }
     }
   }
 

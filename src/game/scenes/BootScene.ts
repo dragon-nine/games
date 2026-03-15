@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { Analytics, eventLog } from '@apps-in-toss/web-framework';
 
+function safeAnalytics(fn: () => void) {
+  try { fn(); } catch { /* 토스 외부 환경에서는 무시 */ }
+}
+
 export class BootScene extends Phaser.Scene {
   constructor() {
     super({ key: 'BootScene' });
@@ -40,13 +44,14 @@ export class BootScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#0a0a14');
 
-    // Menu BGM
-    if (!this.sound.get('bgm-menu')) {
-      this.sound.add('bgm-menu', { loop: true, volume: 0.4 }).play();
-    }
+    // Menu BGM (autoplay may be blocked by browser policy)
+    try {
+      if (!this.sound.get('bgm-menu')) {
+        this.sound.add('bgm-menu', { loop: true, volume: 0.4 }).play();
+      }
+    } catch { /* autoplay 차단 — 무시 */ }
 
-    // Analytics: 타이틀 화면 진입
-    Analytics.screen({ log_name: 'screen_boot' });
+    safeAnalytics(() => Analytics.screen({ log_name: 'screen_boot' }));
 
     // Particles
     for (let i = 0; i < 20; i++) {
@@ -103,7 +108,7 @@ export class BootScene extends Phaser.Scene {
     btn.on('pointerover', () => btn.setFillStyle(0xd63651));
     btn.on('pointerout', () => btn.setFillStyle(0xe94560));
     btn.on('pointerdown', () => {
-      this.sound.play('sfx-click', { volume: 0.6 });
+      try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
       this.sound.get('bgm-menu')?.stop();
       this.cameras.main.fadeOut(500, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
@@ -119,8 +124,8 @@ export class BootScene extends Phaser.Scene {
     homeBtn.on('pointerover', () => homeBtn.setColor('#8888cc'));
     homeBtn.on('pointerout', () => homeBtn.setColor('#6666aa'));
     homeBtn.on('pointerdown', () => {
-      this.sound.play('sfx-click', { volume: 0.6 });
-      eventLog({ log_name: 'homescreen_guide_open', log_type: 'click', params: { from: 'boot' } });
+      try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
+      safeAnalytics(() => eventLog({ log_name: 'homescreen_guide_open', log_type: 'click', params: { from: 'boot' } }));
       this.showHomeScreenGuide();
     });
 
@@ -205,7 +210,7 @@ export class BootScene extends Phaser.Scene {
     const close = () => items.forEach(item => item.destroy());
     closeBtn.on('pointerdown', close);
     okBtn.on('pointerdown', () => {
-      this.sound.play('sfx-click', { volume: 0.6 });
+      try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
       close();
     });
   }
