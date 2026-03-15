@@ -51,7 +51,6 @@ export class CommuteScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#000000');
 
-    // Lane dimensions
     this.padding = PADDING;
     const roadW = width - this.padding * 2;
     this.laneW = roadW / 2;
@@ -61,21 +60,16 @@ export class CommuteScene extends Phaser.Scene {
       right: this.padding + this.laneW + this.laneW / 2,
     };
 
-    // Grid
     this.gridGfx = this.add.graphics().setDepth(10);
 
-    // Road
     this.road = new Road(this, this.laneX, this.laneW, this.tileH);
     this.road.generateInitial(height);
 
-    // Player
     this.player = new Player(this, this.laneX, this.laneW, height - 200);
 
-    // HUD
     this.hud = new HUD(this, () => this.onDeath());
     this.hud.create(width);
 
-    // Buttons
     this.createButtons(width, height);
   }
 
@@ -94,20 +88,17 @@ export class CommuteScene extends Phaser.Scene {
 
     const p = this.padding;
     for (let x = p; x <= w; x += this.laneW) {
-      const rx = Math.round(x);
-      this.gridGfx.lineBetween(rx, 0, rx, h);
+      this.gridGfx.lineBetween(Math.round(x), 0, Math.round(x), h);
     }
     for (let x = p - this.laneW; x >= 0; x -= this.laneW) {
-      const rx = Math.round(x);
-      this.gridGfx.lineBetween(rx, 0, rx, h);
+      this.gridGfx.lineBetween(Math.round(x), 0, Math.round(x), h);
     }
 
     const containerY = this.road.getContainer().y;
     const tileTopBase = this.road.startY - this.tileH / 2 + containerY;
     const offsetY = ((tileTopBase % this.tileH) + this.tileH) % this.tileH;
     for (let y = offsetY; y <= h + this.tileH; y += this.tileH) {
-      const ry = Math.round(y);
-      this.gridGfx.lineBetween(0, ry, w, ry);
+      this.gridGfx.lineBetween(0, Math.round(y), w, Math.round(y));
     }
   }
 
@@ -157,12 +148,10 @@ export class CommuteScene extends Phaser.Scene {
     this.gameStarted = true;
     this.hud.startTimer();
 
-    // Gameplay BGM
     this.bgm = this.sound.add('bgm-gameplay', { loop: true, volume: 0.35 });
     if (this.hud.isBgmMuted()) (this.bgm as Phaser.Sound.WebAudioSound).setMute(true);
     this.bgm.play();
 
-    // Analytics: 게임 시작
     Analytics.screen({ log_name: 'screen_game' });
     eventLog({ log_name: 'game_start', log_type: 'event', params: {} });
   }
@@ -275,8 +264,6 @@ export class CommuteScene extends Phaser.Scene {
 
   private showReviveScreen() {
     const { width, height } = this.scale;
-
-    // BGM 일시정지
     this.bgm?.pause();
 
     const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
@@ -285,7 +272,6 @@ export class CommuteScene extends Phaser.Scene {
 
     const reviveItems: Phaser.GameObjects.GameObject[] = [];
 
-    // 부활 아이콘
     const icon = this.add.text(width / 2, height * 0.28, '💀', {
       fontSize: '64px',
     }).setOrigin(0.5).setDepth(401).setAlpha(0);
@@ -313,12 +299,8 @@ export class CommuteScene extends Phaser.Scene {
     adBtn.on('pointerout', () => adBtn.setFillStyle(0x44aa44));
     adBtn.on('pointerdown', () => {
       this.playSfx('sfx-click', 0.6);
-      // Analytics: 광고 시청
-      eventLog({ log_name: 'ad_watch_revive', log_type: 'event', params: { score: this.score } });
-      Analytics.click({ log_name: 'ad_watch_revive' });
-
-      // 임시 광고 시뮬레이션
-      this.showFakeAd(reviveItems, overlay, () => this.revive());
+      eventLog({ log_name: 'revive_ad_click', log_type: 'click', params: { score: this.score } });
+      this.showAd(reviveItems, overlay, () => this.revive());
     });
 
     // 건너뛰기 버튼
@@ -332,8 +314,7 @@ export class CommuteScene extends Phaser.Scene {
     skipBtn.on('pointerout', () => skipBtn.setFillStyle(0x555555));
     skipBtn.on('pointerdown', () => {
       this.playSfx('sfx-click', 0.6);
-      eventLog({ log_name: 'ad_skip_revive', log_type: 'event', params: { score: this.score } });
-      // 부활 화면 제거 → 게임 오버
+      eventLog({ log_name: 'revive_skip', log_type: 'click', params: { score: this.score } });
       reviveItems.forEach(item => item.destroy());
       overlay.destroy();
       this.endGame();
@@ -341,7 +322,6 @@ export class CommuteScene extends Phaser.Scene {
 
     reviveItems.push(overlay, icon, title, desc, chance, adBtn, adText, skipBtn, skipText);
 
-    // 페이드 인
     this.time.delayedCall(300, () => {
       this.tweens.add({ targets: icon, alpha: 1, duration: 300 });
       this.tweens.add({ targets: [title, desc, chance], alpha: 1, duration: 300, delay: 100 });
@@ -350,13 +330,17 @@ export class CommuteScene extends Phaser.Scene {
     });
   }
 
-  private showFakeAd(
+  /* ── Ad System ── */
+
+  /**
+   * 광고 표시: 실제 SDK → 실패 시 자체광고 fallback
+   * 실제 광고 SDK 연동 시 tryShowRealAd()만 수정하면 됨
+   */
+  private showAd(
     reviveItems: Phaser.GameObjects.GameObject[],
     overlay: Phaser.GameObjects.Rectangle,
     onComplete: () => void,
   ) {
-    const { width, height } = this.scale;
-
     // 부활 UI 숨기기
     reviveItems.forEach(item => {
       if (item !== overlay && 'setVisible' in item) {
@@ -364,23 +348,103 @@ export class CommuteScene extends Phaser.Scene {
       }
     });
 
-    // 임시 광고 화면
-    const adBg = this.add.rectangle(width / 2, height / 2, width * 0.85, height * 0.5, 0x222222)
-      .setStrokeStyle(3, 0xffaa00).setDepth(450);
-    const adLabel = this.add.text(width / 2, height * 0.35, '[ 광고 영역 ]', {
-      fontFamily: 'sans-serif', fontSize: '24px', color: '#ffaa00', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(451);
-    const adSub = this.add.text(width / 2, height * 0.42, '실제 광고가 연결되면\n이 화면이 대체됩니다', {
-      fontFamily: 'sans-serif', fontSize: '14px', color: '#888888', align: 'center',
+    const cleanup = () => {
+      reviveItems.forEach(item => item.destroy());
+      overlay.destroy();
+      onComplete();
+    };
+
+    // 실제 광고 시도 → 실패 시 자체광고
+    const adLoaded = this.tryShowRealAd(cleanup);
+    if (!adLoaded) {
+      eventLog({ log_name: 'ad_fallback_house', log_type: 'event', params: {} });
+      this.showHouseAd(cleanup);
+    }
+  }
+
+  /**
+   * 실제 광고 SDK 연동 포인트
+   * 광고 로드 성공 시 true 반환, 실패 시 false 반환
+   * TODO: 실제 SDK 연동 시 이 메서드만 수정
+   */
+  private tryShowRealAd(_onComplete: () => void): boolean {
+    // 실제 광고 SDK 연동 예시:
+    // try {
+    //   AdSDK.showRewarded({
+    //     onComplete: () => {
+    //       eventLog({ log_name: 'ad_real_complete', log_type: 'event', params: {} });
+    //       onComplete();
+    //     },
+    //     onFail: () => { /* fallback은 showAd에서 처리 */ }
+    //   });
+    //   return true;
+    // } catch { return false; }
+
+    return false; // 현재는 항상 자체광고로 fallback
+  }
+
+  /** 자체 광고 (DragonNine Studio 홍보) */
+  private showHouseAd(onComplete: () => void) {
+    const { width, height } = this.scale;
+
+    // 배경
+    const adBg = this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a1e)
+      .setDepth(450);
+
+    // 상단 라벨
+    const adLabel = this.add.text(width / 2, height * 0.08, 'AD', {
+      fontFamily: 'sans-serif', fontSize: '12px', color: '#666688',
     }).setOrigin(0.5).setDepth(451);
 
-    // 카운트다운 (3초)
+    // 로고 영역
+    const logoBg = this.add.circle(width / 2, height * 0.30, 50, 0xe94560)
+      .setDepth(451);
+    const logoText = this.add.text(width / 2, height * 0.30, 'D9', {
+      fontFamily: 'sans-serif', fontSize: '36px', color: '#ffffff', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(452);
+
+    // 스튜디오명
+    const studioName = this.add.text(width / 2, height * 0.42, 'DragonNine Studio', {
+      fontFamily: 'sans-serif', fontSize: '22px', color: '#ffffff', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(451);
+
+    // 슬로건
+    const slogan = this.add.text(width / 2, height * 0.48, '재미있는 게임을 만듭니다', {
+      fontFamily: 'sans-serif', fontSize: '16px', color: '#8888aa',
+    }).setOrigin(0.5).setDepth(451);
+
+    // 게임 소개 카드
+    const cardBg = this.add.rectangle(width / 2, height * 0.60, width * 0.75, 80, 0x1a1a3e)
+      .setStrokeStyle(2, 0x3333666).setDepth(451);
+    const cardTitle = this.add.text(width / 2, height * 0.57, '직장인 잔혹사', {
+      fontFamily: 'sans-serif', fontSize: '18px', color: '#e94560', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(452);
+    const cardDesc = this.add.text(width / 2, height * 0.63, '지금 플레이 중!', {
+      fontFamily: 'sans-serif', fontSize: '14px', color: '#aaaacc',
+    }).setOrigin(0.5).setDepth(452);
+
+    // 카운트다운
     let countdown = 3;
-    const countText = this.add.text(width / 2, height * 0.55, `${countdown}초 후 부활...`, {
-      fontFamily: 'sans-serif', fontSize: '18px', color: '#ffffff',
+    const countText = this.add.text(width / 2, height * 0.78, `${countdown}`, {
+      fontFamily: 'sans-serif', fontSize: '48px', color: '#ffffff', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(451);
+    const countLabel = this.add.text(width / 2, height * 0.84, '잠시 후 부활합니다', {
+      fontFamily: 'sans-serif', fontSize: '14px', color: '#666688',
     }).setOrigin(0.5).setDepth(451);
 
-    const adItems: Phaser.GameObjects.GameObject[] = [adBg, adLabel, adSub, countText];
+    // 하단 안내
+    const footer = this.add.text(width / 2, height * 0.93, 'dragonnine.com', {
+      fontFamily: 'sans-serif', fontSize: '11px', color: '#444466',
+    }).setOrigin(0.5).setDepth(451);
+
+    const adItems = [adBg, adLabel, logoBg, logoText, studioName, slogan,
+      cardBg, cardTitle, cardDesc, countText, countLabel, footer];
+
+    // 로고 펄스 애니메이션
+    this.tweens.add({
+      targets: logoBg, scale: 1.08, duration: 800,
+      yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
 
     this.time.addEvent({
       delay: 1000,
@@ -388,13 +452,12 @@ export class CommuteScene extends Phaser.Scene {
       callback: () => {
         countdown--;
         if (countdown > 0) {
-          countText.setText(`${countdown}초 후 부활...`);
+          countText.setText(`${countdown}`);
         } else {
-          countText.setText('부활!');
+          countText.setText('GO!');
+          countLabel.setText('부활!');
           this.time.delayedCall(500, () => {
             adItems.forEach(item => item.destroy());
-            reviveItems.forEach(item => item.destroy());
-            overlay.destroy();
             onComplete();
           });
         }
@@ -408,19 +471,17 @@ export class CommuteScene extends Phaser.Scene {
     this.isFalling = false;
     this.comboCount = 0;
 
-    // 플레이어 상태 복구
     this.player.setHurt(false);
 
-    // 시간 복구
     this.hud.timeLeft = START_TIME;
-    this.hud.addTime(0); // 타이머 바 갱신
+    this.hud.addTime(0);
     this.hud.startTimer();
 
-    // BGM 재개
     if (this.bgm) {
       (this.bgm as Phaser.Sound.WebAudioSound).resume();
     }
 
+    eventLog({ log_name: 'revive_complete', log_type: 'event', params: { score: this.score } });
     this.playSfx('sfx-combo', 0.7);
     this.showPopup('부활!', '#44ff44');
   }
@@ -448,14 +509,12 @@ export class CommuteScene extends Phaser.Scene {
     this.bgm?.stop();
     this.playSfx('sfx-game-over', 0.6);
 
-    // Analytics: 게임 오버
     eventLog({
       log_name: 'game_over',
       log_type: 'event',
       params: { score: this.score, best_combo: this.bestCombo, revived: this.hasRevived },
     });
 
-    // 리더보드에 점수 제출
     this.submitScore();
 
     const { width, height } = this.scale;
