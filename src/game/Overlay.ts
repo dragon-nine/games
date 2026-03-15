@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-const DIM_ALPHA = 0.75;
+const DIM_ALPHA = 0.90;
 const DIM_COLOR = 0x000000;
 const CONTENT_DEPTH = 401;
 const OVERLAY_DEPTH = 400;
