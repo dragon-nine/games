@@ -8,11 +8,8 @@ import { Road } from '../Road';
 import { Player } from '../Player';
 import { HUD } from '../HUD';
 import { Overlay } from '../Overlay';
-import { submitGameCenterLeaderBoardScore, openGameCenterLeaderboard, Analytics, eventLog } from '@apps-in-toss/web-framework';
-
-function safeAnalytics(fn: () => void) {
-  try { fn(); } catch { /* 토스 외부 환경에서는 무시 */ }
-}
+import { submitScore as submitLeaderboardScore, openLeaderboard } from '../services/leaderboard';
+import { logEvent, logClick, logScreen } from '../services/analytics';
 
 export class CommuteScene extends Phaser.Scene {
   private road!: Road;
@@ -161,8 +158,8 @@ export class CommuteScene extends Phaser.Scene {
       this.bgm.play();
     } catch { /* 오디오 재생 실패 — 무시 */ }
 
-    safeAnalytics(() => Analytics.screen({ log_name: 'screen_game' }));
-    safeAnalytics(() => eventLog({ log_name: 'game_start', log_type: 'event', params: {} }));
+    logScreen('screen_game');
+    logEvent('game_start');
   }
 
   /* ── Movement ── */
@@ -283,13 +280,13 @@ export class CommuteScene extends Phaser.Scene {
 
     const ad = ov.addButton(width / 2, height * 0.57, 250, 56, '▶  광고 보고 부활', 0x44aa44, () => {
       this.playSfx('sfx-click', 0.6);
-      safeAnalytics(() => eventLog({ log_name: 'revive_ad_click', log_type: 'click', params: { score: this.score } }));
+      logEvent('revive_ad_click', { score: this.score });
       this.showAd(ov.getItems(), ov.getItems()[0] as Phaser.GameObjects.Rectangle, () => this.revive());
     });
 
     const skip = ov.addButton(width / 2, height * 0.66, 250, 48, '건너뛰기', 0x555555, () => {
       this.playSfx('sfx-click', 0.6);
-      safeAnalytics(() => eventLog({ log_name: 'revive_skip', log_type: 'click', params: { score: this.score } }));
+      logEvent('revive_skip', { score: this.score });
       ov.close();
       this.endGame();
     }, { color: '#999999' });
@@ -329,7 +326,7 @@ export class CommuteScene extends Phaser.Scene {
     // 실제 광고 시도 → 실패 시 자체광고
     const adLoaded = this.tryShowRealAd(cleanup);
     if (!adLoaded) {
-      safeAnalytics(() => eventLog({ log_name: 'ad_fallback_house', log_type: 'event', params: {} }));
+      logEvent('ad_fallback_house');
       this.showHouseAd(cleanup);
     }
   }
@@ -427,7 +424,7 @@ export class CommuteScene extends Phaser.Scene {
       fontFamily: 'GMarketSans, sans-serif', fontSize: '11px', color: '#444466',
     }).setOrigin(0.5).setDepth(451));
 
-    safeAnalytics(() => eventLog({ log_name: 'homescreen_guide_impression', log_type: 'impression', params: { from: 'house_ad' } }));
+    logEvent('homescreen_guide_impression', { from: 'house_ad' });
 
     this.time.addEvent({
       delay: 1000,
@@ -465,7 +462,7 @@ export class CommuteScene extends Phaser.Scene {
       (this.bgm as Phaser.Sound.WebAudioSound).resume();
     }
 
-    safeAnalytics(() => eventLog({ log_name: 'revive_complete', log_type: 'event', params: { score: this.score } }));
+    logEvent('revive_complete', { score: this.score });
     this.playSfx('sfx-combo', 0.7);
     this.showPopup('부활!', '#44ff44');
   }
@@ -493,11 +490,7 @@ export class CommuteScene extends Phaser.Scene {
     this.bgm?.stop();
     this.playSfx('sfx-game-over', 0.6);
 
-    safeAnalytics(() => eventLog({
-      log_name: 'game_over',
-      log_type: 'event',
-      params: { score: this.score, best_combo: this.bestCombo, revived: this.hasRevived },
-    }));
+    logEvent('game_over', { score: this.score, best_combo: this.bestCombo, revived: this.hasRevived });
 
     this.submitScore();
 
@@ -514,13 +507,13 @@ export class CommuteScene extends Phaser.Scene {
 
     const lb = ov.addButton(width / 2, height * 0.48, 220, 56, '랭킹 보기', 0x3182f6, () => {
       this.playSfx('sfx-click', 0.6);
-      safeAnalytics(() => Analytics.click({ log_name: 'leaderboard_open' }));
-      safeAnalytics(() => openGameCenterLeaderboard());
+      logClick('leaderboard_open');
+      openLeaderboard();
     }, { fontSize: '24px' });
 
     const retry = ov.addButton(width / 2, height * 0.58, 220, 56, '다시하기', 0xe94560, () => {
       this.playSfx('sfx-click', 0.6);
-      safeAnalytics(() => Analytics.click({ log_name: 'game_retry' }));
+      logClick('game_retry');
       this.scene.start('CommuteScene');
     }, { fontSize: '24px' });
 
@@ -543,10 +536,6 @@ export class CommuteScene extends Phaser.Scene {
   }
 
   private async submitScore() {
-    try {
-      await submitGameCenterLeaderBoardScore({ score: String(this.score) });
-    } catch {
-      // 점수 제출 실패 — 무시
-    }
+    await submitLeaderboardScore(this.score);
   }
 }

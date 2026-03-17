@@ -1,24 +1,28 @@
 {
   "name": "worker-nightmare",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:toss": "ait build",
     "dev:toss": "granite dev",
+    "build:android": "npm run build && npx cap sync android",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "ait deploy"
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "^2.0.5",
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
     "phaser": "^3.90.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.2.0",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",

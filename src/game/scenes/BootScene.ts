@@ -1,10 +1,6 @@
 import Phaser from 'phaser';
-import { Analytics, eventLog } from '@apps-in-toss/web-framework';
 import { Overlay } from '../Overlay';
-
-function safeAnalytics(fn: () => void) {
-  try { fn(); } catch { /* 토스 외부 환경에서는 무시 */ }
-}
+import { logScreen, logEvent } from '../services/analytics';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -60,7 +56,7 @@ export class BootScene extends Phaser.Scene {
       }
     } catch { /* autoplay 차단 — 무시 */ }
 
-    safeAnalytics(() => Analytics.screen({ log_name: 'screen_boot' }));
+    logScreen('screen_boot');
 
     // Particles
     for (let i = 0; i < 20; i++) {
@@ -132,7 +128,7 @@ export class BootScene extends Phaser.Scene {
 
     homeBtn.on('pointerdown', () => {
       if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
-      safeAnalytics(() => eventLog({ log_name: 'homescreen_guide_open', log_type: 'click', params: { from: 'boot' } }));
+      logEvent('homescreen_guide_open', { from: 'boot' });
       this.showHomeScreenGuide();
     });
 
@@ -205,7 +201,7 @@ export class BootScene extends Phaser.Scene {
     ov.addButton(width / 2, height * 0.65, 160, 48, '닫기', 0x555555,
       () => ov.close(), { color: '#cccccc' });
     // addButton은 alpha 0으로 생성되므로 즉시 보이게
-    ov.getItems().forEach(item => { if ('setAlpha' in item) (item as Phaser.GameObjects.Components.Alpha).setAlpha(1); });
+    ov.getItems().forEach(item => { if ('setAlpha' in item) (item as unknown as Phaser.GameObjects.Components.Alpha).setAlpha(1); });
   }
 
   /** 홈화면 추가 가이드 표시 (CommuteScene에서도 호출 가능하도록 static-like) */

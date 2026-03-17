@@ -61,7 +61,7 @@ export class HUD {
       .setOrigin(0, 0).setDisplaySize(this.barW, barH).setDepth(201);
 
     // 대각선 마스크용 Graphics (화면에 안 그려지고 마스크로만 사용)
-    this.gaugeMask = this.scene.make.graphics({ add: false });
+    this.gaugeMask = this.scene.make.graphics({ add: false } as never);
     this.gaugeFull.setMask(this.gaugeMask.createGeometryMask());
     this.updateTimerBar();
 

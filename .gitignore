@@ -25,3 +25,10 @@ dist-ssr
 .vercel
 
 .granite
+
+# Android SDK tools
+platform-tools/
+build-tools/
+licenses/
+platforms/
+.knownPackages
