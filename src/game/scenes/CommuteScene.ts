@@ -118,6 +118,7 @@ export class CommuteScene extends Phaser.Scene {
 
     leftBtn.on('pointerdown', () => {
       if (this.gameOver || this.isFalling || this.hud.paused) return;
+      this.vibrate(10);
       this.startGame();
       this.switchLane();
       this.tweens.killTweensOf(leftBtn);
@@ -134,6 +135,7 @@ export class CommuteScene extends Phaser.Scene {
 
     rightBtn.on('pointerdown', () => {
       if (this.gameOver || this.isFalling || this.hud.paused) return;
+      this.vibrate(10);
       this.startGame();
       this.moveForward();
       this.tweens.killTweensOf(rightBtn);
@@ -217,6 +219,7 @@ export class CommuteScene extends Phaser.Scene {
 
     if (this.comboCount > 0 && this.comboCount % 10 === 0) {
       this.playSfx('sfx-combo', 0.7);
+      this.vibrate([12, 40, 12]);
     }
 
     this.currentRowIdx = this.road.cleanupOldRows(this.currentRowIdx);
@@ -243,6 +246,7 @@ export class CommuteScene extends Phaser.Scene {
     this.isFalling = true;
     this.player.setHurt(true);
     this.playSfx('sfx-crash', 0.7);
+    this.vibrate([30, 40, 60]);
     this.cameras.main.shake(200, 0.015);
     this.player.animateForwardCrash(() => this.onDeath());
   }
@@ -250,6 +254,7 @@ export class CommuteScene extends Phaser.Scene {
   private onCrash() {
     this.isFalling = true;
     this.player.setHurt(true);
+    this.vibrate([30, 40, 60]);
     this.cameras.main.shake(200, 0.015);
     this.onDeath();
   }
@@ -489,6 +494,7 @@ export class CommuteScene extends Phaser.Scene {
     this.hud.stopTimer();
     this.bgm?.stop();
     this.playSfx('sfx-game-over', 0.6);
+    this.vibrate([40, 80, 50, 80]);
 
     logEvent('game_over', { score: this.score, best_combo: this.bestCombo, revived: this.hasRevived });
 
@@ -527,6 +533,10 @@ export class CommuteScene extends Phaser.Scene {
       ov.fadeInItems([retry.bg, retry.text], 150);
       ov.fadeInItems([home.bg, home.text], 300);
     });
+  }
+
+  private vibrate(pattern: number | number[]) {
+    try { navigator.vibrate?.(pattern); } catch { /* 미지원 환경 무시 */ }
   }
 
   private playSfx(key: string, volume: number) {
