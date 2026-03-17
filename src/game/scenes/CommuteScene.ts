@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import {
-  START_TIME,
+  NUM_LANES, VISIBLE_LANES,
+  PADDING, START_TIME,
   BTN_MARGIN, BTN_BOTTOM_OFFSET, BTN_PRESS_SCALE, BTN_PRESS_DURATION,
 } from '../constants';
 import { Road } from '../Road';
@@ -26,10 +27,10 @@ export class CommuteScene extends Phaser.Scene {
   private hasRevived = false;
   private bgm?: Phaser.Sound.BaseSound;
 
-  private laneY = { top: 0, mid: 0, bottom: 0 };
-  private laneH = 0;
-  private tileW = 0;
-  private playerScreenX = 0;
+  private laneWorldX: number[] = [];
+  private laneW = 0;
+  private tileH = 0;
+  private viewLeft = 0;
   private gridGfx!: Phaser.GameObjects.Graphics;
 
   constructor() {
@@ -52,24 +53,30 @@ export class CommuteScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#000000');
 
-    this.laneH = Math.floor(width / 5);
-    this.tileW = this.laneH;
+    // 화면에 보이는 2레인 기준으로 크기 계산
+    this.laneW = (width - PADDING * 2) / VISIBLE_LANES;
+    this.tileH = this.laneW;
 
-    const roadCenterY = height * 0.38;
-    this.laneY = {
-      top: roadCenterY - this.laneH,
-      mid: roadCenterY,
-      bottom: roadCenterY + this.laneH,
-    };
+    // 5레인의 월드 X 좌표
+    this.laneWorldX = [];
+    for (let i = 0; i < NUM_LANES; i++) {
+      this.laneWorldX.push(PADDING + this.laneW / 2 + i * this.laneW);
+    }
 
-    this.playerScreenX = width * 0.25;
+    // 시작 레인 = 가운데 (2), 뷰는 레인 2-3 표시
+    const startLane = Math.floor(NUM_LANES / 2);
+    this.viewLeft = startLane;
 
     this.gridGfx = this.add.graphics().setDepth(10);
 
-    this.road = new Road(this, this.laneY, this.laneH, this.tileW);
-    this.road.generateInitial(this.playerScreenX);
+    this.road = new Road(this, this.laneWorldX, this.laneW, this.tileH, NUM_LANES);
+    this.road.generateInitial(height, startLane);
 
-    this.player = new Player(this, this.laneY, this.laneH, this.playerScreenX);
+    // 컨테이너 X 오프셋으로 뷰 위치 설정
+    this.road.getContainer().setX(-(this.viewLeft * this.laneW));
+
+    const playerScreenX = this.laneScreenX(startLane);
+    this.player = new Player(this, this.laneW, playerScreenX, height - 200, startLane);
 
     this.hud = new HUD(this, () => this.onDeath());
     this.hud.create(width);
@@ -85,33 +92,60 @@ export class CommuteScene extends Phaser.Scene {
     }
   }
 
+  /* ── View helpers ── */
+
+  /** 레인 번호 → 현재 뷰 기준 화면 X 좌표 */
+  private laneScreenX(lane: number): number {
+    return PADDING + this.laneW / 2 + (lane - this.viewLeft) * this.laneW;
+  }
+
+  /** 레인이 보이도록 viewLeft 계산 */
+  private calcViewLeft(lane: number): number {
+    let vl = this.viewLeft;
+    if (lane < vl) vl = lane;
+    if (lane > vl + VISIBLE_LANES - 1) vl = lane - VISIBLE_LANES + 1;
+    return Math.max(0, Math.min(vl, NUM_LANES - VISIBLE_LANES));
+  }
+
+  /** 뷰 패닝 (컨테이너 X 이동) */
+  private panViewTo(newViewLeft: number) {
+    if (newViewLeft === this.viewLeft) return;
+    this.viewLeft = newViewLeft;
+    this.tweens.add({
+      targets: this.road.getContainer(),
+      x: -(this.viewLeft * this.laneW),
+      duration: 120, ease: 'Quad.easeOut',
+    });
+  }
+
   /* ── Grid ── */
 
-  private drawGrid(w: number, _h: number) {
+  private drawGrid(_w: number, h: number) {
     this.gridGfx.clear();
     this.gridGfx.lineStyle(2, 0xffffff, 0.3);
 
-    // Horizontal lane dividers
-    const topEdge = this.laneY.top - this.laneH / 2;
-    for (let i = 0; i <= 3; i++) {
-      const y = topEdge + i * this.laneH;
-      this.gridGfx.lineBetween(0, Math.round(y), w, Math.round(y));
+    const p = PADDING;
+    const visibleW = VISIBLE_LANES * this.laneW;
+
+    // 세로 레인 구분선
+    for (let i = 0; i <= VISIBLE_LANES; i++) {
+      const x = p + i * this.laneW;
+      this.gridGfx.lineBetween(Math.round(x), 0, Math.round(x), h);
     }
 
-    // Vertical column dividers
-    const containerX = this.road.getContainer().x;
-    const tileLeftBase = this.road.startX - this.tileW / 2 + containerX;
-    const offsetX = ((tileLeftBase % this.tileW) + this.tileW) % this.tileW;
-    const bottomEdge = topEdge + 3 * this.laneH;
-    for (let x = offsetX; x <= w + this.tileW; x += this.tileW) {
-      this.gridGfx.lineBetween(Math.round(x), Math.round(topEdge), Math.round(x), Math.round(bottomEdge));
+    // 가로 행 구분선
+    const containerY = this.road.getContainer().y;
+    const tileTopBase = this.road.startY - this.tileH / 2 + containerY;
+    const offsetY = ((tileTopBase % this.tileH) + this.tileH) % this.tileH;
+    for (let y = offsetY; y <= h + this.tileH; y += this.tileH) {
+      this.gridGfx.lineBetween(Math.round(p), Math.round(y), Math.round(p + visibleW), Math.round(y));
     }
   }
 
   /* ── Buttons ── */
 
   private createButtons(width: number, height: number) {
-    const btnSize = this.laneH * 0.85;
+    const btnSize = this.laneW * 0.85;
     const btnY = height - BTN_BOTTOM_OFFSET;
     const pressSize = btnSize * BTN_PRESS_SCALE;
 
@@ -176,8 +210,9 @@ export class CommuteScene extends Phaser.Scene {
     if (!canSwitch) {
       this.isFalling = true;
       this.playSfx('sfx-crash', 0.7);
-      const direction: 'up' | 'down' = this.player.currentLane === 'bottom' ? 'up' : 'down';
-      this.player.animateCrashSwitch(direction, () => this.onCrash());
+      const lane = this.player.currentLane;
+      const bumpX = this.player.x + (lane < NUM_LANES - 1 ? 30 : -30);
+      this.player.animateCrashSwitch(bumpX, () => this.onCrash());
       return;
     }
 
@@ -186,7 +221,12 @@ export class CommuteScene extends Phaser.Scene {
     this.player.switchTo(targetLane);
     this.justSwitched = true;
     this.hud.addTime();
-    this.player.animateSwitch(targetLane);
+
+    // 뷰 패닝 (타겟 레인이 화면 밖이면)
+    this.panViewTo(this.calcViewLeft(targetLane));
+
+    const targetScreenX = this.laneScreenX(targetLane);
+    this.player.animateSwitch(targetScreenX);
   }
 
   private moveForward() {
@@ -219,7 +259,7 @@ export class CommuteScene extends Phaser.Scene {
       this.road.addNextRow();
     }
 
-    this.player.animateForward(() => this.scrollToCurrentColumn());
+    this.player.animateForward(() => this.scrollToCurrentRow());
 
     if (this.comboCount > 0 && this.comboCount % 10 === 0) {
       this.playSfx('sfx-combo', 0.7);
@@ -229,17 +269,20 @@ export class CommuteScene extends Phaser.Scene {
     this.currentRowIdx = this.road.cleanupOldRows(this.currentRowIdx);
   }
 
-  private scrollToCurrentColumn() {
+  private scrollToCurrentRow() {
+    const { height } = this.scale;
     const row = this.road.rows[this.currentRowIdx];
-    const targetContainerX = -(row.x - this.playerScreenX);
+    const screenY = height * 0.5;
+    const targetContainerY = -(row.y - screenY);
 
     this.tweens.add({
       targets: this.road.getContainer(),
-      x: targetContainerX,
+      y: targetContainerY,
       duration: 100, ease: 'Quad.easeOut',
     });
 
-    this.player.scrollTo(this.playerScreenX);
+    const playerScreenX = this.laneScreenX(this.player.currentLane);
+    this.player.scrollTo(playerScreenX, screenY);
   }
 
   /* ── Crash ── */
