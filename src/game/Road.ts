@@ -45,6 +45,18 @@ export class Road {
     for (let i = 0; i < 25; i++) {
       this.addNextRow();
     }
+
+    // 시작 지점 아래에 bg-tile 행 채우기
+    const bottomRows = Math.ceil((height - this.startY + this.tileH) / this.tileH) + 1;
+    for (let i = 1; i <= bottomRows; i++) {
+      const y = this.startY + i * this.tileH;
+      const leftSideX = this.laneWorldX[0] - this.laneW;
+      const rightSideX = this.laneWorldX[this.numLanes - 1] + this.laneW;
+      for (const x of [leftSideX, ...this.laneWorldX, rightSideX]) {
+        const bg = this.createTile(x, y, 'tile-bg');
+        this.container.add(bg);
+      }
+    }
   }
 
   addNextRow() {
