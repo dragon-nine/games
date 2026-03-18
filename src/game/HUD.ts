@@ -103,9 +103,9 @@ export class HUD {
   }
 
   private pulseGauge() {
-    // 밝은 틴트 번쩍임
-    this.gaugeFull.setTint(0xffffff);
-    this.scene.time.delayedCall(80, () => {
+    // 노란색 번쩍임 → 원래 색 복구
+    this.gaugeFull.setTint(0xffff66);
+    this.scene.time.delayedCall(100, () => {
       this.gaugeFull.clearTint();
     });
   }
