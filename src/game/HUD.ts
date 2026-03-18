@@ -99,15 +99,6 @@ export class HUD {
     const bonus = Math.max(0.2, 0.4 - (this.elapsed / 60) * 0.2);
     this.timeLeft = Math.min(MAX_TIME, this.timeLeft + bonus);
     this.updateTimerBar();
-    this.pulseGauge();
-  }
-
-  private pulseGauge() {
-    // 빨간 게이지를 잠깐 흰색으로 → 원래 색 복구
-    this.gaugeFull.setTintFill(0xffffff);
-    this.scene.time.delayedCall(80, () => {
-      this.gaugeFull.clearTint();
-    });
   }
 
   /** 타이머 시작 (첫 액션 시 호출) */
