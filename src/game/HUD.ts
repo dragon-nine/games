@@ -99,6 +99,24 @@ export class HUD {
     const bonus = Math.max(0.2, 0.4 - (this.elapsed / 60) * 0.2);
     this.timeLeft = Math.min(MAX_TIME, this.timeLeft + bonus);
     this.updateTimerBar();
+    this.pulseGauge();
+  }
+
+  private pulseGauge() {
+    // 밝은 틴트 번쩍임
+    this.gaugeFull.setTint(0xffffff);
+    this.scene.time.delayedCall(80, () => {
+      this.gaugeFull.clearTint();
+    });
+
+    // 스케일 펄스
+    this.scene.tweens.killTweensOf(this.gaugeFull);
+    this.gaugeFull.setScale(1.05, 1.15);
+    this.scene.tweens.add({
+      targets: this.gaugeFull,
+      scaleX: 1, scaleY: 1,
+      duration: 150, ease: 'Quad.easeOut',
+    });
   }
 
   /** 타이머 시작 (첫 액션 시 호출) */
