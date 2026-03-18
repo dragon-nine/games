@@ -52,9 +52,24 @@ export class Player {
     });
   }
 
-  /** 전환 실패: 길에서 떨어짐 → onDone */
+  /** 전환 실패: 잘못된 레인으로 이동 → 떨어짐 */
   animateCrashSwitch(bumpX: number, onDone: () => void) {
-    this.animateFall(bumpX, onDone);
+    const goingRight = bumpX > this.sprite.x;
+    this.sprite.setTexture('rabbit-side');
+    this.sprite.setDisplaySize(this.rabbitSize, this.rabbitSize);
+    this.sprite.setFlipX(!goingRight);
+    this.sprite.setAngle(0);
+
+    // 1단계: 잘못된 레인으로 이동
+    this.scene.tweens.add({
+      targets: this.sprite,
+      x: bumpX,
+      duration: 120, ease: 'Quad.easeOut',
+      onComplete: () => {
+        // 2단계: 떨어짐
+        this.animateFall(onDone);
+      },
+    });
   }
 
   /** 전진 성공: 뒷면 → scrollTo */
@@ -66,30 +81,42 @@ export class Player {
     onDone();
   }
 
-  /** 전진 충돌: 길에서 떨어짐 → onDone */
+  /** 전진 충돌: 한 칸 전진 → 떨어짐 */
   animateForwardCrash(onDone: () => void) {
-    this.animateFall(this.sprite.x, onDone);
+    this.sprite.setTexture('rabbit-back');
+    this.sprite.setDisplaySize(this.rabbitSize, this.rabbitSize);
+    this.sprite.setAngle(0);
+
+    // 1단계: 한 칸 위로 이동 (전진 시도)
+    this.scene.tweens.add({
+      targets: this.sprite,
+      y: this.sprite.y - this.rabbitSize * 0.5,
+      duration: 100, ease: 'Quad.easeOut',
+      onComplete: () => {
+        // 2단계: 떨어짐
+        this.animateFall(onDone);
+      },
+    });
   }
 
-  /** 공통 낙하 애니메이션: 정면 → 아래로 떨어짐 + 축소 + 회전 + 페이드아웃 */
-  private animateFall(targetX: number, onDone: () => void) {
+  /** 공통 낙하: 정면 전환 → 잠깐 멈춤 → 아래로 가속 낙하 + 축소 */
+  private animateFall(onDone: () => void) {
     this.sprite.setTexture('rabbit-front');
     this.sprite.setDisplaySize(this.rabbitSize, this.rabbitSize);
     this.sprite.setFlipX(false);
-    this.sprite.setAngle(0);
-    this.sprite.setAlpha(1);
 
-    this.scene.tweens.add({
-      targets: this.sprite,
-      x: targetX,
-      y: this.sprite.y + 300,
-      scaleX: 0.2,
-      scaleY: 0.2,
-      angle: 180,
-      alpha: 0,
-      duration: 600,
-      ease: 'Quad.easeIn',
-      onComplete: onDone,
+    // 잠깐 멈춤 (공중에 뜬 순간)
+    this.scene.time.delayedCall(150, () => {
+      this.scene.tweens.add({
+        targets: this.sprite,
+        y: this.sprite.y + 500,
+        scaleX: 0.1,
+        scaleY: 0.1,
+        alpha: 0,
+        duration: 500,
+        ease: 'Quad.easeIn',
+        onComplete: onDone,
+      });
     });
   }
 
