@@ -90,8 +90,8 @@ export class Player {
     // 1단계: 한 칸 위로 이동 (전진 시도)
     this.scene.tweens.add({
       targets: this.sprite,
-      y: this.sprite.y - this.rabbitSize * 0.5,
-      duration: 100, ease: 'Quad.easeOut',
+      y: this.sprite.y - this.rabbitSize,
+      duration: 120, ease: 'Quad.easeOut',
       onComplete: () => {
         // 2단계: 떨어짐
         this.animateFall(onDone);
@@ -99,22 +99,23 @@ export class Player {
     });
   }
 
-  /** 공통 낙하: 정면 전환 → 잠깐 멈춤 → 아래로 가속 낙하 + 축소 */
+  /** 공통 낙하: 정면 전환 → 잠깐 멈춤 → 제자리에서 축소 (탑다운 깊이감 낙하) */
   private animateFall(onDone: () => void) {
     this.sprite.setTexture('rabbit-front');
     this.sprite.setDisplaySize(this.rabbitSize, this.rabbitSize);
     this.sprite.setFlipX(false);
 
-    // 잠깐 멈춤 (공중에 뜬 순간)
-    this.scene.time.delayedCall(150, () => {
+    // 잠깐 멈춤 (발 밑이 없다는 걸 깨달은 순간)
+    this.scene.time.delayedCall(200, () => {
+      // 제자리에서 축소 + 살짝 아래로 (깊이감) + 페이드아웃
       this.scene.tweens.add({
         targets: this.sprite,
-        y: this.sprite.y + 500,
-        scaleX: 0.1,
-        scaleY: 0.1,
-        alpha: 0,
-        duration: 500,
-        ease: 'Quad.easeIn',
+        scaleX: 0,
+        scaleY: 0,
+        y: this.sprite.y + 30,
+        alpha: 0.3,
+        duration: 400,
+        ease: 'Cubic.easeIn',
         onComplete: onDone,
       });
     });

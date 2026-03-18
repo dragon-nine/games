@@ -182,7 +182,8 @@ export class CommuteScene extends Phaser.Scene {
       this.isFalling = true;
       this.playSfx('sfx-crash', 0.7);
       const lane = this.player.currentLane;
-      const bumpX = this.player.x + (lane < NUM_LANES - 1 ? 30 : -30);
+      const crashLane = lane < NUM_LANES - 1 ? lane + 1 : lane - 1;
+      const bumpX = this.laneScreenX(crashLane);
       this.player.animateCrashSwitch(bumpX, () => this.onCrash());
       return;
     }
