@@ -14,9 +14,9 @@ interface Spec {
 
 function buildSpecs(gameId: string): Spec[] {
   return [
-    { key: 'icon', label: '앱 아이콘', desc: '512x512 PNG', accept: 'image/png', prefix: `store/${gameId}/google-play/icon/`, maxCount: 1 },
-    { key: 'feature', label: '피처 그래픽', desc: '1024x500 JPEG/PNG', accept: 'image/png,image/jpeg', prefix: `store/${gameId}/google-play/feature/`, maxCount: 1 },
-    { key: 'phone', label: '폰 스크린샷', desc: '2~8장', accept: 'image/png,image/jpeg', prefix: `store/${gameId}/google-play/phone/`, maxCount: 8 },
+    { key: 'icon', label: '앱 로고', desc: '512x512 PNG', accept: 'image/png', prefix: `store/${gameId}/google-play/icon/`, maxCount: 1 },
+    { key: 'feature', label: '대표 이미지', desc: '1024x500 JPEG/PNG', accept: 'image/png,image/jpeg', prefix: `store/${gameId}/google-play/feature/`, maxCount: 1 },
+    { key: 'screenshots', label: '스크린샷', desc: '1080x2160 / 최소 2장', accept: 'image/png,image/jpeg', prefix: `store/${gameId}/google-play/screenshots/`, maxCount: 8 },
   ]
 }
 

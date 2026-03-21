@@ -14,8 +14,9 @@ interface Spec {
 
 function buildSpecs(gameId: string): Spec[] {
   return [
-    { key: 'icon', label: '앱 아이콘', desc: '1024x1024 PNG', accept: 'image/png', prefix: `store/${gameId}/toss/icon/`, maxCount: 1 },
-    { key: 'screenshots', label: '스크린샷', desc: '최대 8장', accept: 'image/png,image/jpeg', prefix: `store/${gameId}/toss/screenshots/`, maxCount: 8 },
+    { key: 'icon', label: '앱 로고', desc: '600x600 PNG', accept: 'image/png', prefix: `store/${gameId}/toss/icon/`, maxCount: 1 },
+    { key: 'thumbnail', label: '가로형 썸네일', desc: '1932x828 JPEG/PNG', accept: 'image/png,image/jpeg', prefix: `store/${gameId}/toss/thumbnail/`, maxCount: 1 },
+    { key: 'screenshots', label: '미리보기 및 스크린샷', desc: '636x1048 / 최소 3장', accept: 'image/png,image/jpeg', prefix: `store/${gameId}/toss/screenshots/`, maxCount: 8 },
   ]
 }
 
