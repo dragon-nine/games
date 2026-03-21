@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build --prefix games/game01",
+  "buildCommand": "cd games/game01 && npm install && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/game01/(.*)", "destination": "/game01/$1" },
