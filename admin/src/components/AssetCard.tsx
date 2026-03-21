@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { BlobItem } from '../types'
+import LazyImage from './LazyImage'
 
 interface Props {
   blob: BlobItem
@@ -54,7 +55,7 @@ export default function AssetCard({ blob, onDelete, onReplace }: Props) {
         {audio ? (
           <span>&#9835;</span>
         ) : (
-          <img src={blob.url} alt={filename} loading="lazy" />
+          <LazyImage src={blob.url} alt={filename} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
         )}
         {onReplace && <div className="asset-card-overlay">클릭하여 교체</div>}
       </div>
