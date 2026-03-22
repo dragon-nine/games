@@ -12,3 +12,4 @@ licenses/
 platforms/
 .knownPackages
 .granite
+.env*.local

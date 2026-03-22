@@ -6,6 +6,7 @@ import GooglePlayTab from './tabs/GooglePlayTab'
 import TossInAppTab from './tabs/TossInAppTab'
 import PlaceholderTab from './tabs/PlaceholderTab'
 import SharedFilesTab from './tabs/SharedFilesTab'
+import LayoutEditorTab from './tabs/LayoutEditorTab'
 import Banner from './components/Banner'
 
 export type PageId =
@@ -17,6 +18,7 @@ export type PageId =
   | 'game02-preview'
   | 'game02-google-play'
   | 'game02-toss'
+  | 'game01-layout'
   | 'shared-files'
 
 function getInitialPage(): PageId {
