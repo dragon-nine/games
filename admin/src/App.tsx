@@ -5,6 +5,7 @@ import AssetPreviewTab from './tabs/AssetPreviewTab'
 import GooglePlayTab from './tabs/GooglePlayTab'
 import TossInAppTab from './tabs/TossInAppTab'
 import PlaceholderTab from './tabs/PlaceholderTab'
+import SharedFilesTab from './tabs/SharedFilesTab'
 import Banner from './components/Banner'
 
 export type PageId =
@@ -16,6 +17,7 @@ export type PageId =
   | 'game02-preview'
   | 'game02-google-play'
   | 'game02-toss'
+  | 'shared-files'
 
 function getInitialPage(): PageId {
   const params = new URLSearchParams(window.location.search)
@@ -55,6 +57,7 @@ export default function App() {
         {page === 'game02-preview' && <PlaceholderTab title="game02 에셋 프리뷰" message="game02 프로젝트가 생성되면 활성화됩니다." />}
         {page === 'game02-google-play' && <PlaceholderTab title="game02 Google Play" message="game02 프로젝트가 생성되면 활성화됩니다." />}
         {page === 'game02-toss' && <PlaceholderTab title="game02 토스 인앱" message="game02 프로젝트가 생성되면 활성화됩니다." />}
+        {page === 'shared-files' && <SharedFilesTab onBanner={showBanner} />}
       </main>
       {banner && (
         <Banner type={banner.type} message={banner.message} onDismiss={() => setBanner(null)} />

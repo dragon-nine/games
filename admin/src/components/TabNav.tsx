@@ -66,6 +66,14 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
         <span>Dragon Nine</span>
       </div>
 
+      <button
+        className={`sidebar-item${activePage === 'shared-files' ? ' active' : ''}`}
+        onClick={() => onPageChange('shared-files' as PageId)}
+      >
+        <span>📁</span>
+        <span>공유 파일</span>
+      </button>
+
       {GAMES.map((game) => (
         <div key={game.key} className="sidebar-game-group">
           <button className="sidebar-section-btn" onClick={() => toggle(game.key)}>
