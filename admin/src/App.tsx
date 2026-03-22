@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import TabNav from './components/TabNav'
 import GameAssetsTab from './tabs/GameAssetsTab'
-import AssetPreviewTab from './tabs/AssetPreviewTab'
 import PlaceholderTab from './tabs/PlaceholderTab'
 import SharedFilesTab from './tabs/SharedFilesTab'
 import LayoutEditorTab from './tabs/LayoutEditorTab'
@@ -10,9 +9,7 @@ import Banner from './components/Banner'
 
 export type PageId =
   | 'game01-assets'
-  | 'game01-preview'
   | 'game02-assets'
-  | 'game02-preview'
   | 'game01-layout'
   | 'game01-launch'
   | 'shared-files'
@@ -48,9 +45,7 @@ export default function App() {
       <TabNav activePage={page} onPageChange={handlePageChange} open={sidebarOpen} />
       <main className="admin-content">
         {page === 'game01-assets' && <GameAssetsTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
-        {page === 'game01-preview' && <AssetPreviewTab gameId="game01" />}
         {page === 'game02-assets' && <PlaceholderTab title="game02 에셋 관리" message="game02 프로젝트가 생성되면 활성화됩니다." />}
-        {page === 'game02-preview' && <PlaceholderTab title="game02 에셋 프리뷰" message="game02 프로젝트가 생성되면 활성화됩니다." />}
         {page === 'game01-layout' && <LayoutEditorTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
         {page === 'game01-launch' && <LaunchPrepTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
         {page === 'shared-files' && <SharedFilesTab onBanner={showBanner} />}

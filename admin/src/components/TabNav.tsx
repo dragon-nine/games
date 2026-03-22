@@ -43,7 +43,6 @@ const GAMES: GameSection[] = [
     gameUrl: '/game01/',
     items: [
       { id: 'game01-assets', icon: '🎨', label: '에셋 관리' },
-      { id: 'game01-preview', icon: '👁', label: '에셋 프리뷰' },
       { id: 'game01-layout', icon: '📐', label: '레이아웃 편집' },
       { id: 'game01-launch', icon: '🚀', label: '출시 준비' },
     ],
@@ -54,7 +53,6 @@ const GAMES: GameSection[] = [
     gameUrl: '/game02/',
     items: [
       { id: 'game02-assets', icon: '🎨', label: '에셋 관리' },
-      { id: 'game02-preview', icon: '👁', label: '에셋 프리뷰' },
     ],
   },
 ]

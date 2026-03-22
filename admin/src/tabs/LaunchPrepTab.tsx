@@ -57,7 +57,7 @@ function buildGroups(gameId: string): AssetGroup[] {
       prefix: `launch/${gameId}/feature/`,
       downloads: [
         { platform: '토스', width: 1932, height: 828, mode: 'resize' },
-        { platform: 'Google Play', width: 1024, height: 500, mode: 'crop' },
+        { platform: 'Google Play', width: 1024, height: 500, mode: 'resize' },
       ],
     },
     {
