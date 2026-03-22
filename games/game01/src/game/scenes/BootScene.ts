@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { Overlay } from '../Overlay';
 import { logScreen } from '../services/analytics';
+import { computeLayout } from '../layout-types';
+import { DEFAULT_LAYOUTS } from '../default-layouts';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -70,38 +72,51 @@ export class BootScene extends Phaser.Scene {
 
     logScreen('screen_boot');
 
-    // Background — 가로 맞춤
+    // Background — scale to cover
     const bg = this.add.image(width / 2, height / 2, 'main-bg');
-    const bgScale = width / bg.width;
-    bg.setScale(bgScale);
+    bg.setScale(Math.max(width / bg.width, height / bg.height));
 
-    // Title text
-    const titleImg = this.add.image(width / 2, height * 0.28, 'main-text').setAlpha(0);
-    const titleScale = (width * 0.85) / titleImg.width;
-    titleImg.setScale(titleScale);
-
-    // Character
-    const charImg = this.add.image(width / 2, height * 0.52, 'main-char').setAlpha(0);
-    const charScale = (width * 0.45) / charImg.width;
-    charImg.setScale(charScale);
-
-    // 최고기록
+    // Create game objects first (position later via layout engine)
+    const titleImg = this.add.image(0, 0, 'main-text').setAlpha(0);
+    const charImg = this.add.image(0, 0, 'main-char').setAlpha(0);
     const best = localStorage.getItem('bestScore') || '0';
-    const bestRecord = this.add.text(width / 2, height * 0.72, `최고기록 ${best}`, {
+    const bestRecord = this.add.text(0, 0, `최고기록 ${best}`, {
       fontFamily: 'GMarketSans, sans-serif',
       fontSize: '22px', color: '#ffffff', fontStyle: 'bold',
       stroke: '#000000', strokeThickness: 4,
     }).setOrigin(0.5).setAlpha(0);
-
-    // Start button
-    const btnImg = this.add.image(width / 2, height * 0.805, 'main-btn').setAlpha(0);
-    const btnScale = (width * 0.55) / btnImg.width;
-    btnImg.setScale(btnScale);
+    const btnImg = this.add.image(0, 0, 'main-btn').setAlpha(0);
     btnImg.setInteractive({ useHandCursor: true });
+    const settingsBtn = this.add.image(0, 0, 'btn-settings').setInteractive({ useHandCursor: true });
+
+    // Map IDs to game objects
+    const objMap: Record<string, Phaser.GameObjects.Image | Phaser.GameObjects.Text> = {
+      'main-text': titleImg, 'main-char': charImg, 'bestScore': bestRecord, 'main-btn': btnImg, 'btn-settings': settingsBtn,
+    };
+
+    // Compute layout
+    const layout = DEFAULT_LAYOUTS['main-screen'];
+    const positions = computeLayout(
+      layout.elements, width, height,
+      (id) => { const t = this.textures.get(objMap[id]?.texture?.key || id); const f = t.getSourceImage(); return f ? { w: f.width, h: f.height } : null; },
+      (id) => { const obj = objMap[id]; return obj instanceof Phaser.GameObjects.Text ? { w: obj.width, h: obj.height } : null; },
+    );
+
+    // Apply positions
+    for (const pos of positions) {
+      const obj = objMap[pos.id];
+      if (!obj) continue;
+      obj.setPosition(pos.x, pos.y);
+      obj.setOrigin(pos.originX, pos.originY);
+      if (obj instanceof Phaser.GameObjects.Image) {
+        obj.setDisplaySize(pos.displayWidth, pos.displayHeight);
+      }
+    }
 
     // Fade-in animations
-    this.tweens.add({ targets: titleImg, alpha: 1, y: height * 0.26, duration: 800, delay: 300, ease: 'Power2' });
-    this.tweens.add({ targets: charImg, alpha: 1, y: height * 0.50, duration: 800, delay: 600, ease: 'Power2' });
+    const btnScale = btnImg.scaleX;
+    this.tweens.add({ targets: titleImg, alpha: 1, y: titleImg.y - height * 0.02, duration: 800, delay: 300, ease: 'Power2' });
+    this.tweens.add({ targets: charImg, alpha: 1, y: charImg.y - height * 0.02, duration: 800, delay: 600, ease: 'Power2' });
     this.tweens.add({ targets: bestRecord, alpha: 1, duration: 600, delay: 900, ease: 'Power2' });
     this.tweens.add({
       targets: btnImg, alpha: 1, duration: 600, delay: 1000,
@@ -118,12 +133,6 @@ export class BootScene extends Phaser.Scene {
         this.scene.start('CommuteScene');
       });
     });
-
-    // 우상단 설정 버튼
-    const settingSize = width * 0.09;
-    const settingsBtn = this.add.image(width - 20, 20, 'btn-settings')
-      .setDisplaySize(settingSize, settingSize)
-      .setOrigin(1, 0).setInteractive({ useHandCursor: true });
 
     settingsBtn.on('pointerdown', () => {
       if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
