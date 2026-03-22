@@ -81,7 +81,7 @@ export class CommuteScene extends Phaser.Scene {
     this.viewLeft = 0;
 
     this.road = new Road(this, this.laneWorldX, this.laneW, this.tileH, NUM_LANES);
-    const PLAYER_Y_RATIO = 1 - 1.5 / 4; // 아래서 1.5/4 위치
+    const PLAYER_Y_RATIO = 3 / 4; // 아래서 1/4 위치
     const playerScreenY = height * PLAYER_Y_RATIO - this.tileH / 2;
     this.road.generateInitial(height, startLane, height * PLAYER_Y_RATIO);
 
