@@ -15,10 +15,9 @@ interface CategoryDef {
 const CATEGORY_DEFS = [
   { key: 'character', label: '캐릭터', accept: 'image/*', darkBg: true },
   { key: 'map', label: '맵 타일', accept: 'image/*', darkBg: true },
-  { key: 'obstacles', label: '장애물', accept: 'image/*', darkBg: true },
   { key: 'ui', label: 'UI', accept: 'image/*' },
-
   { key: 'audio', label: '오디오', accept: 'audio/*' },
+  { key: 'misc', label: '기타', accept: 'image/*,audio/*' },
 ]
 
 function buildCategories(gameId: string): CategoryDef[] {

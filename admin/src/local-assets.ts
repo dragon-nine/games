@@ -16,14 +16,6 @@ export const LOCAL_ASSETS: LocalAsset[] = [
   { path: 'map/corner-tr.png', category: 'map', filename: 'corner-tr.png' },
   { path: 'map/corner-bl.png', category: 'map', filename: 'corner-bl.png' },
   { path: 'map/corner-br.png', category: 'map', filename: 'corner-br.png' },
-  { path: 'map/bg-tile.png', category: 'map', filename: 'bg-tile.png' },
-  // obstacles
-  { path: 'obstacles/building1.png', category: 'obstacles', filename: 'building1.png' },
-  { path: 'obstacles/building2.png', category: 'obstacles', filename: 'building2.png' },
-  { path: 'obstacles/building3.png', category: 'obstacles', filename: 'building3.png' },
-  { path: 'obstacles/building4.png', category: 'obstacles', filename: 'building4.png' },
-  { path: 'obstacles/building5.png', category: 'obstacles', filename: 'building5.png' },
-  { path: 'obstacles/building6.png', category: 'obstacles', filename: 'building6.png' },
   // ui
   { path: 'ui/btn-forward.png', category: 'ui', filename: 'btn-forward.png' },
   { path: 'ui/btn-switch.png', category: 'ui', filename: 'btn-switch.png' },
