@@ -86,14 +86,14 @@ export class BootScene extends Phaser.Scene {
 
     // 최고기록
     const best = localStorage.getItem('bestScore') || '0';
-    const bestRecord = this.add.text(width / 2, height * 0.70, `최고기록 ${best}`, {
+    const bestRecord = this.add.text(width / 2, height * 0.72, `최고기록 ${best}`, {
       fontFamily: 'GMarketSans, sans-serif',
       fontSize: '22px', color: '#ffffff', fontStyle: 'bold',
       stroke: '#000000', strokeThickness: 4,
     }).setOrigin(0.5).setAlpha(0);
 
     // Start button
-    const btnImg = this.add.image(width / 2, height * 0.76, 'main-btn').setAlpha(0);
+    const btnImg = this.add.image(width / 2, height * 0.82, 'main-btn').setAlpha(0);
     const btnScale = (width * 0.55) / btnImg.width;
     btnImg.setScale(btnScale);
     btnImg.setInteractive({ useHandCursor: true });
