@@ -161,4 +161,13 @@ export class Player {
       duration: 100, ease: 'Quad.easeOut',
     });
   }
+
+  /** X만 업데이트 (Y 고정) */
+  scrollToX(screenX: number) {
+    this.scene.tweens.add({
+      targets: this.sprite,
+      x: screenX,
+      duration: 100, ease: 'Quad.easeOut',
+    });
+  }
 }

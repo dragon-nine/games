@@ -262,9 +262,8 @@ export class CommuteScene extends Phaser.Scene {
   private scrollToCurrentRow() {
     const { height } = this.scale;
     const row = this.road.rows[this.currentRowIdx];
-    const PLAYER_Y_RATIO = 1.5 / 4;
+    const PLAYER_Y_RATIO = 3 / 4; // 아래서 1/4 위치
     const screenY = height * PLAYER_Y_RATIO;
-    const playerOffsetY = this.tileH / 2;
     const targetContainerY = -(row.y - screenY);
 
     this.tweens.add({
@@ -273,8 +272,9 @@ export class CommuteScene extends Phaser.Scene {
       duration: 100, ease: 'Quad.easeOut',
     });
 
+    // 토끼 X만 업데이트 (Y는 고정)
     const playerScreenX = this.laneScreenX(this.player.currentLane);
-    this.player.scrollTo(playerScreenX, screenY - playerOffsetY);
+    this.player.scrollToX(playerScreenX);
   }
 
   /* ── Crash ── */
