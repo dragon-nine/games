@@ -143,6 +143,11 @@ const SCREEN_DEFAULTS: Record<string, LayoutElement[]> = {
   ],
 }
 
+const SCREEN_BG: Record<string, { bgPath: string; bgColor: string }> = {
+  'main-screen': { bgPath: 'game01/main-screen/main-bg.png', bgColor: '#0a0a14' },
+  'game-over': { bgPath: '', bgColor: '#000000' },
+}
+
 const SCREEN_ASSET_PREFIXES: Record<string, string[]> = {
   'main-screen': ['game01/main-screen/', 'game01/ui/'],
   'game-over': ['game01/game-over-screen/'],
@@ -179,6 +184,7 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
   const [elements, setElements] = useState<LayoutElement[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [assetUrls, setAssetUrls] = useState<Record<string, string>>({})
+  const [bgUrl, setBgUrl] = useState<string | null>(null)
   const [imageSizes, setImageSizes] = useState<Record<string, { w: number; h: number }>>({})
   const [saving, setSaving] = useState(false)
   const phoneRef = useRef<HTMLDivElement>(null)
@@ -208,6 +214,19 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
         }
       } catch { /* ignore */ }
       setAssetUrls(urls)
+
+      // Load background image
+      const bgConf = SCREEN_BG[screen]
+      if (bgConf?.bgPath) {
+        try {
+          const prefix = bgConf.bgPath.substring(0, bgConf.bgPath.lastIndexOf('/') + 1)
+          const bgBlobs = await listBlobs(prefix)
+          const bgBlob = bgBlobs.find((b) => b.pathname === bgConf.bgPath)
+          setBgUrl(bgBlob?.url || null)
+        } catch { setBgUrl(null) }
+      } else {
+        setBgUrl(null)
+      }
     }
     loadAssets()
   }, [gameId, screen])
@@ -380,12 +399,27 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
             <div
               className="le-phone-screen"
               ref={phoneRef}
-              style={{ width: previewW, height: previewH }}
+              style={{
+                width: previewW, height: previewH,
+                background: SCREEN_BG[screen]?.bgColor || '#000',
+              }}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerLeave={handlePointerUp}
               onClick={() => setSelectedId(null)}
             >
+              {bgUrl && (
+                <img src={bgUrl} alt="bg" style={{
+                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                  objectFit: 'cover', pointerEvents: 'none',
+                }} />
+              )}
+              {screen === 'game-over' && (
+                <div style={{
+                  position: 'absolute', inset: 0, pointerEvents: 'none',
+                  background: 'linear-gradient(180deg, #2a0c10 0%, #000000 100%)', opacity: 0.9,
+                }} />
+              )}
               {positions.map((pos) => {
                 const el = elements.find((e) => e.id === pos.id)
                 if (!el) return null
@@ -401,13 +435,11 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                     {el.type === 'image' && assetUrls[el.id] ? (
                       <LazyImage src={assetUrls[el.id]} alt={el.id} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
-                      <div className="le-el-text">{el.label || el.id}</div>
+                      <div className="le-el-text" style={{ fontSize: `${Math.max(8, pos.h * 0.6)}px` }}>{el.label || el.id}</div>
                     )}
-                    <div className="le-el-tag">{el.id}</div>
                     {el.positioning === 'group' && el.gapPx > 0 && (
-                      <div className="le-el-gap" style={{ top: -el.gapPx * previewScale, height: el.gapPx * previewScale }}>
-                        {el.gapPx}px
-                      </div>
+                      <div className="le-el-gap" data-gap={`${el.gapPx}px`}
+                        style={{ top: -el.gapPx * previewScale, height: el.gapPx * previewScale }} />
                     )}
                   </div>
                 )

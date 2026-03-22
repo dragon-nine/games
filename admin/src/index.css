@@ -950,9 +950,9 @@ body {
 .le-el {
   position: absolute;
   cursor: grab; user-select: none; transition: box-shadow 0.12s;
-  border: 1.5px solid transparent; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.25); border-radius: 4px;
 }
-.le-el:hover { border-color: rgba(49,130,246,0.4); }
+.le-el:hover { border-color: rgba(49,130,246,0.6); }
 .le-el-selected {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px rgba(49,130,246,0.25);
@@ -963,22 +963,24 @@ body {
   border-radius: 3px;
 }
 .le-el-text {
-  color: #fff; font-size: 11px; text-align: center;
-  padding: 4px 8px; background: rgba(255,255,255,0.1);
-  border-radius: 4px; white-space: pre-line; line-height: 1.3;
+  color: #fff; text-align: center; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'GMarketSans', sans-serif; font-weight: bold;
+  white-space: pre-line; line-height: 1.3;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
-.le-el-tag {
-  position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%);
-  font-size: 8px; color: rgba(255,255,255,0.5); white-space: nowrap;
-  pointer-events: none;
-}
-.le-el-selected .le-el-tag { color: var(--accent); font-weight: 600; }
 .le-el-anchor { border-style: dashed !important; }
 .le-el-gap {
-  position: absolute; left: 0; right: 0;
-  border-left: 1px dashed rgba(59,130,246,0.4);
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: 2px; background: rgba(59,130,246,0.3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 8px; color: rgba(59,130,246,0.7); pointer-events: none;
+  pointer-events: none;
+}
+.le-el-gap::after {
+  content: attr(data-gap);
+  position: absolute; left: 8px;
+  font-size: 8px; color: rgba(59,130,246,0.8);
+  white-space: nowrap; font-family: monospace;
 }
 
 /* ── Inspector ── */
