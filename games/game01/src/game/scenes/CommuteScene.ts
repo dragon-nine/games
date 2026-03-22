@@ -26,6 +26,7 @@ export class CommuteScene extends Phaser.Scene {
   private gameStarted = false;
   private hasRevived = false;
   private bgm?: Phaser.Sound.BaseSound;
+  private bgTile?: Phaser.GameObjects.TileSprite;
 
   private laneWorldX: number[] = [];
   private laneW = 0;
@@ -52,12 +53,11 @@ export class CommuteScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#000000');
 
-    // 배경 이미지
+    // 배경 이미지 (타일 반복 + 스크롤)
     if (this.textures.exists('bg-game')) {
-      this.add.image(width / 2, height / 2, 'bg-game')
-        .setDisplaySize(width, height)
-        .setDepth(0)
-        .setScrollFactor(0);
+      this.bgTile = this.add.tileSprite(0, 0, width, height, 'bg-game')
+        .setOrigin(0, 0)
+        .setDepth(0);
     }
 
     // 화면에 보이는 2레인 기준으로 크기 계산
@@ -256,11 +256,23 @@ export class CommuteScene extends Phaser.Scene {
     const playerOffsetY = this.tileH / 2; // 타일 높이의 1/3 위로
     const targetContainerY = -(row.y - screenY);
 
+    const scrollDelta = targetContainerY - this.road.getContainer().y;
+    const bgStartY = this.bgTile?.tilePositionY ?? 0;
+    const bgTargetY = bgStartY - scrollDelta * 0.5;
+
     this.tweens.add({
       targets: this.road.getContainer(),
       y: targetContainerY,
       duration: 100, ease: 'Quad.easeOut',
     });
+
+    if (this.bgTile) {
+      this.tweens.add({
+        targets: this.bgTile,
+        tilePositionY: bgTargetY,
+        duration: 100, ease: 'Quad.easeOut',
+      });
+    }
 
     const playerScreenX = this.laneScreenX(this.player.currentLane);
     this.player.scrollTo(playerScreenX, screenY - playerOffsetY);
