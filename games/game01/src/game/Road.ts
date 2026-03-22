@@ -32,8 +32,8 @@ export class Road {
     return this.container;
   }
 
-  generateInitial(height: number, startLane: number) {
-    this.startY = height - 200;
+  generateInitial(height: number, startLane: number, startY?: number) {
+    this.startY = startY ?? height - 200;
     this.straightRemaining = 1;
     this.addRow(startLane, this.startY);
 

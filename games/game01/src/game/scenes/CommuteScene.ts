@@ -78,13 +78,14 @@ export class CommuteScene extends Phaser.Scene {
     this.viewLeft = 0;
 
     this.road = new Road(this, this.laneWorldX, this.laneW, this.tileH, NUM_LANES);
-    this.road.generateInitial(height, startLane);
+    const playerScreenY = height * 0.5 - this.tileH / 2;
+    this.road.generateInitial(height, startLane, height * 0.5);
 
     // 컨테이너 X 오프셋으로 뷰 위치 설정
     this.road.getContainer().setX(-(this.viewLeft * this.laneW));
 
     const playerScreenX = this.laneScreenX(startLane);
-    this.player = new Player(this, this.laneW, playerScreenX, height - 200 - this.tileH / 2, startLane);
+    this.player = new Player(this, this.laneW, playerScreenX, playerScreenY, startLane);
 
     this.hud = new HUD(this, () => this.onDeath());
     this.hud.create(width);
@@ -203,6 +204,8 @@ export class CommuteScene extends Phaser.Scene {
     this.playSfx('sfx-switch', 0.5);
     this.player.switchTo(targetLane);
     this.justSwitched = true;
+    this.score++;
+    this.hud.updateScore(this.score);
     this.hud.addTime();
 
     // 뷰 패닝 (타겟 레인이 화면 밖이면)
