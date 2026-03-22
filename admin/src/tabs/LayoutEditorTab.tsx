@@ -1,6 +1,31 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { listBlobs, uploadBlob } from '../api'
 
+/* ── NumInput: editable number field ── */
+function NumInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState(String(value))
+  useEffect(() => { setText(String(value)) }, [value])
+  return (
+    <input
+      type="text"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={() => {
+        const n = Number(text)
+        if (!isNaN(n)) onChange(n)
+        else setText(String(value))
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          const n = Number(text)
+          if (!isNaN(n)) onChange(n)
+          else setText(String(value))
+        }
+      }}
+    />
+  )
+}
+
 /* ── Shared types (mirrors game/layout-types.ts) ── */
 
 const DESIGN_W = 390
@@ -502,10 +527,7 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
               <div className="le-field">
                 <label>너비</label>
                 <div className="le-field-row">
-                  <input type="text" inputMode="numeric"
-                    value={selected.widthPx}
-                    onChange={(e) => updateEl(selected.id, { widthPx: e.target.value === '' || e.target.value === '-' ? 0 as never : Number(e.target.value) })}
-                  />
+                  <NumInput value={selected.widthPx} onChange={(v) => updateEl(selected.id, { widthPx: v })} />
                   <span className="le-field-px">px</span>
                 </div>
               </div>
@@ -515,23 +537,13 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                   <div className="le-field">
                     <label>순서</label>
                     <div className="le-field-row">
-                      <input type="text" inputMode="numeric"
-                        value={selected.order}
-                        onChange={(e) => updateEl(selected.id, { order: e.target.value === '' ? 0 as never : Number(e.target.value) })}
-                      />
+                      <NumInput value={selected.order} onChange={(v) => updateEl(selected.id, { order: v })} />
                     </div>
                   </div>
                   <div className="le-field">
                     <label>위 간격</label>
                     <div className="le-field-row">
-                      <input type="text" inputMode="numeric"
-                        value={selected.gapPx}
-                        onChange={(e) => {
-                          const v = e.target.value
-                          if (v === '' || v === '-') return updateEl(selected.id, { gapPx: 0 })
-                          updateEl(selected.id, { gapPx: Number(v) })
-                        }}
-                      />
+                      <NumInput value={selected.gapPx} onChange={(v) => updateEl(selected.id, { gapPx: v })} />
                       <span className="le-field-px">px</span>
                     </div>
                   </div>
@@ -553,20 +565,14 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                   <div className="le-field">
                     <label>X 오프셋</label>
                     <div className="le-field-row">
-                      <input type="text" inputMode="numeric"
-                        value={selected.offsetX}
-                        onChange={(e) => updateEl(selected.id, { offsetX: Number(e.target.value) || 0 })}
-                      />
+                      <NumInput value={selected.offsetX} onChange={(v) => updateEl(selected.id, { offsetX: v })} />
                       <span className="le-field-px">px</span>
                     </div>
                   </div>
                   <div className="le-field">
                     <label>Y 오프셋</label>
                     <div className="le-field-row">
-                      <input type="text" inputMode="numeric"
-                        value={selected.offsetY}
-                        onChange={(e) => updateEl(selected.id, { offsetY: Number(e.target.value) || 0 })}
-                      />
+                      <NumInput value={selected.offsetY} onChange={(v) => updateEl(selected.id, { offsetY: v })} />
                       <span className="le-field-px">px</span>
                     </div>
                   </div>
@@ -579,10 +585,7 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                   <div className="le-field">
                     <label>폰트 크기</label>
                     <div className="le-field-row">
-                      <input type="text" inputMode="numeric"
-                        value={selected.textStyle?.fontSizePx ?? 14}
-                        onChange={(e) => updateEl(selected.id, { textStyle: { ...selected.textStyle, fontSizePx: Number(e.target.value) || 14 } })}
-                      />
+                      <NumInput value={selected.textStyle?.fontSizePx ?? 14} onChange={(v) => updateEl(selected.id, { textStyle: { ...selected.textStyle, fontSizePx: v } })} />
                       <span className="le-field-px">px</span>
                     </div>
                   </div>
@@ -599,10 +602,7 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                   <div className="le-field">
                     <label>테두리 굵기</label>
                     <div className="le-field-row">
-                      <input type="text" inputMode="numeric"
-                        value={selected.textStyle?.strokeWidth ?? 0}
-                        onChange={(e) => updateEl(selected.id, { textStyle: { ...selected.textStyle, strokeWidth: Number(e.target.value) || 0 } })}
-                      />
+                      <NumInput value={selected.textStyle?.strokeWidth ?? 0} onChange={(v) => updateEl(selected.id, { textStyle: { ...selected.textStyle, strokeWidth: v } })} />
                       <span className="le-field-px">px</span>
                     </div>
                   </div>
