@@ -31,6 +31,7 @@ export class BootScene extends Phaser.Scene {
       ['settings-close', 'ui/settings/settings-close.png'],
       ['toggle-on', 'ui/settings/toggle-on.png'],
       ['toggle-off', 'ui/settings/toggle-off.png'],
+      ['btn-settings', 'ui/btn-settings.png'],
       ['go-rabbit', 'game-over-screen/gameover-rabbit.png'],
       ['go-btn-revive', 'game-over-screen/btn-revive.png'],
       ['go-btn-home', 'game-over-screen/btn-home.png'],
@@ -118,20 +119,11 @@ export class BootScene extends Phaser.Scene {
       });
     });
 
-    // 우상단 아이콘들 (홈화면 추가 + 설정)
-    const homeBtn = this.add.text(width - 60, 20, '📲', {
-      fontSize: '26px',
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
-
-    homeBtn.on('pointerdown', () => {
-      if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
-      logEvent('homescreen_guide_open', { from: 'boot' });
-      this.showHomeScreenGuide();
-    });
-
-    const settingsBtn = this.add.text(width - 20, 20, '⚙', {
-      fontSize: '26px', color: '#555577',
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+    // 우상단 설정 버튼
+    const settingSize = width * 0.09;
+    const settingsBtn = this.add.image(width - 20, 20, 'btn-settings')
+      .setDisplaySize(settingSize, settingSize)
+      .setOrigin(1, 0).setInteractive({ useHandCursor: true });
 
     settingsBtn.on('pointerdown', () => {
       if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
@@ -245,46 +237,4 @@ export class BootScene extends Phaser.Scene {
     ov.getItems().forEach(item => { if ('setAlpha' in item) (item as unknown as Phaser.GameObjects.Components.Alpha).setAlpha(1); });
   }
 
-  /** 홈화면 추가 가이드 표시 (CommuteScene에서도 호출 가능하도록 static-like) */
-  showHomeScreenGuide() {
-    const { width, height } = this.scale;
-    const ov = new Overlay(this).open();
-
-    // 닫기 ✕
-    const closeBtn = ov.addText(width - 20, height * 0.05, '✕', { fontSize: '28px', color: '#888888' });
-    closeBtn.setOrigin(1, 0).setInteractive({ useHandCursor: true });
-    closeBtn.on('pointerdown', () => ov.close());
-
-    // D9 로고
-    ov.add(this.add.circle(width / 2, height * 0.15, 40, 0xe94560).setDepth(Overlay.DEPTH));
-    ov.addText(width / 2, height * 0.15, 'D9', { fontSize: '28px', color: '#ffffff', fontStyle: 'bold' });
-
-    // 타이틀
-    ov.addText(width / 2, height * 0.24, '직장인 잔혹시를\n홈 화면에 추가해보세요', {
-      fontSize: '24px', color: '#ffffff', fontStyle: 'bold', align: 'center',
-    });
-
-    // 스텝 가이드
-    const stepY = height * 0.38;
-    const stepGap = height * 0.09;
-    const leftX = 36;
-
-    ov.addText(leftX + 15, stepY, '1', { fontSize: '22px', color: '#e94560', fontStyle: 'bold' });
-    ov.addText(leftX + 45, stepY, '오른쪽 아래  ⬆  아이콘을 누르고,', { fontSize: '16px', color: '#ccccdd' }).setOrigin(0, 0.5);
-
-    ov.addText(leftX + 15, stepY + stepGap, '2', { fontSize: '22px', color: '#e94560', fontStyle: 'bold' });
-    ov.addText(leftX + 45, stepY + stepGap, '새로 뜬 창을 스크롤해서', { fontSize: '16px', color: '#ccccdd' }).setOrigin(0, 0.5);
-
-    ov.addText(leftX + 15, stepY + stepGap * 2, '3', { fontSize: '22px', color: '#e94560', fontStyle: 'bold' });
-    ov.addText(leftX + 45, stepY + stepGap * 2, '⊕ 홈 화면에 추가  를 선택하세요', { fontSize: '16px', color: '#ccccdd' }).setOrigin(0, 0.5);
-
-    ov.addText(width / 2, height * 0.72, '앱처럼 빠르게 실행할 수 있어요!', { fontSize: '14px', color: '#8888aa' });
-
-    // 확인 버튼
-    const { bg, text } = ov.addButton(width / 2, height * 0.82, 200, 50, '확인', 0xe94560, () => {
-      if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
-      ov.close();
-    });
-    bg.setAlpha(1); text.setAlpha(1);
-  }
 }
