@@ -25,6 +25,7 @@ interface AssetGroup {
   prefix: string
   downloads: DownloadOption[]
   exactOnly?: boolean  // true면 정확한 크기만 허용, 크로퍼 없이 바로 업로드
+  fileBaseName: string  // 저장/다운로드 시 사용할 영문 파일명 (확장자 제외)
 }
 
 function buildGroups(gameId: string): AssetGroup[] {
@@ -32,6 +33,7 @@ function buildGroups(gameId: string): AssetGroup[] {
     {
       key: 'icon',
       label: '앱 아이콘',
+      fileBaseName: 'app_icon',
       desc: '600x600',
       accept: 'image/png',
       maxCount: 1,
@@ -46,6 +48,7 @@ function buildGroups(gameId: string): AssetGroup[] {
     {
       key: 'feature',
       label: '대표 이미지',
+      fileBaseName: 'feature_image',
       desc: '1932x828',
       accept: 'image/png,image/jpeg',
       maxCount: 1,
@@ -60,6 +63,7 @@ function buildGroups(gameId: string): AssetGroup[] {
     {
       key: 'screenshots',
       label: '스크린샷',
+      fileBaseName: 'screenshot',
       desc: '636x1048',
       accept: 'image/png,image/jpeg',
       maxCount: 8,
@@ -127,9 +131,7 @@ async function downloadResized(url: string, filename: string, targetW: number, t
   URL.revokeObjectURL(img.src)
   canvas.toBlob((blob) => {
     if (!blob) return
-    const ext = filename.match(/\.\w+$/)?.[0] || '.png'
-    const name = filename.replace(/\.\w+$/, '') + `_${targetW}x${targetH}${ext}`
-    triggerDownload(URL.createObjectURL(blob), name)
+    triggerDownload(URL.createObjectURL(blob), filename)
   }, 'image/png', 0.95)
 }
 
@@ -166,7 +168,9 @@ function LaunchGroup({ group, onBanner }: { group: AssetGroup; onBanner: Props['
           return
         }
         try {
-          await uploadBlob(file, group.prefix)
+          const ext = file.name.match(/\.\w+$/)?.[0] || '.png'
+          const renamed = new File([file], `${group.fileBaseName}${ext}`, { type: file.type })
+          await uploadBlob(renamed, group.prefix)
           onBanner('success', '업로드 완료')
           refresh()
         } catch (err) {
@@ -202,18 +206,18 @@ function LaunchGroup({ group, onBanner }: { group: AssetGroup; onBanner: Props['
   }, [onBanner, refresh])
 
   const handleDownload = useCallback((blob: BlobItem, opt: DownloadOption) => {
-    const fname = getFilename(blob.pathname)
+    const origName = getFilename(blob.pathname)
+    const ext = origName.match(/\.\w+$/)?.[0] || '.png'
+    const platformTag = opt.platform === '토스' ? 'toss' : 'google_play'
+    const dlName = `${group.fileBaseName}_${platformTag}${ext}`
     if (opt.width === group.storeWidth && opt.height === group.storeHeight) {
-      // Same size → download as-is
-      downloadOriginal(blob.url, fname)
+      downloadOriginal(blob.url, dlName)
     } else if (opt.mode === 'resize') {
-      // Auto resize
-      downloadResized(blob.url, fname, opt.width, opt.height)
+      downloadResized(blob.url, dlName, opt.width, opt.height)
     } else {
-      // Crop mode → open cropper for download
-      setDownloadCropUrl({ url: blob.url, filename: fname, opt })
+      setDownloadCropUrl({ url: blob.url, filename: dlName, opt })
     }
-  }, [group.storeWidth, group.storeHeight])
+  }, [group.storeWidth, group.storeHeight, group.label])
 
   return (
     <div className="card">
@@ -222,7 +226,7 @@ function LaunchGroup({ group, onBanner }: { group: AssetGroup; onBanner: Props['
           <span className={`sidebar-chevron${collapsed ? '' : ' open'}`}>&#9656;</span>
           <span className="card-title" style={{ marginBottom: 0 }}>{group.label}</span>
           {group.desc && <span className="spec-badge">{group.desc}</span>}
-          <span className="section-count">{blobs.length} / {group.maxCount}</span>
+          {!group.exactOnly && <span className="section-count">{blobs.length} / {group.maxCount}</span>}
         </button>
         {blobs.length < group.maxCount && (
           <>
@@ -248,12 +252,15 @@ function LaunchGroup({ group, onBanner }: { group: AssetGroup; onBanner: Props['
                   <div className="lp-card-preview">
                     <LazyImage src={b.url} alt={fname}
                       style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                    <button className="lp-delete-corner" onClick={() => handleDelete(b.url)} title="삭제">&times;</button>
                   </div>
                   <div className="lp-card-body">
-                    <div className="lp-card-info">
-                      <span className="lp-card-name" title={fname}>{fname}</span>
-                      <span className="lp-card-meta">{group.storeWidth}x{group.storeHeight} / {formatSize(b.size)}</span>
-                    </div>
+                    {!group.exactOnly && (
+                      <div className="lp-card-info">
+                        <span className="lp-card-name" title={fname}>{fname}</span>
+                        <span className="lp-card-meta">{group.storeWidth}x{group.storeHeight} / {formatSize(b.size)}</span>
+                      </div>
+                    )}
                     <div className="lp-card-downloads">
                       {group.downloads.map((opt) => (
                         <button key={opt.platform} className="lp-dl-btn"
@@ -265,7 +272,6 @@ function LaunchGroup({ group, onBanner }: { group: AssetGroup; onBanner: Props['
                         </button>
                       ))}
                     </div>
-                    <button className="lp-delete-btn" onClick={() => handleDelete(b.url)} title="삭제">삭제</button>
                   </div>
                 </div>
               )

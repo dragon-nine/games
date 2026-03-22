@@ -31,23 +31,34 @@ export default function DownloadCropper({
     img.src = imageUrl
   }, [imageUrl])
 
-  // Layout
+  // Layout — scale image, crop box matches shorter side, slide along longer side
   useEffect(() => {
     if (!imgEl || !containerRef.current) return
-    const cw = containerRef.current.clientWidth - 40
-    const ch = containerRef.current.clientHeight - 40
-    const scale = Math.min(cw / sourceWidth, ch / sourceHeight, 1)
-    const iw = sourceWidth * scale
-    const ih = sourceHeight * scale
+    const maxW = containerRef.current.clientWidth - 40
+    const maxH = containerRef.current.clientHeight - 40
+
+    const targetAR = targetWidth / targetHeight
+    const sourceAR = sourceWidth / sourceHeight
+
+    const fitScale = Math.min(maxW / sourceWidth, maxH / sourceHeight)
+    const iw = sourceWidth * fitScale
+    const ih = sourceHeight * fitScale
     const ox = (containerRef.current.clientWidth - iw) / 2
     const oy = (containerRef.current.clientHeight - ih) / 2
-    setDisplay({ scale, ox, oy, iw, ih })
+    setDisplay({ scale: fitScale, ox, oy, iw, ih })
 
-    // Crop box size in display coords
-    const cropW = targetWidth * scale
-    const cropH = targetHeight * scale
+    // Crop box: match shorter side of image, derive other from target AR
+    let cropW: number, cropH: number
+    if (sourceAR > targetAR) {
+      // Source is wider → crop height = image height, slide horizontally
+      cropH = ih
+      cropW = cropH * targetAR
+    } else {
+      // Source is taller → crop width = image width, slide vertically
+      cropW = iw
+      cropH = cropW / targetAR
+    }
     setCropSize({ w: cropW, h: cropH })
-    // Center the crop box
     setCropPos({ x: ox + (iw - cropW) / 2, y: oy + (ih - cropH) / 2 })
   }, [imgEl, sourceWidth, sourceHeight, targetWidth, targetHeight])
 
@@ -113,9 +124,11 @@ export default function DownloadCropper({
     if (!dragRef.current) return
     const dx = e.clientX - dragRef.current.startX
     const dy = e.clientY - dragRef.current.startY
+    const canMoveX = display.iw > cropSize.w + 1
+    const canMoveY = display.ih > cropSize.h + 1
     setCropPos({
-      x: clamp(dragRef.current.startCropX + dx, display.ox, display.ox + display.iw - cropSize.w),
-      y: clamp(dragRef.current.startCropY + dy, display.oy, display.oy + display.ih - cropSize.h),
+      x: canMoveX ? clamp(dragRef.current.startCropX + dx, display.ox, display.ox + display.iw - cropSize.w) : dragRef.current.startCropX,
+      y: canMoveY ? clamp(dragRef.current.startCropY + dy, display.oy, display.oy + display.ih - cropSize.h) : dragRef.current.startCropY,
     })
   }, [display, cropSize])
 
@@ -138,12 +151,10 @@ export default function DownloadCropper({
 
     out.toBlob((blob) => {
       if (!blob) return
-      const ext = filename.match(/\.\w+$/)?.[0] || '.png'
-      const name = filename.replace(/\.\w+$/, '') + `_${targetWidth}x${targetHeight}${ext}`
       const blobUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = blobUrl
-      a.download = name
+      a.download = filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -170,7 +181,7 @@ export default function DownloadCropper({
           />
         </div>
         <div className="cropper-footer">
-          <span className="cropper-hint">크롭 영역을 드래그하여 위치를 조정하세요</span>
+          <span className="cropper-hint">드래그하여 위치 조정</span>
           <div className="cropper-actions">
             <button className="le-btn le-btn-ghost" onClick={onDone}>취소</button>
             <button className="le-btn le-btn-save" onClick={handleDownload}>다운로드</button>

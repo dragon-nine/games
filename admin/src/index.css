@@ -1085,6 +1085,17 @@ body {
   display: flex; align-items: center; justify-content: center;
   background: var(--bg); border-radius: 8px; overflow: hidden;
 }
+.lp-card-preview { position: relative; }
+.lp-delete-corner {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.5); color: #fff;
+  border: none; cursor: pointer; font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+.lp-card-preview:hover .lp-delete-corner { opacity: 1; }
+.lp-delete-corner:hover { background: var(--danger); }
 .lp-card-body { flex: 1; min-width: 0; }
 .lp-card-info { margin-bottom: 10px; }
 .lp-card-name {
@@ -1108,11 +1119,6 @@ body {
   font-size: 10px; background: var(--warning-light); color: var(--warning);
   padding: 1px 5px; border-radius: 4px; font-weight: 600;
 }
-.lp-delete-btn {
-  background: none; border: none; color: var(--text-tertiary);
-  font-size: 11px; cursor: pointer; padding: 2px 0;
-}
-.lp-delete-btn:hover { color: var(--danger); }
 
 @media (max-width: 768px) {
   .lp-row { flex-direction: column; }

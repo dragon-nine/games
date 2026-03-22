@@ -42,26 +42,25 @@ export default function ImageCropper({ file, targetWidth, targetHeight, onCroppe
     const maxW = container.clientWidth - 40
     const maxH = container.clientHeight - 40
 
-    // Always scale based on target size — target box defines the reference frame
-    const refW = Math.max(imgEl.naturalWidth, targetWidth)
-    const refH = Math.max(imgEl.naturalHeight, targetHeight)
-    const scale = Math.min(maxW / refW, maxH / refH)
-
-    const iw = imgEl.naturalWidth * scale
-    const ih = imgEl.naturalHeight * scale
+    // Scale image so the shorter side (relative to target AR) fills the crop box
+    const imgAR = imgEl.naturalWidth / imgEl.naturalHeight
+    // Fit everything in the container
+    const fitScale = Math.min(maxW / imgEl.naturalWidth, maxH / imgEl.naturalHeight)
+    const iw = imgEl.naturalWidth * fitScale
+    const ih = imgEl.naturalHeight * fitScale
     const ox = (container.clientWidth - iw) / 2
     const oy = (container.clientHeight - ih) / 2
-    setDisplay({ iw, ih, scale, ox, oy })
+    setDisplay({ iw, ih, scale: fitScale, ox, oy })
 
-    // Init crop box - fit largest possible with target aspect ratio
-    const tw = targetWidth * scale
-    const th = targetHeight * scale
+    // Crop box: match the shorter side of the image, derive the other from target AR
     let cw: number, ch: number
-    if (iw / ih > aspectRatio) {
-      ch = Math.min(ih, th)
+    if (imgAR > aspectRatio) {
+      // Image is wider → crop box height = image height, slide horizontally
+      ch = ih
       cw = ch * aspectRatio
     } else {
-      cw = Math.min(iw, tw)
+      // Image is taller → crop box width = image width, slide vertically
+      cw = iw
       ch = cw / aspectRatio
     }
     setCrop({ x: ox + (iw - cw) / 2, y: oy + (ih - ch) / 2, w: cw, h: ch })
@@ -142,10 +141,13 @@ export default function ImageCropper({ file, targetWidth, targetHeight, onCroppe
     const dy = e.clientY - dragRef.current.startY
     const sc = dragRef.current.startCrop
 
-    const x = clamp(sc.x + dx, display.ox, display.ox + display.iw - sc.w)
-    const y = clamp(sc.y + dy, display.oy, display.oy + display.ih - sc.h)
+    // Only allow movement along the axis that has overflow
+    const canMoveX = display.iw > sc.w + 1
+    const canMoveY = display.ih > sc.h + 1
+    const x = canMoveX ? clamp(sc.x + dx, display.ox, display.ox + display.iw - sc.w) : sc.x
+    const y = canMoveY ? clamp(sc.y + dy, display.oy, display.oy + display.ih - sc.h) : sc.y
     setCrop({ ...sc, x, y })
-  }, [display, aspectRatio])
+  }, [display])
 
   const handlePointerUp = useCallback(() => {
     dragRef.current = null
