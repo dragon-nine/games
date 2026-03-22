@@ -922,7 +922,7 @@ body {
   flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
 .le-phone-bezel {
-  width: 300px; aspect-ratio: 9/19.5;
+  width: 324px;
   background: #1a1a2e; border-radius: 36px;
   padding: 40px 12px 32px; display: flex; flex-direction: column;
   box-shadow: 0 8px 32px rgba(0,0,0,0.18), inset 0 0 0 2px rgba(255,255,255,0.08);
@@ -938,7 +938,7 @@ body {
   border-radius: 2px; margin: 8px auto 0; flex-shrink: 0;
 }
 .le-phone-screen {
-  flex: 1; background: linear-gradient(180deg, #0f0c29, #302b63, #24243e);
+  background: linear-gradient(180deg, #0f0c29, #302b63, #24243e);
   border-radius: 8px; position: relative; overflow: hidden;
   touch-action: none; cursor: default;
 }
@@ -948,7 +948,7 @@ body {
 
 /* ── Elements inside phone ── */
 .le-el {
-  position: absolute; transform: translate(-50%, -50%);
+  position: absolute;
   cursor: grab; user-select: none; transition: box-shadow 0.12s;
   border: 1.5px solid transparent; border-radius: 4px;
 }
@@ -973,6 +973,13 @@ body {
   pointer-events: none;
 }
 .le-el-selected .le-el-tag { color: var(--accent); font-weight: 600; }
+.le-el-anchor { border-style: dashed !important; }
+.le-el-gap {
+  position: absolute; left: 0; right: 0;
+  border-left: 1px dashed rgba(59,130,246,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: rgba(59,130,246,0.7); pointer-events: none;
+}
 
 /* ── Inspector ── */
 .le-inspector {

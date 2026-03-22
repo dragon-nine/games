@@ -10,6 +10,8 @@ import { HUD } from '../HUD';
 import { Overlay } from '../Overlay';
 import { submitScore as submitLeaderboardScore, openLeaderboard } from '../services/leaderboard';
 import { logEvent, logClick, logScreen } from '../services/analytics';
+import { computeLayout } from '../layout-types';
+import { DEFAULT_LAYOUTS } from '../default-layouts';
 
 export class CommuteScene extends Phaser.Scene {
   private road!: Road;
@@ -505,133 +507,97 @@ export class CommuteScene extends Phaser.Scene {
     const bestScore = Math.max(this.score, Number(localStorage.getItem('bestScore') || '0'));
     localStorage.setItem('bestScore', String(bestScore));
 
-    // 이미지 버튼 헬퍼
-    const addImgBtn = (key: string, x: number, y: number, w: number, onClick: () => void) => {
-      const img = this.textures.get(key).getSourceImage();
-      const scale = w / img.width;
-      const btn = ov.add(
-        this.add.image(x, y, key)
-          .setScale(scale)
-          .setDepth(Overlay.DEPTH + 1)
-          .setInteractive({ useHandCursor: true })
-          .setAlpha(0)
-      );
-      btn.on('pointerdown', onClick);
-      return btn;
-    };
-
-    // 요소 크기 계산
-    const btnW = width * 0.85;
-    const smallBtnW = width * 0.40;
-    const gap = height * 0.02; // 요소 간 기본 간격
-    const btnGap = height * 0.025; // 버튼 간 간격
-
-    // 이미지 높이 헬퍼
-    const imgH = (key: string, w: number) => {
-      const src = this.textures.get(key).getSourceImage();
-      return src.height * (w / src.width);
-    };
-
-    // 각 요소 높이를 미리 계산 (임시로 생성해서 측정)
+    // Create game objects at (0,0) — positioned by layout engine
     const bestText = ov.addText(width / 2, 0, `최고기록 ${bestScore}`, {
       fontSize: '22px', color: '#ffffff',
     }).setAlpha(0);
     const scoreText = ov.addText(width / 2, 0, `${this.score}`, {
       fontSize: '72px', color: '#ffffff', fontStyle: 'bold',
     }).setAlpha(0);
-    const rabbitSrc = this.textures.get('go-rabbit').getSourceImage();
-    const rabbitW = width * 0.45;
-    const rabbitScale = rabbitW / rabbitSrc.width;
-    const rabbitH = rabbitSrc.height * rabbitScale;
+    const rabbit = ov.add(
+      this.add.image(0, 0, 'go-rabbit').setDepth(Overlay.DEPTH + 1).setAlpha(0)
+    );
     const quoteText = ov.addText(width / 2, 0, '퇴근은 쉬운게 아니야...\n인생이 원래 그래', {
       fontSize: '18px', color: '#ffffff', align: 'center', lineSpacing: 6,
     }).setTint(0xe5332f, 0x771615, 0xe5332f, 0x771615).setAlpha(0);
 
-    const reviveBtnH = canRevive ? imgH('go-btn-revive', btnW) : 0;
-    const homeBtnH = imgH('go-btn-home', btnW);
-    const smallH = imgH('go-btn-challenge', smallBtnW);
+    const makeImgBtn = (key: string, onClick: () => void) => {
+      const btn = ov.add(
+        this.add.image(0, 0, key).setDepth(Overlay.DEPTH + 1).setInteractive({ useHandCursor: true }).setAlpha(0)
+      );
+      btn.on('pointerdown', onClick);
+      return btn;
+    };
 
-    // 전체 높이 계산
-    const totalH = bestText.height + gap
-      + scoreText.height + gap
-      + rabbitH + gap
-      + quoteText.height + gap * 2
-      + (canRevive ? reviveBtnH + btnGap : 0)
-      + homeBtnH + btnGap
-      + smallH;
-
-    // 상하 중앙 정렬 시작점
-    let curY = (height - totalH) / 2;
-
-    // 최고기록
-    curY += bestText.height / 2;
-    bestText.setY(curY);
-    curY += bestText.height / 2 + gap;
-
-    // 큰 점수
-    curY += scoreText.height / 2;
-    scoreText.setY(curY);
-    curY += scoreText.height / 2 + gap;
-
-    // 쓰러진 토끼
-    curY += rabbitH / 2;
-    const rabbit = ov.add(
-      this.add.image(width / 2, curY, 'go-rabbit')
-        .setScale(rabbitScale)
-        .setDepth(Overlay.DEPTH + 1)
-        .setAlpha(0)
-    );
-    curY += rabbitH / 2 + gap;
-
-    // 멘트
-    curY += quoteText.height / 2;
-    quoteText.setY(curY);
-    curY += quoteText.height / 2 + gap * 2;
-
-    // 페이드인: 점수 + 토끼
-    this.time.delayedCall(500, () => {
-      ov.fadeInItems([bestText, scoreText, rabbit, quoteText]);
-    });
-
-    const fadeTargets: { obj: Phaser.GameObjects.GameObject; delay: number }[] = [];
-
-    // 부활 버튼 (1회만)
-    if (canRevive) {
-      curY += reviveBtnH / 2;
-      const reviveBtn = addImgBtn('go-btn-revive', width / 2, curY, btnW, () => {
-        this.playSfx('sfx-click', 0.6);
-        logEvent('revive_ad_click', { score: this.score });
-        this.showAd(ov.getItems(), ov.getItems()[0] as Phaser.GameObjects.Rectangle, () => this.revive());
-      });
-      fadeTargets.push({ obj: reviveBtn, delay: 0 });
-      curY += reviveBtnH / 2 + btnGap;
-    }
-
-    // 홈으로 버튼
-    curY += homeBtnH / 2;
-    const homeBtn = addImgBtn('go-btn-home', width / 2, curY, btnW, () => {
+    const reviveBtn = canRevive ? makeImgBtn('go-btn-revive', () => {
+      this.playSfx('sfx-click', 0.6);
+      logEvent('revive_ad_click', { score: this.score });
+      this.showAd(ov.getItems(), ov.getItems()[0] as Phaser.GameObjects.Rectangle, () => this.revive());
+    }) : null;
+    const homeBtn = makeImgBtn('go-btn-home', () => {
       this.playSfx('sfx-click', 0.6);
       logClick('game_home');
       this.scene.start('BootScene');
     });
-    fadeTargets.push({ obj: homeBtn, delay: canRevive ? 150 : 0 });
-    curY += homeBtnH / 2 + btnGap;
-
-    // 하단 작은 버튼 2개
-    curY += smallH / 2;
-    const smallLR = smallBtnW * 0.52;
-    const challengeBtn = addImgBtn('go-btn-challenge', width / 2 - smallLR, curY, smallBtnW, () => {
+    const challengeBtn = makeImgBtn('go-btn-challenge', () => {
       this.playSfx('sfx-click', 0.6);
       logClick('challenge_send');
-      // TODO: 도전장 보내기 기능
     });
-    fadeTargets.push({ obj: challengeBtn, delay: canRevive ? 300 : 150 });
-
-    const rankingBtn = addImgBtn('go-btn-ranking', width / 2 + smallLR, curY, smallBtnW, () => {
+    const rankingBtn = makeImgBtn('go-btn-ranking', () => {
       this.playSfx('sfx-click', 0.6);
       logClick('leaderboard_open');
       openLeaderboard();
     });
+
+    // Map IDs to game objects
+    const objMap: Record<string, Phaser.GameObjects.GameObject> = {
+      'bestText': bestText, 'scoreText': scoreText, 'go-rabbit': rabbit,
+      'quoteText': quoteText, 'go-btn-home': homeBtn,
+      'go-btn-challenge': challengeBtn, 'go-btn-ranking': rankingBtn,
+    };
+    if (reviveBtn) objMap['go-btn-revive'] = reviveBtn;
+
+    // Compute layout (exclude revive button if already used)
+    const layout = DEFAULT_LAYOUTS['game-over'];
+    const excludeIds = canRevive ? [] : ['go-btn-revive'];
+    const positions = computeLayout(
+      layout.elements, width, height,
+      (id) => {
+        const key = id; // texture key matches element id
+        if (!this.textures.exists(key)) return null;
+        const src = this.textures.get(key).getSourceImage();
+        return { w: src.width, h: src.height };
+      },
+      (id) => {
+        const obj = objMap[id];
+        return obj instanceof Phaser.GameObjects.Text ? { w: obj.width, h: obj.height } : null;
+      },
+      excludeIds,
+    );
+
+    // Apply positions
+    for (const pos of positions) {
+      const obj = objMap[pos.id];
+      if (!obj) continue;
+      if (obj instanceof Phaser.GameObjects.Image) {
+        obj.setPosition(pos.x, pos.y);
+        obj.setDisplaySize(pos.displayWidth, pos.displayHeight);
+        obj.setOrigin(pos.originX, pos.originY);
+      } else if (obj instanceof Phaser.GameObjects.Text) {
+        obj.setPosition(pos.x, pos.y);
+      }
+    }
+
+    // Fade-in: score group first
+    this.time.delayedCall(500, () => {
+      ov.fadeInItems([bestText, scoreText, rabbit, quoteText]);
+    });
+
+    // Fade-in: buttons
+    const fadeTargets: { obj: Phaser.GameObjects.GameObject; delay: number }[] = [];
+    if (reviveBtn) fadeTargets.push({ obj: reviveBtn, delay: 0 });
+    fadeTargets.push({ obj: homeBtn, delay: canRevive ? 150 : 0 });
+    fadeTargets.push({ obj: challengeBtn, delay: canRevive ? 300 : 150 });
     fadeTargets.push({ obj: rankingBtn, delay: canRevive ? 300 : 150 });
 
     this.time.delayedCall(800, () => {
