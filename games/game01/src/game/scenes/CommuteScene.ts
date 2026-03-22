@@ -55,8 +55,11 @@ export class CommuteScene extends Phaser.Scene {
 
     // 배경 이미지 (타일 반복 + 스크롤)
     if (this.textures.exists('bg-game')) {
+      const bgFrame = this.textures.get('bg-game').getSourceImage();
+      const scale = width / bgFrame.width;
       this.bgTile = this.add.tileSprite(0, 0, width, height, 'bg-game')
         .setOrigin(0, 0)
+        .setTileScale(scale, scale)
         .setDepth(0);
     }
 
