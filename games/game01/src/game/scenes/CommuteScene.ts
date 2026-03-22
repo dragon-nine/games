@@ -57,9 +57,12 @@ export class CommuteScene extends Phaser.Scene {
     if (this.textures.exists('bg-game')) {
       const bgFrame = this.textures.get('bg-game').getSourceImage();
       const scale = width / bgFrame.width;
+      const scaledH = bgFrame.height * scale;
+      const offsetY = scaledH - (height % scaledH);
       this.bgTile = this.add.tileSprite(0, 0, width, height, 'bg-game')
         .setOrigin(0, 0)
         .setTileScale(scale, scale)
+        .setTilePosition(0, offsetY)
         .setDepth(0);
     }
 
@@ -264,23 +267,11 @@ export class CommuteScene extends Phaser.Scene {
     const playerOffsetY = this.tileH / 2;
     const targetContainerY = -(row.y - screenY);
 
-    const scrollDelta = targetContainerY - this.road.getContainer().y;
-    const bgStartY = this.bgTile?.tilePositionY ?? 0;
-    const bgTargetY = bgStartY - scrollDelta * 0.5;
-
     this.tweens.add({
       targets: this.road.getContainer(),
       y: targetContainerY,
       duration: 100, ease: 'Quad.easeOut',
     });
-
-    if (this.bgTile) {
-      this.tweens.add({
-        targets: this.bgTile,
-        tilePositionY: bgTargetY,
-        duration: 100, ease: 'Quad.easeOut',
-      });
-    }
 
     const playerScreenX = this.laneScreenX(this.player.currentLane);
     this.player.scrollTo(playerScreenX, screenY - playerOffsetY);
