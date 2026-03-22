@@ -27,6 +27,10 @@ export class BootScene extends Phaser.Scene {
       ['main-text', 'main-screen/main-text.png'],
       ['main-char', 'main-screen/main-char.png'],
       ['main-btn', 'main-screen/main-btn.png'],
+      ['settings-bg', 'ui/settings/settings-bg.png'],
+      ['settings-close', 'ui/settings/settings-close.png'],
+      ['toggle-on', 'ui/settings/toggle-on.png'],
+      ['toggle-off', 'ui/settings/toggle-off.png'],
     ];
     for (const [key, path] of assets) {
       if (!this.textures.exists(key)) this.load.image(key, path);
@@ -131,21 +135,71 @@ export class BootScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const ov = new Overlay(this).open().closeOnDimClick();
 
-    ov.addText(width / 2, height * 0.35, '설정', { fontSize: '32px', color: '#ffffff', fontStyle: 'bold' });
+    // 설정 패널 배경 (892x737 원본 비율)
+    const panelW = width * 0.82;
+    const panelH = panelW * (737 / 892);
+    const panelY = height * 0.45;
+    ov.add(
+      this.add.image(width / 2, panelY, 'settings-bg')
+        .setDisplaySize(panelW, panelH)
+        .setDepth(Overlay.DEPTH)
+    );
 
-    // BGM 토글
+    // 상단 바 영역 (패널 높이의 약 22%가 연두색 바)
+    const barH = panelH * 0.22;
+    const barY = panelY - panelH / 2 + barH / 2;
+
+    // "설정" 타이틀
+    ov.addText(width / 2 - panelW * 0.05, barY, '설정', {
+      fontSize: `${Math.round(panelW * 0.08)}px`, color: '#1a1a2e', fontStyle: 'bold',
+    });
+
+    // X 닫기 버튼 (우상단)
+    const closeSize = panelW * 0.1;
+    const closeX = width / 2 + panelW / 2 - closeSize * 0.8;
+    const closeY = barY;
+    const closeImg = ov.add(
+      this.add.image(closeX, closeY, 'settings-close')
+        .setDisplaySize(closeSize, closeSize)
+        .setDepth(Overlay.DEPTH + 1)
+        .setInteractive({ useHandCursor: true })
+    );
+    closeImg.on('pointerdown', () => {
+      if (localStorage.getItem('sfxMuted') === 'false') try { this.sound.play('sfx-click', { volume: 0.6 }); } catch { /* 무시 */ }
+      ov.close();
+    });
+
+    // 컨텐츠 영역 시작 Y
+    const contentTop = panelY - panelH / 2 + barH;
+    const contentH = panelH - barH;
+    const rowH = contentH * 0.35;
+
+    // 토글 크기
+    const toggleW = panelW * 0.28;
+    const toggleH = toggleW * (105 / 224);
+    const toggleX = width / 2 - panelW * 0.18;
+    const iconSize = panelW * 0.07;
+    const labelX = width / 2 + panelW * 0.12;
+
+    // ── 음악 토글 ──
+    const musicY = contentTop + contentH * 0.35;
     let bgmMuted = localStorage.getItem('bgmMuted') !== 'false';
-    const bgmBtn = ov.add(this.add.rectangle(width / 2, height * 0.47, 220, 48, 0x333355)
-      .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
-    const bgmLabel = ov.addText(width / 2, height * 0.47,
-      `배경음악  ${bgmMuted ? 'OFF' : 'ON'}`,
-      { fontSize: '18px', color: bgmMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
 
-    bgmBtn.on('pointerdown', () => {
+    const bgmToggle = ov.add(
+      this.add.image(toggleX, musicY, bgmMuted ? 'toggle-off' : 'toggle-on')
+        .setDisplaySize(toggleW, toggleH)
+        .setDepth(Overlay.DEPTH + 1)
+        .setInteractive({ useHandCursor: true })
+    );
+    ov.addText(labelX - iconSize, musicY, '🎹', { fontSize: `${Math.round(iconSize)}px` });
+    ov.addText(labelX + iconSize * 0.8, musicY, '음악', {
+      fontSize: `${Math.round(panelW * 0.065)}px`, color: '#ffffff', fontStyle: 'bold',
+    });
+
+    bgmToggle.on('pointerdown', () => {
       bgmMuted = !bgmMuted;
       localStorage.setItem('bgmMuted', String(bgmMuted));
-      bgmLabel.setText(`배경음악  ${bgmMuted ? 'OFF' : 'ON'}`);
-      bgmLabel.setColor(bgmMuted ? '#ff6666' : '#66ff66');
+      (bgmToggle as Phaser.GameObjects.Image).setTexture(bgmMuted ? 'toggle-off' : 'toggle-on');
       const menuBgm = this.sound.get('bgm-menu');
       if (bgmMuted) {
         menuBgm?.stop();
@@ -156,30 +210,28 @@ export class BootScene extends Phaser.Scene {
       }
     });
 
-    // SFX 토글
+    // ── 사운드 토글 ──
+    const sfxY = musicY + rowH;
     let sfxMuted = localStorage.getItem('sfxMuted') !== 'false';
-    const sfxBtn = ov.add(this.add.rectangle(width / 2, height * 0.55, 220, 48, 0x333355)
-      .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
-    const sfxLabel = ov.addText(width / 2, height * 0.55,
-      `효과음  ${sfxMuted ? 'OFF' : 'ON'}`,
-      { fontSize: '18px', color: sfxMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
 
-    sfxBtn.on('pointerdown', () => {
+    const sfxToggle = ov.add(
+      this.add.image(toggleX, sfxY, sfxMuted ? 'toggle-off' : 'toggle-on')
+        .setDisplaySize(toggleW, toggleH)
+        .setDepth(Overlay.DEPTH + 1)
+        .setInteractive({ useHandCursor: true })
+    );
+    ov.addText(labelX - iconSize, sfxY, '🔔', { fontSize: `${Math.round(iconSize)}px` });
+    ov.addText(labelX + iconSize * 0.8, sfxY, '사운드', {
+      fontSize: `${Math.round(panelW * 0.065)}px`, color: '#ffffff', fontStyle: 'bold',
+    });
+
+    sfxToggle.on('pointerdown', () => {
       sfxMuted = !sfxMuted;
       localStorage.setItem('sfxMuted', String(sfxMuted));
-      sfxLabel.setText(`효과음  ${sfxMuted ? 'OFF' : 'ON'}`);
-      sfxLabel.setColor(sfxMuted ? '#ff6666' : '#66ff66');
+      (sfxToggle as Phaser.GameObjects.Image).setTexture(sfxMuted ? 'toggle-off' : 'toggle-on');
     });
 
-    // 닫기
-    // 크레딧
-    ov.addText(width / 2, height * 0.74, 'Music by CodeManu (OpenGameArt.org)\nSFX by Kenney.nl', {
-      fontSize: '10px', color: '#555577', align: 'center',
-    });
-
-    ov.addButton(width / 2, height * 0.65, 160, 48, '닫기', 0x555555,
-      () => ov.close(), { color: '#cccccc' });
-    // addButton은 alpha 0으로 생성되므로 즉시 보이게
+    // 모든 아이템 즉시 표시
     ov.getItems().forEach(item => { if ('setAlpha' in item) (item as unknown as Phaser.GameObjects.Components.Alpha).setAlpha(1); });
   }
 
