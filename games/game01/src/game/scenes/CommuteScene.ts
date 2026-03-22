@@ -505,7 +505,7 @@ export class CommuteScene extends Phaser.Scene {
 
     // 최고기록 텍스트
     const bestText = ov.addText(width / 2, height * 0.15, `최고기록 ${bestScore}`, {
-      fontSize: '26px', color: '#999999',
+      fontSize: '26px', color: '#ffffff',
     }).setAlpha(0);
 
     // 큰 점수
