@@ -194,6 +194,7 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
               onReplace={async (file, pathname) => {
                 const prefix = pathname.substring(0, pathname.lastIndexOf('/') + 1)
                 try {
+                  await deleteBlob(b.url)
                   await uploadBlob(file, prefix)
                   onBanner('success', `"${file.name}" 교체 완료`)
                   refresh()
