@@ -25,11 +25,14 @@ function isAudio(pathname: string): boolean {
 async function downloadFile(url: string, filename: string) {
   const res = await fetch(url)
   const data = await res.blob()
+  const blobUrl = URL.createObjectURL(data)
   const a = document.createElement('a')
-  a.href = URL.createObjectURL(data)
+  a.href = blobUrl
   a.download = filename
+  document.body.appendChild(a)
   a.click()
-  URL.revokeObjectURL(a.href)
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
 export default function AssetCard({ blob, onDelete, onReplace }: Props) {
