@@ -2,16 +2,13 @@ import Phaser from 'phaser';
 import {
   NUM_LANES, VISIBLE_LANES,
   PADDING, START_TIME,
-  BTN_MARGIN, BTN_BOTTOM_OFFSET, BTN_PRESS_SCALE, BTN_PRESS_DURATION,
 } from '../constants';
 import { Road } from '../Road';
 import { Player } from '../Player';
 import { HUD } from '../HUD';
-import { Overlay } from '../Overlay';
-import { submitScore as submitLeaderboardScore, openLeaderboard } from '../services/leaderboard';
+import { submitScore as submitLeaderboardScore } from '../services/leaderboard';
 import { logEvent, logClick, logScreen } from '../services/analytics';
-import { computeLayout, DESIGN_W } from '../layout-types';
-import { loadLayout } from '../layout-loader';
+import { gameBus } from '../event-bus';
 
 export class CommuteScene extends Phaser.Scene {
   private road!: Road;
@@ -55,16 +52,17 @@ export class CommuteScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#000000');
 
-    // 배경 이미지 (타일 반복 + 스크롤)
+    // 배경 이미지 (너비 맞춤, 화면 하단 = 이미지 하단, 위로 반복)
     if (this.textures.exists('bg-game')) {
       const bgFrame = this.textures.get('bg-game').getSourceImage();
       const scale = width / bgFrame.width;
-      const scaledH = bgFrame.height * scale;
-      const offsetY = scaledH - (height % scaledH);
+      const texH = bgFrame.height;
+      const screenHInTex = height / scale;
+      const tileY = -(screenHInTex % texH);
       this.bgTile = this.add.tileSprite(0, 0, width, height, 'bg-game')
         .setOrigin(0, 0)
         .setTileScale(scale, scale)
-        .setTilePosition(0, offsetY)
+        .setTilePosition(0, tileY)
         .setDepth(0);
     }
 
@@ -78,14 +76,17 @@ export class CommuteScene extends Phaser.Scene {
       this.laneWorldX.push(PADDING + this.laneW / 2 + i * this.laneW);
     }
 
-    // 시작 레인 = 왼쪽 (0)
+    // 시작: 토끼 왼쪽(lane 0), 빈 땅에 서있고 위쪽에 길
     const startLane = 0;
     this.viewLeft = 0;
 
     this.road = new Road(this, this.laneWorldX, this.laneW, this.tileH, NUM_LANES);
-    const PLAYER_Y_RATIO = 3 / 4; // 아래서 1/4 위치
+    const PLAYER_Y_RATIO = 3 / 4;
     const playerScreenY = height * PLAYER_Y_RATIO - this.tileH / 2;
-    this.road.generateInitial(height, startLane, height * PLAYER_Y_RATIO);
+    this.road.generateInitialStand(height, startLane, height * PLAYER_Y_RATIO);
+
+    // currentRowIdx = 0 (빈 땅, 전진하면 row 1 도로로 진입)
+    this.currentRowIdx = 0;
 
     // 컨테이너 X 오프셋으로 뷰 위치 설정
     this.road.getContainer().setX(-(this.viewLeft * this.laneW));
@@ -94,9 +95,69 @@ export class CommuteScene extends Phaser.Scene {
     this.player = new Player(this, this.laneW, playerScreenX, playerScreenY, startLane);
 
     this.hud = new HUD(this, () => this.onDeath());
-    this.hud.create(width);
+    this.hud.create();
 
-    this.createButtons(width, height);
+    // 게임플레이 시작 시 React HUD 오버레이 표시
+    gameBus.emit('screen-change', 'playing');
+
+    // React → Phaser 이벤트 리스너
+    this.setupReactListeners();
+  }
+
+  private setupReactListeners() {
+    const unsubSwitch = gameBus.on('action-switch', () => {
+      if (this.gameOver || this.isFalling || this.hud.paused) return;
+      this.vibrate(10);
+      this.startGame();
+      this.switchLane();
+    });
+
+    const unsubForward = gameBus.on('action-forward', () => {
+      if (this.gameOver || this.isFalling || this.hud.paused) return;
+      this.vibrate(10);
+      this.startGame();
+      this.moveForward();
+    });
+
+    const unsubRevive = gameBus.on('revive', () => {
+      logEvent('revive_ad_click', { score: this.score });
+      this.showAd([], null as unknown as Phaser.GameObjects.Rectangle, () => {
+        gameBus.emit('screen-change', 'playing');
+        this.revive();
+      });
+    });
+
+    const unsubHome = gameBus.on('go-home', () => {
+      logClick('game_home');
+      gameBus.emit('screen-change', 'main');
+      this.scene.start('BootScene');
+    });
+
+    const unsubPause = gameBus.on('resume-game', () => {
+      this.hud.togglePause();
+    });
+
+    const unsubPlaySfx = gameBus.on('play-sfx', (key) => {
+      if (key && !this.hud.isSfxMuted()) {
+        try { this.sound.play(key, { volume: 0.6 }); } catch { /* 무시 */ }
+      }
+    });
+
+    const unsubToggleBgm = gameBus.on('toggle-bgm', () => {
+      const muted = localStorage.getItem('bgmMuted') === 'true';
+      const bgm = this.sound.get('bgm-menu');
+      if (bgm) (bgm as Phaser.Sound.WebAudioSound).setMute(muted);
+    });
+
+    this.events.on('shutdown', () => {
+      unsubSwitch();
+      unsubForward();
+      unsubRevive();
+      unsubHome();
+      unsubPause();
+      unsubPlaySfx();
+      unsubToggleBgm();
+    });
   }
 
   update(_time: number, delta: number) {
@@ -131,48 +192,6 @@ export class CommuteScene extends Phaser.Scene {
     });
   }
 
-  /* ── Buttons ── */
-
-  private createButtons(width: number, height: number) {
-    const btnSize = this.laneW * 0.85;
-    const btnY = height - BTN_BOTTOM_OFFSET;
-    const pressSize = btnSize * BTN_PRESS_SCALE;
-
-    const leftBtn = this.add.image(btnSize / 2 + BTN_MARGIN, btnY, 'btn-switch')
-      .setDisplaySize(btnSize, btnSize)
-      .setInteractive({ useHandCursor: true }).setDepth(200);
-
-    leftBtn.on('pointerdown', () => {
-      if (this.gameOver || this.isFalling || this.hud.paused) return;
-      this.vibrate(10);
-      this.startGame();
-      this.switchLane();
-      this.tweens.killTweensOf(leftBtn);
-      leftBtn.setDisplaySize(pressSize, pressSize);
-      this.tweens.add({
-        targets: leftBtn, displayWidth: btnSize, displayHeight: btnSize,
-        duration: BTN_PRESS_DURATION, ease: 'Quad.easeOut',
-      });
-    });
-
-    const rightBtn = this.add.image(width - btnSize / 2 - BTN_MARGIN, btnY, 'btn-forward')
-      .setDisplaySize(btnSize, btnSize)
-      .setInteractive({ useHandCursor: true }).setDepth(200);
-
-    rightBtn.on('pointerdown', () => {
-      if (this.gameOver || this.isFalling || this.hud.paused) return;
-      this.vibrate(10);
-      this.startGame();
-      this.moveForward();
-      this.tweens.killTweensOf(rightBtn);
-      rightBtn.setDisplaySize(pressSize, pressSize);
-      this.tweens.add({
-        targets: rightBtn, displayWidth: btnSize, displayHeight: btnSize,
-        duration: BTN_PRESS_DURATION, ease: 'Quad.easeOut',
-      });
-    });
-  }
-
   /* ── Game start ── */
 
   private startGame() {
@@ -180,11 +199,8 @@ export class CommuteScene extends Phaser.Scene {
     this.gameStarted = true;
     this.hud.startTimer();
 
-    try {
-      this.bgm = this.sound.add('bgm-gameplay', { loop: true, volume: 0.35 });
-      if (this.hud.isBgmMuted()) (this.bgm as Phaser.Sound.WebAudioSound).setMute(true);
-      this.bgm.play();
-    } catch { /* 오디오 재생 실패 — 무시 */ }
+    // BGM은 BootScene(홈)에서부터 계속 재생 — 여기서는 참조만
+    this.bgm = this.sound.get('bgm-menu') ?? undefined;
 
     logScreen('screen_game');
     logEvent('game_start');
@@ -320,26 +336,14 @@ export class CommuteScene extends Phaser.Scene {
   /* ── Ad System ── */
 
   private showAd(
-    reviveItems: Phaser.GameObjects.GameObject[],
-    overlay: Phaser.GameObjects.Rectangle,
+    _reviveItems: Phaser.GameObjects.GameObject[],
+    _overlay: Phaser.GameObjects.Rectangle | null,
     onComplete: () => void,
   ) {
-    reviveItems.forEach(item => {
-      if (item !== overlay && 'setVisible' in item) {
-        (item as Phaser.GameObjects.Components.Visible & Phaser.GameObjects.GameObject).setVisible(false);
-      }
-    });
-
-    const cleanup = () => {
-      reviveItems.forEach(item => item.destroy());
-      overlay.destroy();
-      onComplete();
-    };
-
-    const adLoaded = this.tryShowRealAd(cleanup);
+    const adLoaded = this.tryShowRealAd(onComplete);
     if (!adLoaded) {
       logEvent('ad_fallback_house');
-      this.showHouseAd(cleanup);
+      this.showHouseAd(onComplete);
     }
   }
 
@@ -501,113 +505,11 @@ export class CommuteScene extends Phaser.Scene {
     logEvent('game_over', { score: this.score, best_combo: this.bestCombo, revived: this.hasRevived });
     this.submitScore();
 
-    const { width, height } = this.scale;
-    const ov = new Overlay(this).open({ fadeIn: true, gradient: { top: '#2a0c10', bottom: '#000000' } });
-
     const bestScore = Math.max(this.score, Number(localStorage.getItem('bestScore') || '0'));
     localStorage.setItem('bestScore', String(bestScore));
 
-    // Scale factor for text (match image scaling)
-    const s = width / DESIGN_W;
-
-    // Create game objects at (0,0) — positioned by layout engine
-    const bestText = ov.addText(width / 2, 0, `최고기록 ${bestScore}`, {
-      fontSize: `${Math.round(22 * s)}px`, color: '#ffffff',
-    }).setAlpha(0);
-    const scoreText = ov.addText(width / 2, 0, `${this.score}`, {
-      fontSize: `${Math.round(72 * s)}px`, color: '#ffffff', fontStyle: 'bold',
-    }).setAlpha(0);
-    const rabbit = ov.add(
-      this.add.image(0, 0, 'go-rabbit').setDepth(Overlay.DEPTH + 1).setAlpha(0)
-    );
-    const quoteText = ov.addText(width / 2, 0, '퇴근은 쉬운게 아니야...\n인생이 원래 그래', {
-      fontSize: `${Math.round(18 * s)}px`, color: '#ffffff', align: 'center', lineSpacing: Math.round(6 * s),
-    }).setTint(0xe5332f, 0x771615, 0xe5332f, 0x771615).setAlpha(0);
-
-    const makeImgBtn = (key: string, onClick: () => void) => {
-      const btn = ov.add(
-        this.add.image(0, 0, key).setDepth(Overlay.DEPTH + 1).setInteractive({ useHandCursor: true }).setAlpha(0)
-      );
-      btn.on('pointerdown', onClick);
-      return btn;
-    };
-
-    const reviveBtn = canRevive ? makeImgBtn('go-btn-revive', () => {
-      this.playSfx('sfx-click', 0.6);
-      logEvent('revive_ad_click', { score: this.score });
-      this.showAd(ov.getItems(), ov.getItems()[0] as Phaser.GameObjects.Rectangle, () => this.revive());
-    }) : null;
-    const homeBtn = makeImgBtn('go-btn-home', () => {
-      this.playSfx('sfx-click', 0.6);
-      logClick('game_home');
-      this.scene.start('BootScene');
-    });
-    const challengeBtn = makeImgBtn('go-btn-challenge', () => {
-      this.playSfx('sfx-click', 0.6);
-      logClick('challenge_send');
-    });
-    const rankingBtn = makeImgBtn('go-btn-ranking', () => {
-      this.playSfx('sfx-click', 0.6);
-      logClick('leaderboard_open');
-      openLeaderboard();
-    });
-
-    // Map IDs to game objects
-    const objMap: Record<string, Phaser.GameObjects.GameObject> = {
-      'bestText': bestText, 'scoreText': scoreText, 'go-rabbit': rabbit,
-      'quoteText': quoteText, 'go-btn-home': homeBtn,
-      'go-btn-challenge': challengeBtn, 'go-btn-ranking': rankingBtn,
-    };
-    if (reviveBtn) objMap['go-btn-revive'] = reviveBtn;
-
-    // Compute & apply layout
-    const excludeIds = canRevive ? [] : ['go-btn-revive'];
-    const applyPositions = (elements: import('../layout-types').LayoutElement[]) => {
-      const positions = computeLayout(
-        elements, width, height,
-        (id) => {
-          if (!this.textures.exists(id)) return null;
-          const src = this.textures.get(id).getSourceImage();
-          return { w: src.width, h: src.height };
-        },
-        (id) => {
-          const obj = objMap[id];
-          return obj instanceof Phaser.GameObjects.Text ? { w: obj.width, h: obj.height } : null;
-        },
-        excludeIds,
-      );
-      for (const pos of positions) {
-        const obj = objMap[pos.id];
-        if (!obj) continue;
-        if (obj instanceof Phaser.GameObjects.Image) {
-          obj.setPosition(pos.x, pos.y);
-          obj.setDisplaySize(pos.displayWidth, pos.displayHeight);
-          obj.setOrigin(pos.originX, pos.originY);
-        } else if (obj instanceof Phaser.GameObjects.Text) {
-          obj.setPosition(pos.x, pos.y);
-        }
-      }
-    };
-
-    loadLayout('game01', 'game-over').then(applyPositions);
-
-    // Fade-in: score group first
-    this.time.delayedCall(500, () => {
-      ov.fadeInItems([bestText, scoreText, rabbit, quoteText]);
-    });
-
-    // Fade-in: buttons
-    const fadeTargets: { obj: Phaser.GameObjects.GameObject; delay: number }[] = [];
-    if (reviveBtn) fadeTargets.push({ obj: reviveBtn, delay: 0 });
-    fadeTargets.push({ obj: homeBtn, delay: canRevive ? 150 : 0 });
-    fadeTargets.push({ obj: challengeBtn, delay: canRevive ? 300 : 150 });
-    fadeTargets.push({ obj: rankingBtn, delay: canRevive ? 300 : 150 });
-
-    this.time.delayedCall(800, () => {
-      for (const { obj, delay } of fadeTargets) {
-        ov.fadeInItems([obj], delay);
-      }
-    });
+    // React 게임오버 화면으로 전환
+    gameBus.emit('game-over-data', { score: this.score, bestScore, canRevive });
   }
 
   private vibrate(pattern: number | number[]) {

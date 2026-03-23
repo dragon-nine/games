@@ -3,17 +3,27 @@ export const DESIGN_W = 390
 
 export type AnchorCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
+export interface TextStyle {
+  fontSizePx?: number
+  color?: string
+  strokeColor?: string
+  strokeWidth?: number
+  gradientColors?: [string, string]  // [top, bottom] 세로 그라데이션
+}
+
 interface LayoutElementBase {
   id: string
   type: 'text' | 'image'
   widthPx: number
   label?: string
+  textStyle?: TextStyle
 }
 
 export interface GroupElement extends LayoutElementBase {
   positioning: 'group'
   order: number     // same order = horizontal row
   gapPx: number     // px gap above this element (from previous row)
+  hGapPx?: number   // 같은 행에 2개 요소일 때 가로 간격 (기본 8)
 }
 
 export interface AnchorElement extends LayoutElementBase {
@@ -29,6 +39,7 @@ export interface ScreenLayout {
   screen: string
   designWidth: number
   elements: LayoutElement[]
+  groupVAlign?: 'center' | 'top'  // 그룹 세로 정렬: center(기본) 또는 top(상단 고정)
 }
 
 /** Computed position for a single element */
@@ -43,14 +54,26 @@ export interface ComputedPosition {
 }
 
 /**
+ * 텍스트 높이 계산 — admin computePreviewLayout과 동일한 공식
+ * fontSizePx * scale * 1.4 * lineCount
+ */
+function calcTextHeight(el: LayoutElement, scale: number): number {
+  const fontSizePx = el.textStyle?.fontSizePx || 14
+  const text = el.label || el.id
+  const lines = text.split('\n').length
+  return fontSizePx * scale * 1.4 * lines
+}
+
+/**
  * Compute layout positions for all elements.
- * Pure function — used by both game (Phaser) and admin (React).
+ * Pure function — used by both game (React) and admin.
+ * 텍스트 높이는 textStyle.fontSizePx에서 자동 계산 (admin과 동일).
  *
- * @param elements   Layout elements
+ * @param elements   Layout elements (with optional textStyle)
  * @param screenW    Actual screen width
  * @param screenH    Actual screen height
  * @param getImageSize  Returns { w, h } for image element IDs (natural size)
- * @param getTextSize   Returns { w, h } for text element IDs (rendered size at scale 1)
+ * @param getTextSize   (deprecated) Returns { w, h } for text — null이면 textStyle에서 자동 계산
  * @param excludeIds    IDs to skip (e.g., conditional revive button)
  */
 export function computeLayout(
@@ -58,8 +81,9 @@ export function computeLayout(
   screenW: number,
   screenH: number,
   getImageSize: (id: string) => { w: number; h: number } | null,
-  getTextSize: (id: string) => { w: number; h: number } | null,
+  getTextSize?: ((id: string) => { w: number; h: number } | null) | null,
   excludeIds: string[] = [],
+  groupVAlign: 'center' | 'top' = 'center',
 ): ComputedPosition[] {
   const scale = screenW / DESIGN_W
   const results: ComputedPosition[] = []
@@ -86,7 +110,6 @@ export function computeLayout(
     const order = rowOrders[i]
     const rowEls = rowMap.get(order)!
     let maxH = 0
-    // Gap = max gapPx of elements in this row (use first element's gap for simplicity)
     const gapPx = rowEls[0].gapPx
 
     for (const el of rowEls) {
@@ -96,8 +119,9 @@ export function computeLayout(
         const size = getImageSize(el.id)
         if (size) elH = size.h * (elW / size.w)
       } else {
-        const size = getTextSize(el.id)
-        if (size) elH = size.h
+        // 텍스트: getTextSize 콜백 결과 또는 textStyle에서 자동 계산
+        const size = getTextSize?.(el.id)
+        elH = size ? size.h : calcTextHeight(el, scale)
       }
       maxH = Math.max(maxH, elH)
     }
@@ -107,7 +131,9 @@ export function computeLayout(
 
   const firstGap = rows.length > 0 ? rows[0].gapPx * scale : 0
   const totalH = rows.reduce((sum, r, i) => sum + r.height + (i > 0 ? r.gapPx * scale : 0), 0)
-  let curY = (screenH - totalH) / 2 + firstGap
+  let curY = groupVAlign === 'top'
+    ? firstGap                          // top: 첫 행의 gapPx가 상단으로부터의 거리
+    : (screenH - totalH) / 2 + firstGap // center: 세로 중앙 정렬
 
   for (let ri = 0; ri < rows.length; ri++) {
     const row = rows[ri]
@@ -124,10 +150,9 @@ export function computeLayout(
       }
       results.push({ id: el.id, x: screenW / 2, y: cy, displayWidth: elW, displayHeight: elH, originX: 0.5, originY: 0.5 })
     } else {
-      // Multiple elements in same row — distribute horizontally around center
       const totalRowW = row.elements.reduce((s, el) => s + el.widthPx * scale, 0)
-      const rowGap = 8 * scale // horizontal gap between side-by-side elements
-      const totalWithGaps = totalRowW + rowGap * (row.elements.length - 1)
+      const hGap = (row.elements[0].hGapPx ?? 8) * scale
+      const totalWithGaps = totalRowW + hGap * (row.elements.length - 1)
       let cx = (screenW - totalWithGaps) / 2
 
       for (const el of row.elements) {
@@ -138,7 +163,7 @@ export function computeLayout(
           if (size) elH = size.h * (elW / size.w)
         }
         results.push({ id: el.id, x: cx + elW / 2, y: cy, displayWidth: elW, displayHeight: elH, originX: 0.5, originY: 0.5 })
-        cx += elW + rowGap
+        cx += elW + hGap
       }
     }
 

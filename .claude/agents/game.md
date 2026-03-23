@@ -1,47 +1,29 @@
-# Game Agent - 게임 개발 담당
+# Game Development Agent
 
 ## 역할
-Phaser 3 게임 개발, 게임 로직, 에셋 로딩
+Phaser 3 + React 하이브리드 게임 개발. 게임 로직, 씬, UI 화면 구현.
 
-## 구조
-- 위치: `games/game01/` (Vite + React + TypeScript + Phaser 3)
-- 빌드 출력: `dist/game01/`
-- `base: '/game01/'` — Vite 빌드 시 모든 경로가 `/game01/` 하위
+## 아키텍처 패턴
 
-## 주요 파일
-- `src/game/config.ts` — Phaser 설정
-- `src/game/scenes/BootScene.ts` — 에셋 로딩, 스플래시
-- `src/game/scenes/CommuteScene.ts` — 메인 게임플레이
-- `src/game/constants.ts` — 상수, 타입
-- `src/game/Player.ts` — 플레이어 로직
-- `src/game/Road.ts` — 도로 생성
-- `src/game/HUD.ts` — UI 오버레이
-- `public/` — 정적 에셋 (이미지, 오디오)
+### Phaser + React 하이브리드
+- **게임플레이** (물리, 충돌, 렌더링) → Phaser 3 캔버스
+- **UI 화면** (메뉴, 결과, 설정) → React 컴포넌트 (DOM 오버레이)
+- **이유**: DOM UI가 텍스트/이미지 품질, DPI 처리, 반응형에서 우수
 
-## 주의사항 (실수 기록)
+### 레이아웃 시스템
+- 그룹 요소: 세로 중앙 정렬, gapPx 간격, 같은 order = 가로 나란히
+- 앵커 요소: 화면 모서리 기준 offset
+- DESIGN_W = 390 기준, `screenWidth / 390` 비율 스케일
+- admin 에디터에서 JSON으로 관리
 
-### Phaser loader.baseURL 필수
-- `vite.config.ts`에서 `base: '/game01/'`을 설정하면 에셋이 `/game01/` 하위에 배치됨
-- Phaser는 기본적으로 `/`에서 에셋을 찾으므로 404 발생
-- **반드시** `config.ts`에서 `loader.baseURL: import.meta.env.BASE_URL` 설정
-- 이거 빠지면 배포 시 게임 에셋 전부 엑박
+## Phaser 설정 규칙
+- `loader.baseURL: import.meta.env.BASE_URL` 필수
+- `antialias: true`, `roundPixels: false`
+- `resolution: devicePixelRatio` (레티나)
+- 모든 텍스처에 `setFilter(Phaser.Textures.LINEAR)`
+- 텍스트 fontSize도 screenWidth/DESIGN_W 비율로 스케일
 
-### 에셋 경로 규칙
-- Phaser에서 상대 경로 사용: `'character/rabbit-front.png'`
-- `public/` 폴더 구조와 일치해야 함
-- 새 에셋 추가 시 BootScene.ts의 assets 배열에도 추가
-
-### 게임 이름
-- "직장인 잔혹시" (잔혹사 ❌)
-- index.html, BootScene, CommuteScene, capacitor.config 등에서 사용
-
-### 빌드 시 에셋 동기화
-- `scripts/sync-game-assets.mjs`가 Vercel Blob에서 `public/`으로 다운로드
-- 디자이너가 admin에서 에셋 교체 → 다음 빌드 시 자동 반영
-- `BLOB_READ_WRITE_TOKEN` 없으면 skip (로컬 개발 시)
-
-### 기술 메모
-- `roundPixels: true` — 타일 사이 서브픽셀 갭 방지
-- 코너 타일 투명 영역은 검정(#000)으로 채움
-- 버튼 눌림: `killTweensOf` → 즉시 축소 → tween 복원
-- 충돌 시 즉시 `isFalling = true` 설정
+## 에셋 규칙
+- 표시 크기의 2~3x로 준비 (레티나 대응)
+- 게임에서 쓸 에셋은 `public/` 폴더에 배치
+- 새 에셋 추가 시 BootScene preload 배열에도 추가

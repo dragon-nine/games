@@ -1,0 +1,92 @@
+{
+  "screen": "game-over",
+  "designWidth": 390,
+  "elements": [
+    {
+      "id": "bestText",
+      "positioning": "group",
+      "type": "text",
+      "order": 0,
+      "gapPx": 0,
+      "widthPx": 234,
+      "label": "최고기록 0",
+      "textStyle": {
+        "fontSizePx": 22,
+        "color": "#ffffff"
+      }
+    },
+    {
+      "id": "scoreText",
+      "positioning": "group",
+      "type": "text",
+      "order": 1,
+      "gapPx": 12,
+      "widthPx": 156,
+      "label": "0",
+      "textStyle": {
+        "fontSizePx": 80,
+        "color": "#ffffff",
+        "strokeWidth": 3
+      }
+    },
+    {
+      "id": "go-rabbit",
+      "positioning": "group",
+      "type": "image",
+      "order": 2,
+      "gapPx": 16,
+      "widthPx": 175
+    },
+    {
+      "id": "quoteText",
+      "positioning": "group",
+      "type": "text",
+      "order": 3,
+      "gapPx": 16,
+      "widthPx": 273,
+      "label": "퇴근은 쉬운게 아니야...\n인생이 원래 그래",
+      "textStyle": {
+        "fontSizePx": 18,
+        "color": "#ffffff",
+        "gradientColors": [
+          "#e5332f",
+          "#771615"
+        ]
+      }
+    },
+    {
+      "id": "go-btn-revive",
+      "positioning": "group",
+      "type": "image",
+      "order": 4,
+      "gapPx": 24,
+      "widthPx": 331
+    },
+    {
+      "id": "go-btn-home",
+      "positioning": "group",
+      "type": "image",
+      "order": 5,
+      "gapPx": 10,
+      "widthPx": 331
+    },
+    {
+      "id": "go-btn-challenge",
+      "positioning": "group",
+      "type": "image",
+      "order": 6,
+      "gapPx": 10,
+      "widthPx": 165,
+      "hGapPx": 0
+    },
+    {
+      "id": "go-btn-ranking",
+      "positioning": "group",
+      "type": "image",
+      "order": 6,
+      "gapPx": 10,
+      "widthPx": 165,
+      "hGapPx": 0
+    }
+  ]
+}

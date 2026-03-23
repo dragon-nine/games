@@ -42,6 +42,35 @@ export class Road {
     }
   }
 
+  /**
+   * 시작 연출: 토끼가 빈 땅에 서있고, 위쪽부터 길 시작
+   * - row 0: 빈 땅 (토끼만 서있음)
+   * - row 1~: 직선으로 시작하는 정상 도로
+   * 첫 액션은 전진(↑)으로 게임 시작
+   */
+  generateInitialStand(height: number, startLane: number, startY?: number) {
+    this.startY = startY ?? height - 200;
+
+    // row 0: 토끼 위치, 타일 없음
+    this.rows.push({ type: startLane as RoadType, y: this.startY, isTurn: false, tiles: [] });
+
+    // row 1: 직선 (토끼 바로 위)
+    const row1Y = this.startY - this.tileH;
+    this.addRow(startLane as RoadType, row1Y);
+
+    // 첫 직선 타일 — 그대로 표시
+
+    // row 2: TR 턴 (lane 0→1, 오른쪽으로 꺾임)
+    this.addRow(1 as RoadType, this.startY - this.tileH * 2);
+
+    // 이후 완전 랜덤
+    this.straightRemaining = 0;
+
+    for (let i = 0; i < 25; i++) {
+      this.addNextRow();
+    }
+  }
+
   addNextRow() {
     const last = this.rows[this.rows.length - 1];
     const nextY = last.y - this.tileH;

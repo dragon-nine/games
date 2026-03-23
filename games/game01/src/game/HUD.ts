@@ -1,134 +1,78 @@
-import Phaser from 'phaser';
 import { MAX_TIME, START_TIME } from './constants';
-import { Overlay } from './Overlay';
+import { gameBus } from './event-bus';
 
+/**
+ * HUD 로직 전용 — 렌더링은 React GameplayHUD에서 담당
+ * Phaser 씬에서 타이머/점수 로직만 관리하고 이벤트로 React에 전달
+ */
 export class HUD {
   private scene: Phaser.Scene;
-  private scoreText!: Phaser.GameObjects.Text;
-  private gaugeFull!: Phaser.GameObjects.Image;
-  private gaugeMask!: Phaser.GameObjects.Graphics;
-  private gaugeBarX = 0;
-  private gaugeBarY = 0;
-  private gaugeBarW = 0;
-  private gaugeBarH = 0;
-  private pauseIcon!: Phaser.GameObjects.Image;
   private timerRunning = false;
   elapsed = 0;
-  private pauseOverlay?: Overlay;
-
-  private barW = 0;
 
   timeLeft = START_TIME;
   paused = false;
 
-  private bgmMuted = localStorage.getItem('bgmMuted') !== 'false';
-  private sfxMuted = localStorage.getItem('sfxMuted') !== 'false';
+  private bgmMuted = localStorage.getItem('bgmMuted') === 'true';
+  private sfxMuted = localStorage.getItem('sfxMuted') === 'true';
 
   private onTimeUp: () => void;
   private warningPlayed = false;
+  private currentScore = 0;
 
   constructor(scene: Phaser.Scene, onTimeUp: () => void) {
     this.scene = scene;
     this.onTimeUp = onTimeUp;
   }
 
-  create(width: number) {
-    const sidePadding = 16;
-    const topPadding = 15;
-    const gap = 10; // 게이지바 ↔ pause 간격
+  create() {
+    // React에서 토글 변경 시 반영
+    const unsubToggleBgm = gameBus.on('toggle-bgm', () => {
+      this.bgmMuted = localStorage.getItem('bgmMuted') === 'true';
+    });
+    const unsubToggleSfx = gameBus.on('toggle-sfx', () => {
+      this.sfxMuted = localStorage.getItem('sfxMuted') === 'true';
+    });
 
-    // 먼저 게이지바 높이를 계산하고, pause는 그보다 1.4배 크게
-    const tempBarW = width - sidePadding * 2 - 100; // 대략적 너비로 높이 산출
-    const barH = Math.round(tempBarW * (61 / 392));
-    const pauseBtnSize = Math.round(barH * 1.4);
+    // React HUD에서 일시정지 버튼 클릭
+    const unsubPause = gameBus.on('action-pause', () => {
+      this.togglePause();
+    });
 
-    // 게이지바 실제 너비 = 전체 - 양쪽패딩 - pause - gap
-    this.barW = width - sidePadding * 2 - pauseBtnSize - gap;
-    const barCenterX = sidePadding + this.barW / 2;
-    const hudY = topPadding + pauseBtnSize / 2; // pause 기준 수직 중앙
+    this.scene.events.on('shutdown', () => {
+      unsubToggleBgm();
+      unsubToggleSfx();
+      unsubPause();
+    });
 
-    // 빈 게이지 (배경)
-    this.scene.add.image(barCenterX, hudY, 'gauge-empty')
-      .setDisplaySize(this.barW, barH).setDepth(200);
-
-    // 꽉찬 게이지
-    this.gaugeBarX = sidePadding;
-    this.gaugeBarY = hudY - barH / 2;
-    this.gaugeBarW = this.barW;
-    this.gaugeBarH = barH;
-
-    this.gaugeFull = this.scene.add.image(sidePadding, this.gaugeBarY, 'gauge-full')
-      .setOrigin(0, 0).setDisplaySize(this.barW, barH).setDepth(201);
-
-    // 대각선 마스크용 Graphics (화면에 안 그려지고 마스크로만 사용)
-    this.gaugeMask = this.scene.make.graphics({ add: false } as never);
-    this.gaugeFull.setMask(this.gaugeMask.createGeometryMask());
-    this.updateTimerBar();
-
-    // ── 일시정지 버튼 (게이지바보다 약간 크게, 수직 중앙 정렬) ──
-    const pauseX = width - sidePadding - pauseBtnSize / 2;
-    this.pauseIcon = this.scene.add.image(pauseX, hudY, 'btn-pause')
-      .setDisplaySize(pauseBtnSize, pauseBtnSize)
-      .setDepth(201)
-      .setInteractive({ useHandCursor: true });
-
-    this.pauseIcon.on('pointerdown', () => this.togglePause());
-
-    // ── 블럭 카운트 ──
-    this.scoreText = this.scene.add.text(width / 2, hudY + 28, '0', {
-      fontFamily: 'GMarketSans, sans-serif', fontSize: '90px', color: '#ffffff', fontStyle: 'bold',
-      stroke: '#000000', strokeThickness: 6,
-    }).setOrigin(0.5, 0).setDepth(201);
+    // 초기 상태 전송
+    gameBus.emit('score-update', 0);
+    gameBus.emit('timer-update', 1);
   }
 
   updateScore(score: number) {
-    this.scoreText.setText(`${score}`);
-    this.pulseScore();
-  }
-
-  pulseScore() {
-    this.scene.tweens.killTweensOf(this.scoreText);
-    this.scoreText.setScale(1.25);
-    this.scene.tweens.add({
-      targets: this.scoreText, scale: 1,
-      duration: 200, ease: 'Quad.easeOut',
-    });
+    this.currentScore = score;
+    gameBus.emit('score-update', score);
   }
 
   addTime() {
     const bonus = Math.max(0.2, 0.4 - (this.elapsed / 60) * 0.2);
     this.timeLeft = Math.min(MAX_TIME, this.timeLeft + bonus);
-    this.updateTimerBar();
+    this.emitTimer();
   }
 
-  /** 타이머 시작 (첫 액션 시 호출) */
-  startTimer() {
-    this.timerRunning = true;
-  }
+  startTimer() { this.timerRunning = true; }
+  stopTimer() { this.timerRunning = false; }
+  isBgmMuted() { return this.bgmMuted; }
+  isSfxMuted() { return this.sfxMuted; }
 
-  stopTimer() {
-    this.timerRunning = false;
-  }
-
-  /** BGM 뮤트 상태 확인 */
-  isBgmMuted() {
-    return this.bgmMuted;
-  }
-
-  /** 효과음이 뮤트 상태인지 확인 */
-  isSfxMuted() {
-    return this.sfxMuted;
-  }
-
-  /** 매 프레임 호출 — 부드러운 게이지 감소 */
   update(delta: number) {
     if (!this.timerRunning || this.paused) return;
 
-    const dt = delta / 1000; // ms → sec
+    const dt = delta / 1000;
     this.elapsed += dt;
-    this.timeLeft -= dt; // 일정하게 초당 1초 감소
+    this.timeLeft -= dt;
 
-    // Timer warning sound
     if (this.timeLeft <= 3 && this.timeLeft > 0 && !this.warningPlayed) {
       this.warningPlayed = true;
       if (!this.sfxMuted) try { this.scene.sound.play('sfx-timer-warning', { volume: 0.5 }); } catch { /* 무시 */ }
@@ -139,92 +83,41 @@ export class HUD {
     if (this.timeLeft <= 0) {
       this.timeLeft = 0;
       this.timerRunning = false;
-      this.updateTimerBar();
+      this.emitTimer();
       this.onTimeUp();
       return;
     }
 
-    this.updateTimerBar();
+    this.emitTimer();
   }
 
   updateTimerBar() {
+    this.emitTimer();
+  }
+
+  private emitTimer() {
     const pct = Math.max(0, this.timeLeft / MAX_TIME);
-    const fillW = this.gaugeBarW * pct;
-    const slant = this.gaugeBarH * 0.424; // 대각선 기울기 (113도)
-
-    const x = this.gaugeBarX;
-    const y = this.gaugeBarY;
-    const h = this.gaugeBarH;
-
-    this.gaugeMask.clear();
-    this.gaugeMask.fillStyle(0xffffff);
-    this.gaugeMask.beginPath();
-    this.gaugeMask.moveTo(x, y);                               // 좌상
-    this.gaugeMask.lineTo(x + fillW, y);                       // 우상
-    this.gaugeMask.lineTo(x + fillW - slant, y + h);           // 우하 (대각선)
-    this.gaugeMask.lineTo(x, y + h);                           // 좌하
-    this.gaugeMask.closePath();
-    this.gaugeMask.fillPath();
+    gameBus.emit('timer-update', pct);
   }
 
   togglePause() {
     if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
-    const { width, height } = this.scene.scale;
 
     if (!this.paused) {
       this.paused = true;
       this.scene.time.paused = true;
       this.scene.tweens.pauseAll();
-
-      const ov = new Overlay(this.scene).open({ onClose: () => this.togglePause() }).closeOnDimClick();
-      this.pauseOverlay = ov;
-
-      ov.addText(width / 2, height * 0.38, '일시정지', { fontSize: '36px', color: '#ffffff', fontStyle: 'bold' });
-
-      // 배경음악 토글
-      const bgmBtn = ov.add(this.scene.add.rectangle(width / 2, height * 0.50, 220, 48, 0x333355)
-        .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
-      const bgmLabel = ov.addText(width / 2, height * 0.50,
-        `배경음악  ${this.bgmMuted ? 'OFF' : 'ON'}`,
-        { fontSize: '18px', color: this.bgmMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
-
-      bgmBtn.on('pointerdown', () => {
-        this.bgmMuted = !this.bgmMuted;
-        localStorage.setItem('bgmMuted', String(this.bgmMuted));
-        this.scene.sound.getAll('bgm-gameplay').forEach(s => {
-          (s as Phaser.Sound.WebAudioSound).setMute(this.bgmMuted);
-        });
-        bgmLabel.setText(`배경음악  ${this.bgmMuted ? 'OFF' : 'ON'}`);
-        bgmLabel.setColor(this.bgmMuted ? '#ff6666' : '#66ff66');
-        if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
-      });
-
-      // 효과음 토글
-      const sfxBtn = ov.add(this.scene.add.rectangle(width / 2, height * 0.58, 220, 48, 0x333355)
-        .setStrokeStyle(2, 0x6666aa).setDepth(Overlay.DEPTH).setInteractive({ useHandCursor: true }));
-      const sfxLabel = ov.addText(width / 2, height * 0.58,
-        `효과음  ${this.sfxMuted ? 'OFF' : 'ON'}`,
-        { fontSize: '18px', color: this.sfxMuted ? '#ff6666' : '#66ff66', fontStyle: 'bold' });
-
-      sfxBtn.on('pointerdown', () => {
-        this.sfxMuted = !this.sfxMuted;
-        localStorage.setItem('sfxMuted', String(this.sfxMuted));
-        sfxLabel.setText(`효과음  ${this.sfxMuted ? 'OFF' : 'ON'}`);
-        sfxLabel.setColor(this.sfxMuted ? '#ff6666' : '#66ff66');
-        if (!this.sfxMuted) try { this.scene.sound.play('sfx-click', { volume: 0.5 }); } catch { /* 무시 */ }
-      });
-
-      ov.addText(width / 2, height * 0.68, '화면을 터치하면 계속합니다', { fontSize: '14px', color: '#777799' });
-
-      this.pauseIcon.setAlpha(0.5);
+      gameBus.emit('screen-change', 'paused');
     } else {
       this.paused = false;
       this.scene.time.paused = false;
       this.scene.tweens.resumeAll();
-
-      this.pauseOverlay?.close();
-      this.pauseOverlay = undefined;
-      this.pauseIcon.setAlpha(1);
+      gameBus.emit('screen-change', 'playing');
+      // GameplayHUD 재마운트 후 useEffect 등록 대기 → 점수/타이머 재전송
+      requestAnimationFrame(() => {
+        gameBus.emit('score-update', this.currentScore);
+        this.emitTimer();
+      });
     }
   }
 }

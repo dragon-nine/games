@@ -47,6 +47,7 @@ function localMiddlewares(): Plugin {
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
         if (req.url?.match(/^\/admin(\?|$)/)) req.url = '/admin/' + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '')
+        if (req.url?.match(/^\/game01(\?|$)/)) req.url = '/game01/' + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '')
         next()
       })
       // Save layout JSON locally

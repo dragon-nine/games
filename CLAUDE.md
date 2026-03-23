@@ -4,21 +4,19 @@
 
 ## 구조
 ```
-├── admin/          — 에셋 관리 어드민 (Vite + React)
+├── admin/          — 에셋/레이아웃 관리 어드민 (Vite + React)
 ├── api/            — Vercel serverless functions (Blob API)
 ├── scripts/        — 빌드/동기화 스크립트
-├── games/game01/   — 직장인 잔혹시 (Phaser 3 + Vite + React)
+├── games/game01/   — 직장인 잔혹사 (Phaser 3 + React 하이브리드)
 ├── vercel.json     — 라우팅 + 빌드 커맨드
-└── .claude/agents/ — 역할별 에이전트 (deploy, admin, game, assets)
+└── .claude/agents/ — 범용 에이전트 (게임 개발, admin, 배포, 에셋)
 ```
 
 ## 빌드
 ```bash
 npm run build:all     # admin + game01 빌드
-npm run dev:admin     # admin dev server (localhost:5174/admin)
-npm run dev:game01    # game01 dev server
-npm run upload-assets # 로컬 에셋 → Vercel Blob 업로드
-npm run sync-assets   # Vercel Blob → 로컬 public/ 동기화
+npm run dev:admin     # admin dev server (localhost:5173) — game01도 같이 서빙
+npm run dev:game01    # game01 단독 dev server
 ```
 
 ## 배포
@@ -26,10 +24,17 @@ npm run sync-assets   # Vercel Blob → 로컬 public/ 동기화
 - URL: dragon-nine-109.vercel.app
 - /admin — 어드민 페이지
 - /game01 — 게임
+- 2026-04-21까지 Blob Hobby 한도 초과 — 로컬 파일 fallback 사용
 
 ## 핵심 규칙
-- 게임 이름: "직장인 잔혹**시**" (잔혹사 ❌)
 - Phaser config에 `loader.baseURL: import.meta.env.BASE_URL` 필수
 - Blob API는 Web API 스타일 (`export async function GET/POST`)
 - Blob Store는 Public Access, `access: 'public'` 필수
 - admin 로딩 시 엑박 금지 — shimmer skeleton 사용
+- number input은 NumInput 컴포넌트 사용 (type="number" 금지)
+
+## 아키텍처 원칙
+- **게임플레이** → Phaser 3 (캔버스)
+- **UI 화면** (메인 메뉴, 게임오버, 설정) → React + HTML/CSS (DOM 오버레이)
+- **이유**: Phaser 캔버스 UI는 DPI/텍스트/이미지 품질 이슈. DOM UI가 업계 표준.
+- admin 레이아웃 에디터와 게임 UI가 동일 기술(HTML/CSS)이면 1:1 일치 보장

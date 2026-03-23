@@ -38,11 +38,13 @@ interface TextStyle {
   color?: string
   strokeColor?: string
   strokeWidth?: number
+  gradientColors?: [string, string]
 }
 
 interface GroupElement {
   id: string; positioning: 'group'; type: 'text' | 'image'
   order: number; gapPx: number; widthPx: number; label?: string; textStyle?: TextStyle
+  hGapPx?: number // 같은 행에 2개 요소일 때 가로 간격 (기본 8)
 }
 interface AnchorElement {
   id: string; positioning: 'anchor'; type: 'text' | 'image'
@@ -52,6 +54,7 @@ type LayoutElement = GroupElement | AnchorElement
 
 interface ScreenLayout {
   screen: string; designWidth: number; elements: LayoutElement[]
+  groupVAlign?: 'center' | 'top'
 }
 
 interface ComputedPos {
@@ -64,6 +67,7 @@ function computePreviewLayout(
   elements: LayoutElement[],
   screenW: number, screenH: number,
   imageSizes: Record<string, { w: number; h: number }>,
+  groupVAlign: 'center' | 'top' = 'center',
 ): ComputedPos[] {
   const scale = screenW / DESIGN_W
   const results: ComputedPos[] = []
@@ -101,7 +105,9 @@ function computePreviewLayout(
 
   const firstGap = rows.length > 0 ? rows[0].gapPx * scale : 0
   const totalH = rows.reduce((sum, r, i) => sum + r.height + (i > 0 ? r.gapPx * scale : 0), 0)
-  let curY = (screenH - totalH) / 2 + firstGap
+  let curY = groupVAlign === 'top'
+    ? firstGap
+    : (screenH - totalH) / 2 + firstGap
 
   for (let ri = 0; ri < rows.length; ri++) {
     const row = rows[ri]
@@ -116,15 +122,15 @@ function computePreviewLayout(
       results.push({ id: el.id, x: screenW / 2, y: cy, w: elW, h: elH, originX: 0.5, originY: 0.5 })
     } else {
       const totalRowW = row.elements.reduce((s, el) => s + el.widthPx * scale, 0)
-      const rowGap = 8 * scale
-      const totalWithGaps = totalRowW + rowGap * (row.elements.length - 1)
+      const hGap = (row.elements[0].hGapPx ?? 8) * scale
+      const totalWithGaps = totalRowW + hGap * (row.elements.length - 1)
       let cx = (screenW - totalWithGaps) / 2
       for (const el of row.elements) {
         const elW = el.widthPx * scale
         const elH = el.type === 'image' && imageSizes[el.id]
           ? imageSizes[el.id].h * (elW / imageSizes[el.id].w) : row.height
         results.push({ id: el.id, x: cx + elW / 2, y: cy, w: elW, h: elH, originX: 0.5, originY: 0.5 })
-        cx += elW + rowGap
+        cx += elW + hGap
       }
     }
     curY += row.height
@@ -155,6 +161,7 @@ function computePreviewLayout(
 
 const SCREEN_OPTIONS = [
   { key: 'main-screen', label: '메인 스크린' },
+  { key: 'gameplay', label: '게임플레이' },
   { key: 'game-over', label: '게임오버 스크린' },
 ]
 
@@ -166,11 +173,18 @@ const SCREEN_DEFAULTS: Record<string, LayoutElement[]> = {
     { id: 'main-btn', positioning: 'group', type: 'image', order: 3, gapPx: 20, widthPx: 214 },
     { id: 'btn-settings', positioning: 'anchor', type: 'image', anchor: 'top-right', offsetX: 20, offsetY: 20, widthPx: 35 },
   ],
+  'gameplay': [
+    { id: 'gauge-bar', positioning: 'group', type: 'image', order: 0, gapPx: 15, widthPx: 290, hGapPx: 10 },
+    { id: 'btn-pause', positioning: 'group', type: 'image', order: 0, gapPx: 15, widthPx: 40, hGapPx: 10 },
+    { id: 'scoreText', positioning: 'group', type: 'text', order: 1, gapPx: 8, widthPx: 390, label: '0', textStyle: { fontSizePx: 90, color: '#ffffff', strokeColor: '#000000', strokeWidth: 6 } },
+    { id: 'btn-switch', positioning: 'anchor', type: 'image', anchor: 'bottom-left', offsetX: 10, offsetY: 85, widthPx: 140 },
+    { id: 'btn-forward', positioning: 'anchor', type: 'image', anchor: 'bottom-right', offsetX: 10, offsetY: 85, widthPx: 140 },
+  ],
   'game-over': [
     { id: 'bestText', positioning: 'group', type: 'text', order: 0, gapPx: 0, widthPx: 234, label: '최고기록 0', textStyle: { fontSizePx: 22, color: '#ffffff' } },
     { id: 'scoreText', positioning: 'group', type: 'text', order: 1, gapPx: 12, widthPx: 156, label: '0', textStyle: { fontSizePx: 72, color: '#ffffff' } },
     { id: 'go-rabbit', positioning: 'group', type: 'image', order: 2, gapPx: 16, widthPx: 175 },
-    { id: 'quoteText', positioning: 'group', type: 'text', order: 3, gapPx: 16, widthPx: 273, label: '퇴근은 쉬운게 아니야...\n인생이 원래 그래', textStyle: { fontSizePx: 18, color: '#ffffff' } },
+    { id: 'quoteText', positioning: 'group', type: 'text', order: 3, gapPx: 16, widthPx: 273, label: '퇴근은 쉬운게 아니야...\n인생이 원래 그래', textStyle: { fontSizePx: 18, color: '#ffffff', gradientColors: ['#e5332f', '#771615'] } },
     { id: 'go-btn-revive', positioning: 'group', type: 'image', order: 4, gapPx: 24, widthPx: 331 },
     { id: 'go-btn-home', positioning: 'group', type: 'image', order: 5, gapPx: 16, widthPx: 331 },
     { id: 'go-btn-challenge', positioning: 'group', type: 'image', order: 6, gapPx: 16, widthPx: 156 },
@@ -178,13 +192,19 @@ const SCREEN_DEFAULTS: Record<string, LayoutElement[]> = {
   ],
 }
 
+const SCREEN_VALIGN: Record<string, 'center' | 'top'> = {
+  'gameplay': 'top',
+}
+
 const SCREEN_BG: Record<string, { bgPath: string; bgColor: string }> = {
   'main-screen': { bgPath: 'game01/main-screen/main-bg.png', bgColor: '#0a0a14' },
+  'gameplay': { bgPath: 'game01/background/game-bg.png', bgColor: '#000000' },
   'game-over': { bgPath: '', bgColor: '#000000' },
 }
 
 const SCREEN_ASSET_PREFIXES: Record<string, string[]> = {
   'main-screen': ['game01/main-screen/', 'game01/ui/'],
+  'gameplay': ['game01/ui/'],
   'game-over': ['game01/game-over-screen/'],
 }
 
@@ -195,6 +215,12 @@ const LOCAL_ASSET_PATHS: Record<string, Record<string, string>> = {
     'main-char': '/game-assets/main-screen/main-char.png',
     'main-btn': '/game-assets/main-screen/main-btn.png',
     'btn-settings': '/game-assets/ui/btn-settings.png',
+  },
+  'gameplay': {
+    'gauge-bar': '/game-assets/ui/gauge-empty.png',
+    'btn-pause': '/game-assets/ui/btn-pause.png',
+    'btn-switch': '/game-assets/ui/btn-switch.png',
+    'btn-forward': '/game-assets/ui/btn-forward.png',
   },
   'game-over': {
     'go-rabbit': '/game-assets/game-over-screen/gameover-rabbit.png',
@@ -211,6 +237,12 @@ const ASSET_ID_TO_PATH: Record<string, Record<string, string>> = {
     'main-char': 'game01/main-screen/main-char.png',
     'main-btn': 'game01/main-screen/main-btn.png',
     'btn-settings': 'game01/ui/btn-settings.png',
+  },
+  'gameplay': {
+    'gauge-bar': 'game01/ui/gauge-empty.png',
+    'btn-pause': 'game01/ui/btn-pause.png',
+    'btn-switch': 'game01/ui/btn-switch.png',
+    'btn-forward': 'game01/ui/btn-forward.png',
   },
   'game-over': {
     'go-rabbit': 'game01/game-over-screen/gameover-rabbit.png',
@@ -368,8 +400,8 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
 
   // Compute preview positions
   const positions = useMemo(() =>
-    computePreviewLayout(elements, previewW, previewH, imageSizes),
-    [elements, previewW, previewH, imageSizes],
+    computePreviewLayout(elements, previewW, previewH, imageSizes, SCREEN_VALIGN[screen] || 'center'),
+    [elements, previewW, previewH, imageSizes, screen],
   )
 
   // ── Drag handlers ──
@@ -430,10 +462,14 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
   const handleSave = async () => {
     setSaving(true)
     try {
+      const vAlign = SCREEN_VALIGN[screen]
       const layout: ScreenLayout = {
         screen,
         designWidth: DESIGN_W,
+        ...(vAlign ? { groupVAlign: vAlign } : {}),
         elements: elements.map((el) => {
+          // 텍스트 요소는 label 유지 (게임에서 기본 텍스트로 사용)
+          if (el.type === 'text') return { ...el }
           const { label: _, ...rest } = el as LayoutElement & { label?: string }
           return rest
         }),
@@ -474,6 +510,12 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
           ))}
         </select>
       </div>
+
+      <p className="le-info">
+        저장 시 <code>public/layout/{screen}.json</code>에 기록됩니다.
+        로컬 개발 중에는 game01 재빌드(<code>npx vite build</code>) 후 새로고침하면 반영되고,
+        main에 push하면 Vercel 배포에 자동 반영됩니다.
+      </p>
 
       <div className="le-toolbar">
         <div className="le-toolbar-group">
@@ -542,24 +584,54 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                     ) : (
                       <div className="le-el-text" style={{
                         fontSize: `${Math.max(6, (el.textStyle?.fontSizePx || 14) * previewScale)}px`,
-                        color: el.textStyle?.color || '#fff',
+                        color: el.textStyle?.gradientColors ? undefined : (el.textStyle?.color || '#fff'),
                         WebkitTextStroke: el.textStyle?.strokeWidth
                           ? `${el.textStyle.strokeWidth * previewScale}px ${el.textStyle.strokeColor || '#000'}`
                           : undefined,
+                        ...(el.textStyle?.gradientColors ? {
+                          background: `linear-gradient(to right, ${el.textStyle.gradientColors[0]}, ${el.textStyle.gradientColors[1]})`,
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        } : {}),
                       }}>{el.label || el.id}</div>
                     )}
-                    {showGuides && el.positioning === 'group' && el.gapPx > 0 && (
-                      <div className="le-el-gap" data-gap={`${el.gapPx}px`}
-                        style={{ top: -el.gapPx * previewScale, height: el.gapPx * previewScale }} />
-                    )}
-                    {showGuides && el.positioning === 'anchor' && (
-                      <>
-                        <div className="le-el-offset-v" style={{ height: el.offsetY * previewScale }}
-                          data-offset={`${el.offsetY}px`} />
-                        <div className="le-el-offset-h" style={{ width: el.offsetX * previewScale }}
-                          data-offset={`${el.offsetX}px`} />
+                    {showGuides && el.positioning === 'group' && (() => {
+                      const rowSiblings = elements.filter((e) => e.positioning === 'group' && e.order === (el as GroupElement).order)
+                      const isFirst = rowSiblings[0]?.id === el.id
+                      const isMultiRow = rowSiblings.length >= 2
+                      const hGap = ((rowSiblings[0] as GroupElement).hGapPx ?? 8) * previewScale
+                      return <>
+                        {/* 세로 간격 가이드: 행의 첫 번째 요소만 표시 */}
+                        {isFirst && el.gapPx > 0 && (
+                          <div className="le-el-gap" data-gap={`${el.gapPx}px`}
+                            style={{ top: -el.gapPx * previewScale, height: el.gapPx * previewScale }} />
+                        )}
+                        {/* 가로 간격 가이드: 첫 번째 요소 우측에 표시 */}
+                        {isFirst && isMultiRow && (
+                          <div className="le-el-hgap" data-gap={`${(rowSiblings[0] as GroupElement).hGapPx ?? 8}px`}
+                            style={{ left: '100%', top: '50%', transform: 'translateY(-50%)', width: hGap, height: 1 }} />
+                        )}
                       </>
-                    )}
+                    })()}
+                    {showGuides && el.positioning === 'anchor' && (() => {
+                      const a = el.anchor
+                      const isTop = a === 'top-left' || a === 'top-right'
+                      const isLeft = a === 'top-left' || a === 'bottom-left'
+                      return <>
+                        {/* 세로 오프셋 가이드 */}
+                        <div className="le-el-offset-v" style={{
+                          height: el.offsetY * previewScale,
+                          left: '50%',
+                          ...(isTop ? { bottom: '100%' } : { top: '100%' }),
+                        }} data-offset={`${el.offsetY}px`} />
+                        {/* 가로 오프셋 가이드 */}
+                        <div className="le-el-offset-h" style={{
+                          width: el.offsetX * previewScale,
+                          top: '50%',
+                          ...(isLeft ? { right: '100%' } : { left: '100%' }),
+                        }} data-offset={`${el.offsetX}px`} />
+                      </>
+                    })()}
                   </div>
                 )
               })}
@@ -590,8 +662,11 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                 </div>
               </div>
 
-              {selected.positioning === 'group' && (
-                <>
+              {selected.positioning === 'group' && (() => {
+                const rowSiblings = elements.filter((e): e is GroupElement => e.positioning === 'group' && e.order === selected.order)
+                const isMultiRow = rowSiblings.length >= 2
+                const rowFirst = rowSiblings[0]
+                return <>
                   <div className="le-field">
                     <label>순서</label>
                     <div className="le-field-row">
@@ -601,12 +676,39 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
                   <div className="le-field">
                     <label>{selected.order === 0 ? '상단 여백' : '위 간격'}</label>
                     <div className="le-field-row">
-                      <NumInput value={selected.gapPx} onChange={(v) => updateEl(selected.id, { gapPx: v })} />
+                      <NumInput
+                        value={rowFirst.gapPx}
+                        onChange={(v) => {
+                          // 같은 행 모든 요소의 gapPx를 동기화
+                          setElements((prev) => prev.map((el) =>
+                            el.positioning === 'group' && el.order === selected.order
+                              ? { ...el, gapPx: v } : el
+                          ))
+                        }}
+                      />
                       <span className="le-field-px">px</span>
                     </div>
                   </div>
+                  {isMultiRow && (
+                    <div className="le-field">
+                      <label>가로 간격</label>
+                      <div className="le-field-row">
+                        <NumInput
+                          value={rowFirst.hGapPx ?? 8}
+                          onChange={(v) => {
+                            // 같은 행 모든 요소의 hGapPx를 동기화
+                            setElements((prev) => prev.map((el) =>
+                              el.positioning === 'group' && el.order === selected.order
+                                ? { ...el, hGapPx: v } : el
+                            ))
+                          }}
+                        />
+                        <span className="le-field-px">px</span>
+                      </div>
+                    </div>
+                  )}
                 </>
-              )}
+              })()}
 
               {selected.positioning === 'anchor' && (
                 <>

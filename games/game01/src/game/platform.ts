@@ -1,20 +1,31 @@
 import { Capacitor } from '@capacitor/core';
 
 /**
- * 플랫폼 감지 — 토스 인앱 vs 네이티브 앱 (Capacitor) vs 웹
+ * 플랫폼 감지 — 토스 인앱 vs 구글(웹/네이티브)
+ *
+ * 테스트: URL에 ?platform=google 또는 ?platform=toss 추가
+ * 빌드: VITE_PLATFORM=google npm run build
  */
-export type Platform = 'toss' | 'native' | 'web';
+export type Platform = 'toss' | 'google';
 
 export function detectPlatform(): Platform {
-  // 토스 인앱 브라우저 감지
+  // 1. 환경변수 (빌드 시 결정)
+  const envPlatform = import.meta.env.VITE_PLATFORM;
+  if (envPlatform === 'google' || envPlatform === 'toss') return envPlatform;
+
+  // 2. URL 쿼리 파라미터 (테스트용)
+  if (typeof window !== 'undefined') {
+    const qp = new URLSearchParams(window.location.search).get('platform');
+    if (qp === 'google' || qp === 'toss') return qp;
+  }
+
+  // 3. 토스 인앱 브라우저 자동 감지
   if (typeof navigator !== 'undefined' && /TOSS/i.test(navigator.userAgent)) {
     return 'toss';
   }
-  // Capacitor 네이티브 앱 감지
-  if (Capacitor.isNativePlatform()) {
-    return 'native';
-  }
-  return 'web';
+
+  // 기본값: google
+  return 'google';
 }
 
 /** 현재 플랫폼 (앱 시작 시 1회 결정) */
@@ -24,6 +35,10 @@ export function isToss(): boolean {
   return currentPlatform === 'toss';
 }
 
+export function isGoogle(): boolean {
+  return currentPlatform === 'google';
+}
+
 export function isNative(): boolean {
-  return currentPlatform === 'native';
+  return Capacitor.isNativePlatform();
 }

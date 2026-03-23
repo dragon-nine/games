@@ -953,6 +953,23 @@ body {
   font-size: 11px; color: var(--text-tertiary);
 }
 
+.le-info {
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #8888aa;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  line-height: 1.6;
+}
+.le-info code {
+  background: rgba(255,255,255,0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #aaaacc;
+}
+
 /* ── Elements inside phone ── */
 .le-el {
   position: absolute;
@@ -978,7 +995,7 @@ body {
 }
 .le-el-anchor { border-style: dashed !important; }
 .le-el-no-guide { border-color: transparent !important; }
-.le-el-no-guide.le-el-selected { border-color: var(--accent) !important; }
+.le-el-no-guide.le-el-selected { border-color: transparent !important; box-shadow: none !important; }
 .le-btn-active { background: var(--accent); color: #fff; }
 .le-el-gap {
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -991,8 +1008,19 @@ body {
   font-size: 8px; color: rgba(255,255,255,0.7);
   white-space: nowrap; font-family: monospace;
 }
+.le-el-hgap {
+  position: absolute;
+  height: 1px; background: rgba(100,200,255,0.5);
+  pointer-events: none;
+}
+.le-el-hgap::after {
+  content: attr(data-gap);
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  font-size: 8px; color: rgba(100,200,255,0.8);
+  white-space: nowrap; font-family: monospace;
+}
 .le-el-offset-v {
-  position: absolute; bottom: 100%; left: 50%;
+  position: absolute;
   width: 1px; background: rgba(255,255,255,0.3);
   pointer-events: none;
 }
@@ -1003,7 +1031,7 @@ body {
   white-space: nowrap; font-family: monospace;
 }
 .le-el-offset-h {
-  position: absolute; top: 50%; right: -1px; transform: translateX(100%);
+  position: absolute;
   height: 1px; background: rgba(255,255,255,0.3);
   pointer-events: none;
 }

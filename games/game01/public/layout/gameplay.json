@@ -1,0 +1,57 @@
+{
+  "screen": "gameplay",
+  "designWidth": 390,
+  "groupVAlign": "top",
+  "elements": [
+    {
+      "id": "gauge-bar",
+      "positioning": "group",
+      "type": "image",
+      "order": 0,
+      "gapPx": 15,
+      "widthPx": 315,
+      "hGapPx": 10
+    },
+    {
+      "id": "btn-pause",
+      "positioning": "group",
+      "type": "image",
+      "order": 0,
+      "gapPx": 15,
+      "widthPx": 40,
+      "hGapPx": 10
+    },
+    {
+      "id": "scoreText",
+      "positioning": "group",
+      "type": "text",
+      "order": 1,
+      "gapPx": 8,
+      "widthPx": 390,
+      "textStyle": {
+        "fontSizePx": 90,
+        "color": "#ffffff",
+        "strokeColor": "#000000",
+        "strokeWidth": 5
+      }
+    },
+    {
+      "id": "btn-switch",
+      "positioning": "anchor",
+      "type": "image",
+      "anchor": "bottom-left",
+      "offsetX": 15,
+      "offsetY": 15,
+      "widthPx": 140
+    },
+    {
+      "id": "btn-forward",
+      "positioning": "anchor",
+      "type": "image",
+      "anchor": "bottom-right",
+      "offsetX": 15,
+      "offsetY": 15,
+      "widthPx": 140
+    }
+  ]
+}

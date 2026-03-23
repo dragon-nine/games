@@ -1,0 +1,77 @@
+/* 공통 오버레이 스타일 */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  font-family: 'GMarketSans', sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.gradient {
+  position: absolute;
+  inset: 0;
+}
+
+.content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 페이드인 애니메이션 */
+.fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.fadeInUp {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.fadeInDelayed1 { animation-delay: 0.2s; }
+.fadeInDelayed2 { animation-delay: 0.4s; }
+.fadeInDelayed3 { animation-delay: 0.6s; }
+.fadeInDelayed4 { animation-delay: 0.8s; }
+.fadeInDelayed5 { animation-delay: 1.2s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(3%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 버튼 펄스 — fadeIn 후 시작 */
+.fadeInThenPulse {
+  opacity: 0;
+  animation: fadeInUp 0.8s 0.8s ease-out forwards, pulseScale 1s 2.0s ease-in-out infinite alternate;
+}
+
+/* fadeInDelayed 클래스가 먹히지 않으므로 delay는 animation 자체에 포함 */
+
+@keyframes pulseScale {
+  from { transform: scale(1); }
+  to { transform: scale(1.03); }
+}
+
+/* 버튼 공통 */
+.imgBtn {
+  cursor: pointer;
+  transition: transform 0.08s ease-out;
+}
+
+.imgBtn:active {
+  transform: scale(0.92) !important;
+}

@@ -1,0 +1,60 @@
+/**
+ * Phaser ↔ React 이벤트 브릿지
+ * Phaser 씬에서 emit → React 컴포넌트에서 subscribe
+ */
+
+export type GameScreen = 'main' | 'playing' | 'paused' | 'settings' | 'game-over';
+
+export interface GameOverData {
+  score: number;
+  bestScore: number;
+  canRevive: boolean;
+}
+
+type EventMap = {
+  'screen-change': GameScreen;
+  'game-over-data': GameOverData;
+  // React → Phaser actions
+  'start-game': void;
+  'resume-game': void;
+  'revive': void;
+  'go-home': void;
+  'toggle-bgm': void;
+  'toggle-sfx': void;
+  'play-sfx': string;
+  // Gameplay HUD: Phaser → React
+  'score-update': number;
+  'timer-update': number;  // 0~1 비율
+  // Gameplay HUD: React → Phaser
+  'action-switch': void;
+  'action-forward': void;
+  'action-pause': void;
+};
+
+type Listener<T> = (data: T) => void;
+
+class GameEventBus {
+  private listeners = new Map<string, Set<Listener<unknown>>>();
+
+  on<K extends keyof EventMap>(event: K, listener: Listener<EventMap[K]>): () => void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    const set = this.listeners.get(event)!;
+    set.add(listener as Listener<unknown>);
+    return () => set.delete(listener as Listener<unknown>);
+  }
+
+  emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void {
+    const set = this.listeners.get(event);
+    if (set) {
+      for (const fn of set) fn(data);
+    }
+  }
+
+  off<K extends keyof EventMap>(event: K, listener: Listener<EventMap[K]>): void {
+    this.listeners.get(event)?.delete(listener as Listener<unknown>);
+  }
+}
+
+export const gameBus = new GameEventBus();
