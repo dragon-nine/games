@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { gameBus } from '../../game/event-bus';
 import { useLayout } from '../hooks/useLayout';
-import type { LayoutElement } from '../../game/layout-types';
 import styles from './overlay.module.css';
 
 const BASE = import.meta.env.BASE_URL || '/';
