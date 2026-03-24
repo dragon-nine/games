@@ -105,6 +105,9 @@ body {
   transition: all 0.15s;
   border: none;
   background: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
 }
 
 .sidebar-item-icon {
@@ -113,9 +116,6 @@ body {
   justify-content: center;
   width: 18px;
   flex-shrink: 0;
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
 }
 
 .sidebar-item:hover {
