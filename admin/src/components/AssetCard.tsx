@@ -4,6 +4,7 @@ import LazyImage from './LazyImage'
 
 interface Props {
   blob: BlobItem
+  isDeleting?: boolean
   onDelete: (url: string) => void
   onReplace?: (file: File, pathname: string) => void
 }
@@ -35,7 +36,7 @@ async function downloadFile(url: string, filename: string) {
   setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
-export default function AssetCard({ blob, onDelete, onReplace }: Props) {
+export default function AssetCard({ blob, isDeleting, onDelete, onReplace }: Props) {
   const [dims, setDims] = useState<string>('')
   const fileRef = useRef<HTMLInputElement>(null)
   const audio = isAudio(blob.pathname)
@@ -52,9 +53,7 @@ export default function AssetCard({ blob, onDelete, onReplace }: Props) {
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (confirm(`"${filename}" 삭제하시겠습니까?`)) {
-      onDelete(blob.url)
-    }
+    onDelete(blob.url)
   }
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,22 +64,23 @@ export default function AssetCard({ blob, onDelete, onReplace }: Props) {
   }
 
   return (
-    <div className={`asset-card${onReplace ? ' clickable' : ''}`} onClick={() => onReplace && fileRef.current?.click()}>
+    <div className={`asset-card${onReplace ? ' clickable' : ''}${isDeleting ? ' deleting' : ''}`} onClick={() => !isDeleting && onReplace && fileRef.current?.click()}>
       <div className={`asset-card-preview${audio ? ' audio' : ''}`}>
         {audio ? (
           <span>&#9835;</span>
         ) : (
           <LazyImage src={imgUrl} alt={filename} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
         )}
-        {onReplace && <div className="asset-card-overlay">클릭하여 교체</div>}
+        {isDeleting && <div className="asset-card-overlay deleting-overlay"><div className="upload-spinner" />삭제 중...</div>}
+        {!isDeleting && onReplace && <div className="asset-card-overlay">클릭하여 교체</div>}
       </div>
       {onReplace && <input ref={fileRef} type="file" accept="image/*,audio/*" style={{ display: 'none' }} onChange={handleFile} />}
       <div className="asset-card-info">
         <div className="asset-card-name" title={filename}>{filename}</div>
         <div className="asset-card-meta">
           <span>{dims ? `${dims} / ` : ''}{formatSize(blob.size)}</span>
-          <button className="asset-card-download" onClick={(e) => { e.stopPropagation(); downloadFile(blob.url, filename) }} title="다운로드">&#8681;</button>
-          <button className="asset-card-delete" onClick={handleDelete} title="삭제">&#x2715;</button>
+          <button className="asset-card-download" onClick={(e) => { e.stopPropagation(); downloadFile(blob.url, filename) }} title="다운로드" disabled={isDeleting}>&#8681;</button>
+          <button className="asset-card-delete" onClick={handleDelete} title="삭제" disabled={isDeleting}>&#x2715;</button>
         </div>
       </div>
     </div>

@@ -115,12 +115,28 @@ async function downloadAll(blobs: BlobItem[], onBanner: Props['onBanner']) {
   }
 }
 
+function UploadingCard({ filename }: { filename: string }) {
+  return (
+    <div className="asset-card uploading">
+      <div className="asset-card-preview">
+        <div className="upload-spinner" />
+      </div>
+      <div className="asset-card-info">
+        <div className="asset-card-name">{filename}</div>
+        <div className="asset-card-meta"><span className="uploading-text">업로드 중...</span></div>
+      </div>
+    </div>
+  )
+}
+
 function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props['onBanner'] }) {
   const addRef = useRef<HTMLInputElement>(null)
   const [blobs, setBlobs] = useState<BlobItem[]>([])
   const [collapsed, setCollapsed] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [apiAvailable, setApiAvailable] = useState(false)
+  const [uploading, setUploading] = useState<string[]>([])
+  const [deleting, setDeleting] = useState<Set<string>>(new Set())
   const localAssets = getLocalAssetsByCategory(cat.key)
 
   const refresh = useCallback(async () => {
@@ -138,26 +154,33 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
   useEffect(() => { refresh() }, [refresh])
 
   const handleUpload = useCallback(async (files: File[]) => {
+    const names = files.map((f) => f.name)
+    setUploading(names)
     for (const file of files) {
       try {
         await uploadBlob(file, cat.prefix)
       } catch (err) {
         onBanner('error', `"${file.name}" 업로드 실패: ${(err as Error).message}`)
+        setUploading([])
         return
       }
     }
+    setUploading([])
     onBanner('success', `${files.length}개 파일 업로드 완료`)
     refresh()
   }, [cat.prefix, onBanner, refresh])
 
   const handleDelete = useCallback(async (url: string) => {
     if (!confirm('삭제하시겠습니까?')) return
+    setDeleting((prev) => new Set(prev).add(url))
     try {
       await deleteBlob(url)
       onBanner('success', '삭제 완료')
       refresh()
     } catch (err) {
       onBanner('error', `삭제 실패: ${(err as Error).message}`)
+    } finally {
+      setDeleting((prev) => { const next = new Set(prev); next.delete(url); return next })
     }
   }, [onBanner, refresh])
 
@@ -185,6 +208,7 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
           className="category-add-btn"
           onClick={(e) => { e.stopPropagation(); addRef.current?.click() }}
           title="새 에셋 추가"
+          disabled={uploading.length > 0}
         >+</button>
         <input
           ref={addRef}
@@ -207,6 +231,9 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
       )}
       {!collapsed && loaded && (
         <div className="asset-grid">
+          {uploading.map((name) => (
+            <UploadingCard key={name} filename={name} />
+          ))}
           {visibleLocal.map((a) => (
             <LocalAssetCard
               key={a.path}
@@ -221,6 +248,7 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
             <AssetCard
               key={b.url}
               blob={b}
+              isDeleting={deleting.has(b.url)}
               onDelete={handleDelete}
               onReplace={async (file, pathname) => {
                 const prefix = pathname.substring(0, pathname.lastIndexOf('/') + 1)
