@@ -1,6 +1,14 @@
 {
   "buildCommand": "npm install && node scripts/sync-game-assets.mjs && cd admin && npm install && npm run build && cd ../games/game01 && npm install && npm run build",
   "outputDirectory": "dist",
+  "headers": [
+    {
+      "source": "/api/blob-image",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, s-maxage=31536000, max-age=31536000, immutable" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/admin/(.*)", "destination": "/admin/$1" },
     { "source": "/admin", "destination": "/admin/index.html" },
