@@ -4,6 +4,7 @@ import { useLayout } from '../hooks/useLayout';
 import { openLeaderboard } from '../../game/services/leaderboard';
 import { logClick } from '../../game/services/analytics';
 import { isGoogle } from '../../game/platform';
+import { getRandomQuote } from '../../game/game-over-quotes';
 import type { LayoutElement } from '../../game/layout-types';
 import styles from './overlay.module.css';
 
@@ -34,10 +35,12 @@ export function GameOverScreen({ data }: Props) {
   const { positions, elements, scale, ready } = useLayout('game-over', IMAGE_MAP, excludeIds);
 
   // 텍스트 내용 오버라이드 (동적 값)
+  const quote = useMemo(() => getRandomQuote(), []);
   const textOverrides: Record<string, string> = useMemo(() => ({
     'bestText': `최고기록 ${bestScore}`,
     'scoreText': `${score}`,
-  }), [score, bestScore]);
+    'quoteText': quote,
+  }), [score, bestScore, quote]);
 
   const clickHandlers: Record<string, () => void> = useMemo(() => ({
     'go-btn-revive': () => {
