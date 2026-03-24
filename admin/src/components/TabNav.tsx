@@ -80,7 +80,7 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
       const isActive = g.items.some((item) => item.id === activePage)
       init[g.key] = !isActive
     })
-    init['company'] = !companyPages.includes(activePage)
+    init['common'] = !companyPages.includes(activePage)
     return init
   })
 
@@ -92,8 +92,40 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
     <aside className={`sidebar${open ? ' open' : ''}`}>
       <div className="sidebar-nav">
         <div className="sidebar-logo" onClick={() => onPageChange('dashboard' as PageId)} style={{ cursor: 'pointer' }}>
-          <div className="sidebar-logo-icon">D9</div>
+          <img className="sidebar-logo-emoji" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f525.svg" alt="fire" />
           <span>Dragon Nine</span>
+        </div>
+
+        <div className="sidebar-game-group">
+          <button className="sidebar-section-btn" onClick={() => toggle('common')}>
+            <span className={`sidebar-chevron${collapsed['common'] ? '' : ' open'}`}>&#9656;</span>
+            <span>Common</span>
+          </button>
+          {!collapsed['common'] && (
+            <>
+              <button
+                className={`sidebar-item${activePage === 'checklist' ? ' active' : ''}`}
+                onClick={() => onPageChange('checklist' as PageId)}
+              >
+                <span>✅</span>
+                <span>체크리스트</span>
+              </button>
+              <button
+                className={`sidebar-item${activePage === 'memo' ? ' active' : ''}`}
+                onClick={() => onPageChange('memo' as PageId)}
+              >
+                <span>📝</span>
+                <span>메모</span>
+              </button>
+              <button
+                className={`sidebar-item${activePage === 'shared-files' ? ' active' : ''}`}
+                onClick={() => onPageChange('shared-files' as PageId)}
+              >
+                <span>📁</span>
+                <span>공유 파일</span>
+              </button>
+            </>
+          )}
         </div>
 
         {GAMES.map((game) => (
@@ -123,37 +155,6 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
           </div>
         ))}
 
-        <div className="sidebar-game-group">
-          <button className="sidebar-section-btn" onClick={() => toggle('company')}>
-            <span className={`sidebar-chevron${collapsed['company'] ? '' : ' open'}`}>&#9656;</span>
-            <span>회사</span>
-          </button>
-          {!collapsed['company'] && (
-            <>
-              <button
-                className={`sidebar-item${activePage === 'checklist' ? ' active' : ''}`}
-                onClick={() => onPageChange('checklist' as PageId)}
-              >
-                <span>✅</span>
-                <span>체크리스트</span>
-              </button>
-              <button
-                className={`sidebar-item${activePage === 'memo' ? ' active' : ''}`}
-                onClick={() => onPageChange('memo' as PageId)}
-              >
-                <span>📝</span>
-                <span>메모</span>
-              </button>
-              <button
-                className={`sidebar-item${activePage === 'shared-files' ? ' active' : ''}`}
-                onClick={() => onPageChange('shared-files' as PageId)}
-              >
-                <span>📁</span>
-                <span>공유 파일</span>
-              </button>
-            </>
-          )}
-        </div>
       </div>
 
       {buildTime && (
