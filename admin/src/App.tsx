@@ -5,9 +5,11 @@ import PlaceholderTab from './tabs/PlaceholderTab'
 import SharedFilesTab from './tabs/SharedFilesTab'
 import LayoutEditorTab from './tabs/LayoutEditorTab'
 import LaunchPrepTab from './tabs/LaunchPrepTab'
+import GameDashboard from './tabs/GameDashboard'
 import Banner from './components/Banner'
 
 export type PageId =
+  | 'dashboard'
   | 'game01-assets'
   | 'game02-assets'
   | 'game01-layout'
@@ -16,7 +18,7 @@ export type PageId =
 
 function getInitialPage(): PageId {
   const params = new URLSearchParams(window.location.search)
-  return (params.get('page') as PageId) || 'game01-assets'
+  return (params.get('page') as PageId) || 'dashboard'
 }
 
 export default function App() {
@@ -44,6 +46,7 @@ export default function App() {
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
       <TabNav activePage={page} onPageChange={handlePageChange} open={sidebarOpen} />
       <main className="admin-content">
+        {page === 'dashboard' && <GameDashboard onPageChange={handlePageChange} />}
         {page === 'game01-assets' && <GameAssetsTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
         {page === 'game02-assets' && <PlaceholderTab title="game02 에셋 관리" message="game02 프로젝트가 생성되면 활성화됩니다." />}
         {page === 'game01-layout' && <LayoutEditorTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
