@@ -82,18 +82,6 @@ export default function GameDashboard({ onPageChange }: Props) {
               <span className="game-dashboard-desc">{game.desc}</span>
             </div>
             <span className={`game-dashboard-status ${game.status}`}>{STATUS_LABEL[game.status]}</span>
-            {game.status !== 'planned' && (
-              <a
-                className="game-dashboard-play"
-                href={game.gameUrl}
-                target="_blank"
-                rel="noopener"
-                onClick={(e) => e.stopPropagation()}
-                title="게임 바로가기"
-              >
-                ▶
-              </a>
-            )}
           </div>
         ))}
       </div>
