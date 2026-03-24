@@ -23,7 +23,9 @@ export async function GET(req: Request) {
     return new Response(body, {
       headers: {
         'Content-Type': result.ContentType || 'application/octet-stream',
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Cache-Control': 'public, s-maxage=31536000, max-age=31536000, immutable',
+        'CDN-Cache-Control': 'public, max-age=31536000, immutable',
+        'Vercel-CDN-Cache-Control': 'public, max-age=31536000, immutable',
         'ETag': result.ETag || '',
       },
     });
