@@ -133,7 +133,7 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
   const [apiAvailable, setApiAvailable] = useState(false)
   const [uploading, setUploading] = useState<string[]>([])
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
-  const [replacing, setReplacing] = useState<Set<string>>(new Set())
+  const [, setReplacing] = useState<Set<string>>(new Set())
   const [downloadingAll, setDownloadingAll] = useState(false)
   const localAssets = getLocalAssetsByCategory(cat.key)
 
