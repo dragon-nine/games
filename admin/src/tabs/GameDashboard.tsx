@@ -51,7 +51,7 @@ export default function GameDashboard() {
   return (
     <div>
       <h1 className="page-title">Games</h1>
-      <p className="page-subtitle">게임을 선택하여 관리하세요</p>
+      <p className="page-subtitle">클릭하면 게임을 바로 플레이할 수 있어요</p>
       <div className="game-dashboard-grid">
         {GAMES.map((game) => (
           <div
