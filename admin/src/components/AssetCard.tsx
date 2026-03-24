@@ -22,17 +22,14 @@ function isAudio(pathname: string): boolean {
   return /\.(mp3|ogg|wav|m4a)$/i.test(pathname)
 }
 
-async function downloadFile(url: string, filename: string) {
-  const res = await fetch(url)
-  const data = await res.blob()
-  const blobUrl = URL.createObjectURL(data)
+function downloadFile(url: string, filename: string) {
   const a = document.createElement('a')
-  a.href = blobUrl
+  a.href = url
   a.download = filename
+  a.target = '_blank'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
 export default function AssetCard({ blob, onDelete, onReplace }: Props) {

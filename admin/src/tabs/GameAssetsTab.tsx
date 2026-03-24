@@ -92,17 +92,14 @@ function LocalAssetCard({ asset, darkBg, prefix, onBanner, onReplaced }: {
   )
 }
 
-async function downloadFile(url: string, filename: string) {
-  const res = await fetch(url)
-  const data = await res.blob()
-  const blobUrl = URL.createObjectURL(data)
+function downloadFile(url: string, filename: string) {
   const a = document.createElement('a')
-  a.href = blobUrl
+  a.href = url
   a.download = filename
+  a.target = '_blank'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
 async function downloadAll(blobs: BlobItem[], onBanner: Props['onBanner']) {
@@ -110,8 +107,7 @@ async function downloadAll(blobs: BlobItem[], onBanner: Props['onBanner']) {
   onBanner('success', `${blobs.length}개 파일 다운로드 시작...`)
   for (const b of blobs) {
     const filename = b.pathname.split('/').pop() || 'file'
-    await downloadFile(b.url, filename)
-    // Small delay to avoid browser blocking multiple downloads
+    downloadFile(b.url, filename)
     await new Promise((r) => setTimeout(r, 300))
   }
 }
