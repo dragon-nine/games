@@ -105,15 +105,6 @@ async function downloadFile(url: string, filename: string) {
   setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
-async function downloadAll(blobs: BlobItem[], onBanner: Props['onBanner']) {
-  if (blobs.length === 0) return
-  onBanner('success', `${blobs.length}개 파일 다운로드 시작...`)
-  for (const b of blobs) {
-    const filename = b.pathname.split('/').pop() || 'file'
-    await downloadFile(b.downloadUrl || b.url, filename)
-    await new Promise((r) => setTimeout(r, 300))
-  }
-}
 
 function UploadingCard({ filename }: { filename: string }) {
   return (
@@ -137,6 +128,8 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
   const [apiAvailable, setApiAvailable] = useState(false)
   const [uploading, setUploading] = useState<string[]>([])
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
+  const [replacing, setReplacing] = useState<Set<string>>(new Set())
+  const [downloadingAll, setDownloadingAll] = useState(false)
   const localAssets = getLocalAssetsByCategory(cat.key)
 
   const refresh = useCallback(async () => {
@@ -184,6 +177,34 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
     }
   }, [onBanner, refresh])
 
+  const handleReplace = useCallback(async (blobUrl: string, file: File, pathname: string) => {
+    const prefix = pathname.substring(0, pathname.lastIndexOf('/') + 1)
+    const originalName = pathname.split('/').pop() || file.name
+    setReplacing((prev) => new Set(prev).add(blobUrl))
+    try {
+      await deleteBlob(blobUrl)
+      await uploadBlob(file, prefix, originalName)
+      onBanner('success', `"${originalName}" 교체 완료`)
+      refresh()
+    } catch (err) {
+      onBanner('error', `교체 실패: ${(err as Error).message}`)
+    } finally {
+      setReplacing((prev) => { const next = new Set(prev); next.delete(blobUrl); return next })
+    }
+  }, [onBanner, refresh])
+
+  const handleDownloadAll = useCallback(async () => {
+    if (downloadingAll || blobs.length === 0) return
+    setDownloadingAll(true)
+    onBanner('success', `${blobs.length}개 파일 다운로드 시작...`)
+    for (const b of blobs) {
+      const filename = b.pathname.split('/').pop() || 'file'
+      await downloadFile(b.downloadUrl || b.url, filename)
+      await new Promise((r) => setTimeout(r, 300))
+    }
+    setDownloadingAll(false)
+  }, [blobs, downloadingAll, onBanner])
+
   // 로컬 에셋은 API 없을 때(로컬 dev)만 표시
   const showLocal = !apiAvailable
   const visibleLocal = showLocal ? localAssets : []
@@ -200,9 +221,10 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
         {blobs.length > 0 && (
           <button
             className="category-download-btn"
-            onClick={(e) => { e.stopPropagation(); downloadAll(blobs, onBanner) }}
+            onClick={(e) => { e.stopPropagation(); handleDownloadAll() }}
             title="전체 다운로드"
-          >↓</button>
+            disabled={downloadingAll}
+          >{downloadingAll ? '...' : '↓'}</button>
         )}
         <button
           className="category-add-btn"
@@ -250,18 +272,7 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
               blob={b}
               isDeleting={deleting.has(b.url)}
               onDelete={handleDelete}
-              onReplace={async (file, pathname) => {
-                const prefix = pathname.substring(0, pathname.lastIndexOf('/') + 1)
-                const originalName = pathname.split('/').pop() || file.name
-                try {
-                  await deleteBlob(b.url)
-                  await uploadBlob(file, prefix, originalName)
-                  onBanner('success', `"${originalName}" 교체 완료`)
-                  refresh()
-                } catch (err) {
-                  onBanner('error', `교체 실패: ${(err as Error).message}`)
-                }
-              }}
+              onReplace={(file, pathname) => handleReplace(b.url, file, pathname)}
             />
           ))}
         </div>

@@ -6,7 +6,7 @@ interface Props {
   blob: BlobItem
   isDeleting?: boolean
   onDelete: (url: string) => void
-  onReplace?: (file: File, pathname: string) => void
+  onReplace?: (file: File, pathname: string) => Promise<void>
 }
 
 function formatSize(bytes: number): string {
@@ -38,11 +38,14 @@ async function downloadFile(url: string, filename: string) {
 
 export default function AssetCard({ blob, isDeleting, onDelete, onReplace }: Props) {
   const [dims, setDims] = useState<string>('')
+  const [replacing, setReplacing] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const audio = isAudio(blob.pathname)
   const filename = getFilename(blob.pathname)
   const cacheBust = blob.uploadedAt ? `&t=${new Date(blob.uploadedAt).getTime()}` : ''
   const imgUrl = blob.url + cacheBust
+  const busy = isDeleting || replacing
 
   useEffect(() => {
     if (audio) return
@@ -56,31 +59,45 @@ export default function AssetCard({ blob, isDeleting, onDelete, onReplace }: Pro
     onDelete(blob.url)
   }
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !onReplace) return
-    onReplace(file, blob.pathname)
+    setReplacing(true)
+    await onReplace(file, blob.pathname)
+    setReplacing(false)
     if (fileRef.current) fileRef.current.value = ''
   }
 
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (downloading) return
+    setDownloading(true)
+    try {
+      await downloadFile(blob.downloadUrl || blob.url, filename)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
-    <div className={`asset-card${onReplace ? ' clickable' : ''}${isDeleting ? ' deleting' : ''}`} onClick={() => !isDeleting && onReplace && fileRef.current?.click()}>
+    <div className={`asset-card${onReplace ? ' clickable' : ''}${busy ? ' busy' : ''}`} onClick={() => !busy && onReplace && fileRef.current?.click()}>
       <div className={`asset-card-preview${audio ? ' audio' : ''}`}>
         {audio ? (
           <span>&#9835;</span>
         ) : (
           <LazyImage src={imgUrl} alt={filename} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
         )}
-        {isDeleting && <div className="asset-card-overlay deleting-overlay"><div className="upload-spinner" />삭제 중...</div>}
-        {!isDeleting && onReplace && <div className="asset-card-overlay">클릭하여 교체</div>}
+        {isDeleting && <div className="asset-card-overlay busy-overlay"><div className="upload-spinner" />삭제 중...</div>}
+        {replacing && <div className="asset-card-overlay busy-overlay"><div className="upload-spinner" />교체 중...</div>}
+        {!busy && onReplace && <div className="asset-card-overlay">클릭하여 교체</div>}
       </div>
       {onReplace && <input ref={fileRef} type="file" accept="image/*,audio/*" style={{ display: 'none' }} onChange={handleFile} />}
       <div className="asset-card-info">
         <div className="asset-card-name" title={filename}>{filename}</div>
         <div className="asset-card-meta">
           <span>{dims ? `${dims} / ` : ''}{formatSize(blob.size)}</span>
-          <button className="asset-card-download" onClick={(e) => { e.stopPropagation(); downloadFile(blob.downloadUrl || blob.url, filename) }} title="다운로드" disabled={isDeleting}>&#8681;</button>
-          <button className="asset-card-delete" onClick={handleDelete} title="삭제" disabled={isDeleting}>&#x2715;</button>
+          <button className="asset-card-download" onClick={handleDownload} title="다운로드" disabled={busy || downloading}>{downloading ? '...' : '\u21A9'}</button>
+          <button className="asset-card-delete" onClick={handleDelete} title="삭제" disabled={busy}>&#x2715;</button>
         </div>
       </div>
     </div>

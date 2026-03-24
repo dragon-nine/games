@@ -387,12 +387,12 @@ body {
   font-weight: 500;
 }
 
-.asset-card.deleting {
+.asset-card.busy {
   pointer-events: none;
   opacity: 0.6;
 }
 
-.deleting-overlay {
+.busy-overlay {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -406,7 +406,7 @@ body {
   justify-content: center;
 }
 
-.deleting-overlay .upload-spinner {
+.busy-overlay .upload-spinner {
   border-color: rgba(255, 255, 255, 0.3);
   border-top-color: white;
 }
