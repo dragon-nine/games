@@ -37,3 +37,19 @@ export async function deleteBlob(url: string): Promise<void> {
   });
   if (!res.ok) throw new Error(`Delete failed: ${res.statusText}`);
 }
+
+export async function getJson<T>(key: string): Promise<T | null> {
+  const res = await fetch(`${API_BASE}/json-store?key=${encodeURIComponent(key)}`);
+  if (!res.ok) throw new Error(`Get failed: ${res.statusText}`);
+  const { data } = await res.json();
+  return data as T | null;
+}
+
+export async function putJson<T>(key: string, data: T): Promise<void> {
+  const res = await fetch(`${API_BASE}/json-store`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, data }),
+  });
+  if (!res.ok) throw new Error(`Put failed: ${res.statusText}`);
+}

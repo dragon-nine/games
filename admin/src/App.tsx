@@ -6,6 +6,8 @@ import SharedFilesTab from './tabs/SharedFilesTab'
 import LayoutEditorTab from './tabs/LayoutEditorTab'
 import LaunchPrepTab from './tabs/LaunchPrepTab'
 import GameDashboard from './tabs/GameDashboard'
+import MemoTab from './tabs/MemoTab'
+import ChecklistTab from './tabs/ChecklistTab'
 import Banner from './components/Banner'
 
 export type PageId =
@@ -15,6 +17,8 @@ export type PageId =
   | 'game01-layout'
   | 'game01-launch'
   | 'shared-files'
+  | 'memo'
+  | 'checklist'
 
 function getInitialPage(): PageId {
   const params = new URLSearchParams(window.location.search)
@@ -52,6 +56,8 @@ export default function App() {
         {page === 'game01-layout' && <LayoutEditorTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
         {page === 'game01-launch' && <LaunchPrepTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
         {page === 'shared-files' && <SharedFilesTab onBanner={showBanner} />}
+        {page === 'memo' && <MemoTab onBanner={showBanner} />}
+        {page === 'checklist' && <ChecklistTab onBanner={showBanner} />}
       </main>
       {banner && (
         <Banner type={banner.type} message={banner.message} onDismiss={() => setBanner(null)} />

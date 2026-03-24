@@ -73,12 +73,14 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
     return () => clearInterval(id)
   }, [])
 
+  const companyPages = ['checklist', 'memo', 'shared-files']
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {}
     GAMES.forEach((g) => {
       const isActive = g.items.some((item) => item.id === activePage)
       init[g.key] = !isActive
     })
+    init['company'] = !companyPages.includes(activePage)
     return init
   })
 
@@ -93,14 +95,6 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
           <div className="sidebar-logo-icon">D9</div>
           <span>Dragon Nine</span>
         </div>
-
-        <button
-          className={`sidebar-item${activePage === 'shared-files' ? ' active' : ''}`}
-          onClick={() => onPageChange('shared-files' as PageId)}
-        >
-          <span>📁</span>
-          <span>공유 파일</span>
-        </button>
 
         {GAMES.map((game) => (
           <div key={game.key} className="sidebar-game-group">
@@ -128,6 +122,38 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
             )}
           </div>
         ))}
+
+        <div className="sidebar-game-group">
+          <button className="sidebar-section-btn" onClick={() => toggle('company')}>
+            <span className={`sidebar-chevron${collapsed['company'] ? '' : ' open'}`}>&#9656;</span>
+            <span>회사</span>
+          </button>
+          {!collapsed['company'] && (
+            <>
+              <button
+                className={`sidebar-item${activePage === 'checklist' ? ' active' : ''}`}
+                onClick={() => onPageChange('checklist' as PageId)}
+              >
+                <span>✅</span>
+                <span>체크리스트</span>
+              </button>
+              <button
+                className={`sidebar-item${activePage === 'memo' ? ' active' : ''}`}
+                onClick={() => onPageChange('memo' as PageId)}
+              >
+                <span>📝</span>
+                <span>메모</span>
+              </button>
+              <button
+                className={`sidebar-item${activePage === 'shared-files' ? ' active' : ''}`}
+                onClick={() => onPageChange('shared-files' as PageId)}
+              >
+                <span>📁</span>
+                <span>공유 파일</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {buildTime && (
