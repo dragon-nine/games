@@ -8,19 +8,18 @@ import GaugeBar from '../components/common/GaugeBar'
 import MainTitle from '../components/common/MainTitle'
 import ButtonGuide from '../components/common/ButtonGuide'
 import ChallengeModal from '../components/common/ChallengeModal'
-import { colors, radius, font } from '../components/common/design-tokens'
+import { colors, radius, font, textStyles } from '../components/common/design-tokens'
 import { DEFAULT_SPEC, R2_KEY, type DesignSpec } from '../components/common/design-spec'
 import { getJson, putJson } from '../api'
 
-type Tab = 'colors' | 'buttons' | 'ui' | 'text' | 'modal' | 'guide'
+type Tab = 'colors' | 'typo' | 'buttons' | 'ui' | 'compositions'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'colors', label: 'Colors' },
+  { id: 'typo', label: 'Typography' },
   { id: 'buttons', label: 'Buttons' },
   { id: 'ui', label: 'UI' },
-  { id: 'text', label: 'Text' },
-  { id: 'modal', label: 'Modal' },
-  { id: 'guide', label: 'Guide' },
+  { id: 'compositions', label: 'Compositions' },
 ]
 
 export default function CommonComponentsTab() {
@@ -86,11 +85,10 @@ export default function CommonComponentsTab() {
       </div>
 
       {tab === 'colors' && <ColorsTab />}
+      {tab === 'typo' && <TypographyTab />}
       {tab === 'buttons' && <ButtonsTab spec={spec} update={update} />}
       {tab === 'ui' && <UITab spec={spec} update={update} />}
-      {tab === 'text' && <TextTab spec={spec} update={update} />}
-      {tab === 'modal' && <ModalTab spec={spec} update={update} />}
-      {tab === 'guide' && <GuideTab />}
+      {tab === 'compositions' && <CompositionsTab spec={spec} update={update} />}
     </div>
   )
 }
@@ -353,100 +351,155 @@ function UITab({ spec, update }: { spec: DesignSpec; update: UpdateFn }) {
   )
 }
 
-/* ═══════════ Text Tab ═══════════ */
-function TextTab({ spec, update }: { spec: DesignSpec; update: UpdateFn }) {
+/* ═══════════ Typography Tab ═══════════ */
+function TypographyTab() {
+  const [sampleText, setSampleText] = useState('직장인 잔혹사')
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <label style={labelStyle}>
+        <span>Sample Text</span>
+        <input type="text" value={sampleText} onChange={(e) => setSampleText(e.target.value)} style={inputStyle} />
+      </label>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 8 }}>
+        {Object.entries(textStyles).map(([key, ts]) => (
+          <div
+            key={key}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              padding: '12px 16px',
+              borderRadius: 8,
+              background: '#1a1a1f',
+              border: '1px solid #2a2a2f',
+            }}
+          >
+            {/* Preview */}
+            <div style={{
+              flex: '1 1 300px',
+              fontFamily: font.primary,
+              fontSize: ts.fontSize,
+              fontWeight: ts.fontWeight,
+              color: ts.color === 'gradient' ? undefined : ts.color,
+              WebkitTextStroke: ts.strokeWidth ? `${ts.strokeWidth}px #000` : undefined,
+              paintOrder: 'stroke fill',
+              lineHeight: 1.2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              ...(ts.color === 'gradient' ? {
+                background: `linear-gradient(to bottom, ${colors.blue}, ${colors.blueLight})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              } : {}),
+            }}>
+              {sampleText}
+            </div>
+
+            {/* Spec info */}
+            <div style={{ flex: '0 0 220px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#ddd' }}>{key}</span>
+              <span style={{ fontSize: 11, color: '#888' }}>{ts.usage}</span>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 2 }}>
+                <Tag>{ts.fontSize}px</Tag>
+                <Tag>w{ts.fontWeight}</Tag>
+                {ts.strokeWidth > 0 && <Tag>stroke {ts.strokeWidth}</Tag>}
+                {ts.outerStrokeWidth > 0 && <Tag>outer {ts.outerStrokeWidth}</Tag>}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return <span style={{ fontSize: 10, color: '#aaa', background: '#333', padding: '1px 6px', borderRadius: 4 }}>{children}</span>
+}
+
+/* ═══════════ Compositions Tab ═══════════ */
+function CompositionsTab({ spec, update }: { spec: DesignSpec; update: UpdateFn }) {
   const [line1, setLine1] = useState('직장인 잔혹사')
   const [line2, setLine2] = useState('당신의 하루를 견뎌내세요...')
   const t = spec.mainTitle
-
-  return (
-    <div>
-      <h3 style={sectionTitle}>MainTitle</h3>
-      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 400px' }}>
-          <Preview bg="linear-gradient(to bottom, #2a0c10, #000)">
-            <MainTitle line1={line1} line2={line2} line1Size={t.line1Size} line2Size={t.line2Size} gradientFrom={t.gradientFrom} gradientTo={t.gradientTo} strokeWidth={t.strokeWidth} line2Color={t.line2Color} />
-          </Preview>
-          <OriginalImg src="/game01/main-screen/main-text.png" bg="linear-gradient(to bottom, #2a0c10, #000)" />
-        </div>
-        <div style={controlsBox}>
-          <InputRow label="Line 1" value={line1} onChange={setLine1} />
-          <InputRow label="Line 2" value={line2} onChange={setLine2} />
-          <NumField label="Line 1 Size" value={t.line1Size} onChange={(v) => update('mainTitle', { line1Size: v })} min={24} max={80} />
-          <NumField label="Line 2 Size" value={t.line2Size} onChange={(v) => update('mainTitle', { line2Size: v })} min={12} max={40} />
-          <NumField label="Stroke" value={t.strokeWidth} onChange={(v) => update('mainTitle', { strokeWidth: v })} min={0} max={12} />
-          <ColorField label="Grad From" value={t.gradientFrom} onChange={(v) => update('mainTitle', { gradientFrom: v })} />
-          <ColorField label="Grad To" value={t.gradientTo} onChange={(v) => update('mainTitle', { gradientTo: v })} />
-          <ColorField label="Line 2 Color" value={t.line2Color} onChange={(v) => update('mainTitle', { line2Color: v })} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ═══════════ Modal Tab ═══════════ */
-function ModalTab({ spec, update }: { spec: DesignSpec; update: UpdateFn }) {
   const m = spec.challengeModal
   const [msg, setMsg] = useState("퇴근 직전 1000에서 '잠깐만' 당했다.\n분하면 도전해봐")
+  const [guideText, setGuideText] = useState('앞으로 한 칸 이동!')
+  const [guideDir, setGuideDir] = useState<'left' | 'right' | 'up' | 'down'>('right')
+  const [guideColor, setGuideColor] = useState('#00e5ff')
 
   return (
-    <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-      <div style={{ flex: '1 1 400px' }}>
-        <Preview bg="rgba(0,0,0,0.7)" minH={500}>
-          <ChallengeModal
-            score={1000}
-            message={msg}
-            style={{
-              width: m.width,
-              borderRadius: m.borderRadius,
-              padding: `${m.paddingY}px ${m.paddingX}px`,
-              gap: m.gap,
-              backgroundColor: m.bgColor,
-            }}
-          />
-        </Preview>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+      {/* MainTitle */}
+      <div>
+        <h3 style={sectionTitle}>MainTitle (메인 타이틀)</h3>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 400px' }}>
+            <Preview bg="linear-gradient(to bottom, #2a0c10, #000)">
+              <MainTitle line1={line1} line2={line2} line1Size={t.line1Size} line2Size={t.line2Size} gradientFrom={t.gradientFrom} gradientTo={t.gradientTo} strokeWidth={t.strokeWidth} line2Color={t.line2Color} />
+            </Preview>
+            <OriginalImg src="/game01/main-screen/main-text.png" bg="linear-gradient(to bottom, #2a0c10, #000)" />
+          </div>
+          <div style={controlsBox}>
+            <InputRow label="Line 1" value={line1} onChange={setLine1} />
+            <InputRow label="Line 2" value={line2} onChange={setLine2} />
+            <NumField label="Line 1 Size" value={t.line1Size} onChange={(v) => update('mainTitle', { line1Size: v })} min={24} max={80} />
+            <NumField label="Line 2 Size" value={t.line2Size} onChange={(v) => update('mainTitle', { line2Size: v })} min={12} max={40} />
+            <NumField label="Stroke" value={t.strokeWidth} onChange={(v) => update('mainTitle', { strokeWidth: v })} min={0} max={12} />
+            <ColorField label="Grad From" value={t.gradientFrom} onChange={(v) => update('mainTitle', { gradientFrom: v })} />
+            <ColorField label="Grad To" value={t.gradientTo} onChange={(v) => update('mainTitle', { gradientTo: v })} />
+            <ColorField label="Line 2" value={t.line2Color} onChange={(v) => update('mainTitle', { line2Color: v })} />
+          </div>
+        </div>
       </div>
-      <div style={controlsBox}>
-        <NumField label="Width" value={m.width} onChange={(v) => update('challengeModal', { width: v })} min={260} max={400} />
-        <NumField label="Border Radius" value={m.borderRadius} onChange={(v) => update('challengeModal', { borderRadius: v })} max={40} />
-        <NumField label="Padding X" value={m.paddingX} onChange={(v) => update('challengeModal', { paddingX: v })} max={40} />
-        <NumField label="Padding Y" value={m.paddingY} onChange={(v) => update('challengeModal', { paddingY: v })} max={40} />
-        <NumField label="Gap" value={m.gap} onChange={(v) => update('challengeModal', { gap: v })} max={32} />
-        <NumField label="Score Font" value={m.scoreFontSize} onChange={(v) => update('challengeModal', { scoreFontSize: v })} min={36} max={96} />
-        <NumField label="Message Font" value={m.messageFontSize} onChange={(v) => update('challengeModal', { messageFontSize: v })} min={10} max={24} />
-        <NumField label="CTA Font" value={m.ctaFontSize} onChange={(v) => update('challengeModal', { ctaFontSize: v })} min={12} max={24} />
-        <ColorField label="Background" value={m.bgColor} onChange={(v) => update('challengeModal', { bgColor: v })} />
-        <label style={labelStyle}><span>Message</span><textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></label>
-      </div>
-    </div>
-  )
-}
 
-/* ═══════════ Guide Tab ═══════════ */
-function GuideTab() {
-  const [text, setText] = useState('앞으로 한 칸 이동!')
-  const [dir, setDir] = useState<'left' | 'right' | 'up' | 'down'>('right')
-  const [color, setColor] = useState('#00e5ff')
-  const [size, setSize] = useState(72)
-
-  return (
-    <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-      <div style={{ flex: '1 1 400px' }}>
-        <Preview bg="#111" minH={200}>
-          <ButtonGuide text={text} arrowDirection={dir} glowColor={color} buttonSize={size} />
-        </Preview>
+      {/* ChallengeModal */}
+      <div>
+        <h3 style={sectionTitle}>ChallengeModal (도전장 보내기)</h3>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 400px' }}>
+            <Preview bg="rgba(0,0,0,0.7)" minH={500}>
+              <ChallengeModal score={1000} message={msg} style={{ width: m.width, borderRadius: m.borderRadius, padding: `${m.paddingY}px ${m.paddingX}px`, gap: m.gap, backgroundColor: m.bgColor }} />
+            </Preview>
+          </div>
+          <div style={controlsBox}>
+            <NumField label="Width" value={m.width} onChange={(v) => update('challengeModal', { width: v })} min={260} max={400} />
+            <NumField label="Border Radius" value={m.borderRadius} onChange={(v) => update('challengeModal', { borderRadius: v })} max={40} />
+            <NumField label="Padding X" value={m.paddingX} onChange={(v) => update('challengeModal', { paddingX: v })} max={40} />
+            <NumField label="Padding Y" value={m.paddingY} onChange={(v) => update('challengeModal', { paddingY: v })} max={40} />
+            <NumField label="Gap" value={m.gap} onChange={(v) => update('challengeModal', { gap: v })} max={32} />
+            <NumField label="Score Font" value={m.scoreFontSize} onChange={(v) => update('challengeModal', { scoreFontSize: v })} min={36} max={96} />
+            <NumField label="CTA Font" value={m.ctaFontSize} onChange={(v) => update('challengeModal', { ctaFontSize: v })} min={12} max={24} />
+            <ColorField label="Background" value={m.bgColor} onChange={(v) => update('challengeModal', { bgColor: v })} />
+            <label style={labelStyle}><span>Message</span><textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+          </div>
+        </div>
       </div>
-      <div style={controlsBox}>
-        <InputRow label="Text" value={text} onChange={setText} />
-        <label style={labelStyle}>
-          <span>Direction</span>
-          <select value={dir} onChange={(e) => setDir(e.target.value as typeof dir)} style={inputStyle}>
-            <option value="right">→ Right</option><option value="left">← Left</option>
-            <option value="up">↑ Up</option><option value="down">↓ Down</option>
-          </select>
-        </label>
-        <NumField label="Size" value={size} onChange={setSize} min={40} max={120} />
-        <ColorField label="Glow" value={color} onChange={setColor} />
+
+      {/* ButtonGuide */}
+      <div>
+        <h3 style={sectionTitle}>ButtonGuide (튜토리얼 가이드)</h3>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 400px' }}>
+            <Preview bg="#111" minH={160}>
+              <ButtonGuide text={guideText} arrowDirection={guideDir} glowColor={guideColor} buttonSize={72} />
+            </Preview>
+          </div>
+          <div style={controlsBox}>
+            <InputRow label="Text" value={guideText} onChange={setGuideText} />
+            <label style={labelStyle}>
+              <span>Direction</span>
+              <select value={guideDir} onChange={(e) => setGuideDir(e.target.value as typeof guideDir)} style={inputStyle}>
+                <option value="right">→ Right</option><option value="left">← Left</option>
+                <option value="up">↑ Up</option><option value="down">↓ Down</option>
+              </select>
+            </label>
+            <ColorField label="Glow" value={guideColor} onChange={setGuideColor} />
+          </div>
+        </div>
       </div>
     </div>
   )

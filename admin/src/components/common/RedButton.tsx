@@ -13,7 +13,7 @@ interface RedButtonProps {
 export default function RedButton({
   children,
   fontSize = 28,
-  width = 'full',
+  width = 'auto',
   onClick,
   style,
 }: RedButtonProps) {

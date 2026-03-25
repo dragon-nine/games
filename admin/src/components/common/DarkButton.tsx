@@ -13,7 +13,7 @@ interface DarkButtonProps {
 export default function DarkButton({
   children,
   fontSize = 28,
-  width = 'full',
+  width = 'auto',
   onClick,
   style,
 }: DarkButtonProps) {
