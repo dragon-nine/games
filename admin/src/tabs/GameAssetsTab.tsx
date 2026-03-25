@@ -3,6 +3,7 @@ import type { BlobItem } from '../types'
 import { listBlobs, uploadBlob, deleteBlob } from '../api'
 import { getLocalAssetsByCategory, getLocalAssetUrl } from '../local-assets'
 import AssetCard from '../components/AssetCard'
+import LaunchPrepTab from './LaunchPrepTab'
 
 interface CategoryDef {
   key: string
@@ -20,6 +21,13 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   {
+    id: 'new',
+    label: 'NEW',
+    categories: [
+      { key: 'new', label: 'NEW', accept: 'image/*,audio/*', darkBg: true },
+    ],
+  },
+  {
     id: 'common',
     label: '공통',
     categories: [
@@ -33,7 +41,6 @@ const TABS: TabDef[] = [
     label: '메인',
     categories: [
       { key: 'main-screen', label: '메인 화면', accept: 'image/*', darkBg: true },
-      { key: 'background', label: '배경', accept: 'image/*', darkBg: true },
     ],
   },
   {
@@ -41,6 +48,7 @@ const TABS: TabDef[] = [
     label: '게임',
     categories: [
       { key: 'map', label: '맵 타일', accept: 'image/*', darkBg: true },
+      { key: 'background', label: '배경', accept: 'image/*', darkBg: true },
     ],
   },
   {
@@ -53,11 +61,7 @@ const TABS: TabDef[] = [
   {
     id: 'launch',
     label: '출시',
-    categories: [
-      { key: 'launch/icon', label: '앱 아이콘', accept: 'image/*' },
-      { key: 'launch/feature', label: '피처 그래픽', accept: 'image/*' },
-      { key: 'launch/screenshots', label: '스크린샷', accept: 'image/*' },
-    ],
+    categories: [],
   },
 ]
 
@@ -363,9 +367,13 @@ export default function GameAssetsTab({ gameId, gameName, onBanner }: Props) {
         ))}
       </div>
 
-      {categories.map((cat) => (
-        <CategorySection key={cat.key} cat={cat} onBanner={onBanner} />
-      ))}
+      {activeTab === 'launch' ? (
+        <LaunchPrepTab gameId={gameId} gameName={gameName} onBanner={onBanner} embedded />
+      ) : (
+        categories.map((cat) => (
+          <CategorySection key={cat.key} cat={cat} onBanner={onBanner} />
+        ))
+      )}
     </div>
   )
 }
