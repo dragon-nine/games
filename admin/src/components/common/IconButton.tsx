@@ -13,7 +13,7 @@ interface IconButtonProps {
 export default function IconButton({
   icon,
   children,
-  fontSize = 18,
+  fontSize = 22,
   onClick,
   style,
 }: IconButtonProps) {
@@ -29,14 +29,13 @@ export default function IconButton({
         color: colors.white,
         fontSize,
         fontWeight: font.weight.black,
-        fontStyle: 'italic',
         fontFamily: font.primary,
         border: `3px solid #333`,
         outline: `2px solid #555`,
         borderRadius: radius.md,
         padding: '12px 20px',
         cursor: 'pointer',
-        WebkitTextStroke: `1.5px ${colors.stroke}`,
+        WebkitTextStroke: `2.5px ${colors.stroke}`,
         paintOrder: 'stroke fill',
         ...style,
       }}

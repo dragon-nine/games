@@ -16,8 +16,8 @@ interface MainTitleProps {
 export default function MainTitle({
   line1 = '직장인 잔혹사',
   line2 = '당신의 하루를 견뎌내세요...',
-  line1Size = 52,
-  line2Size = 22,
+  line1Size = 56,
+  line2Size = 24,
   gradientFrom = '#1a6fc4',
   gradientTo = '#7ec8e3',
   strokeWidth = 6,
@@ -68,7 +68,6 @@ export default function MainTitle({
         style={{
           fontSize: line2Size,
           fontWeight: 700,
-          fontStyle: 'italic',
           fontFamily: '"Black Han Sans", "GMarketSans", sans-serif',
           color: line2Color,
           WebkitTextStroke: `${Math.max(1, strokeWidth * 0.6)}px ${strokeColor}`,

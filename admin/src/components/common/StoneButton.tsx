@@ -11,7 +11,7 @@ interface StoneButtonProps {
 /** 퇴근하기 스타일 — 돌/시멘트 질감 블루그레이 버튼 */
 export default function StoneButton({
   children,
-  fontSize = 22,
+  fontSize = 26,
   onClick,
   style,
 }: StoneButtonProps) {
@@ -32,7 +32,7 @@ export default function StoneButton({
         borderRadius: radius.lg,
         padding: '16px 40px',
         cursor: 'pointer',
-        WebkitTextStroke: `2px ${colors.stroke}`,
+        WebkitTextStroke: `3px ${colors.stroke}`,
         paintOrder: 'stroke fill',
         background: `
           linear-gradient(135deg, ${colors.blueGrayLight} 0%, ${colors.blueGray} 40%, ${colors.blueGrayDark} 100%)

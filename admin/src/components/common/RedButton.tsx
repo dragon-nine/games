@@ -12,7 +12,7 @@ interface RedButtonProps {
 /** 광고보고 부활 스타일 — 빨간 그라데이션, 빨간 테두리 */
 export default function RedButton({
   children,
-  fontSize = 24,
+  fontSize = 28,
   width = 'full',
   onClick,
   style,
@@ -30,13 +30,12 @@ export default function RedButton({
         color: colors.white,
         fontSize,
         fontWeight: font.weight.black,
-        fontStyle: 'italic',
         fontFamily: font.primary,
         border: `3px solid ${colors.redDark}`,
         borderRadius: radius.lg,
         padding: '14px 24px',
         cursor: 'pointer',
-        WebkitTextStroke: `2px ${colors.stroke}`,
+        WebkitTextStroke: `3px ${colors.stroke}`,
         paintOrder: 'stroke fill',
         letterSpacing: '0.02em',
         ...style,

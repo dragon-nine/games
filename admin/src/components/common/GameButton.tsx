@@ -44,7 +44,6 @@ export default function GameButton({
         color: textColor,
         fontSize: `${fontSize}px`,
         fontWeight,
-        fontStyle: 'italic',
         border: `${borderWidth}px solid ${borderColor}`,
         borderRadius: `${borderRadius}px`,
         padding: `${paddingY}px ${paddingX}px`,

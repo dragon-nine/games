@@ -9,10 +9,10 @@ interface DarkButtonProps {
   style?: CSSProperties
 }
 
-/** 홈으로 가기 스타일 — 어두운 배경, 둥근 모서리, 흰색 굵은 이탤릭 */
+/** 홈으로 가기 스타일 — 어두운 배경, 둥근 모서리, 흰색 굵은 텍스트 */
 export default function DarkButton({
   children,
-  fontSize = 24,
+  fontSize = 28,
   width = 'full',
   onClick,
   style,
@@ -30,13 +30,12 @@ export default function DarkButton({
         color: colors.white,
         fontSize,
         fontWeight: font.weight.black,
-        fontStyle: 'italic',
         fontFamily: font.primary,
         border: `3px solid ${colors.stroke}`,
         borderRadius: radius.lg,
         padding: '14px 24px',
         cursor: 'pointer',
-        WebkitTextStroke: `2px ${colors.stroke}`,
+        WebkitTextStroke: `3px ${colors.stroke}`,
         paintOrder: 'stroke fill',
         letterSpacing: '0.02em',
         ...style,
