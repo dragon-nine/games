@@ -1,16 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import DarkButton from '../components/common/DarkButton'
-import RedButton from '../components/common/RedButton'
-import IconButton from '../components/common/IconButton'
 import CircleButton from '../components/common/CircleButton'
-import StoneButton from '../components/common/StoneButton'
 import CloseButton from '../components/common/CloseButton'
 import GaugeBar from '../components/common/GaugeBar'
 import MainTitle from '../components/common/MainTitle'
 import ButtonGuide from '../components/common/ButtonGuide'
 import ChallengeModal from '../components/common/ChallengeModal'
 import { colors, radius, font, spacing, typeScale, typeUsage } from '../components/common/design-tokens'
-import { DEFAULT_SPEC, R2_KEY, type DesignSpec, type TypeScaleKey } from '../components/common/design-spec'
+import { DEFAULT_SPEC, R2_KEY, type DesignSpec, type TypeScaleKey, type ButtonStyleType } from '../components/common/design-spec'
 import { getJson, putJson } from '../api'
 
 type Tab = 'typography' | 'color' | 'space' | 'buttons' | 'components' | 'compositions'
@@ -629,29 +625,6 @@ function ButtonStylesSection() {
         </div>
       </section>
 
-      {/* Anatomy */}
-      <section>
-        <SectionHeader title="Anatomy" desc="Double Line 버튼의 구조 분해." />
-        <div style={{ background: '#333', borderRadius: 12, padding: 40, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <GameButton variant="doubleLine" scale="lg" icon="🔥" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>도전장 보내기</GameButton>
-            {/* Labels */}
-            <div style={{ position: 'absolute', top: -24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap' }}>outer border (3px)</div>
-            <div style={{ position: 'absolute', bottom: -24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: colors.gameOverBtnLine, background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap' }}>double line — inner (2px)</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Variants */}
-      <section>
-        <SectionHeader title="Scale Variants" desc="같은 유형에 다른 Type Scale 적용." />
-        <div style={{ background: '#333', borderRadius: 12, padding: 32, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <GameButton variant="doubleLine" scale="lg" icon="🔥" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>lg — 도전장</GameButton>
-          <GameButton variant="doubleLine" scale="md" icon="🏆" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>md — 랭킹</GameButton>
-          <GameButton variant="doubleLine" scale="sm" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>sm — 더보기</GameButton>
-          <GameButton variant="doubleLine" scale="xs" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>xs — 라벨</GameButton>
-        </div>
-      </section>
     </div>
   )
 }
@@ -669,13 +642,9 @@ function getScale(key: TypeScaleKey) {
 
 function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateFn }) {
   const d = spec.darkButton
-  const ds = getScale(d.scale)
   const r = spec.redButton
-  const rs = getScale(r.scale)
   const ic = spec.iconButton
-  const ics = getScale(ic.scale)
   const st = spec.stoneButton
-  const sts = getScale(st.scale)
   const cb = spec.circleButton
   const [gaugeVal, setGaugeVal] = useState(0.7)
   const g = spec.gaugeBar
@@ -688,23 +657,22 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         category="Button"
         desc="어두운 배경의 기본 액션 버튼. 게임오버 화면의 '홈으로 가기'에 사용."
         preview={
-          <Preview bg="#fff">
-            <DarkButton fontSize={ds.fontSize} style={{ borderRadius: d.borderRadius, border: `${d.borderWidth}px solid ${d.borderColor}`, padding: `${d.paddingY}px ${d.paddingX}px`, WebkitTextStroke: `${ds.stroke}px #000`, backgroundColor: d.bgColor }}>홈으로 가기</DarkButton>
+          <Preview bg="#444">
+            <GameButton variant={d.buttonStyle} scale={d.scale} bgColor={d.bgColor} borderColor={d.borderColor} doubleLineColor={d.innerLineColor} borderRadius={d.borderRadius}>홈으로 가기</GameButton>
           </Preview>
         }
         original="/game01/game-over-screen/btn-home.png"
         controls={
           <>
+            <ButtonStyleField label="Button Style" value={d.buttonStyle} onChange={(v) => update('darkButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={d.scale} onChange={(v) => update('darkButton', { scale: v })} />
             <NumField label="Border Radius" value={d.borderRadius} onChange={(v) => update('darkButton', { borderRadius: v })} max={40} />
-            <NumField label="Border Width" value={d.borderWidth} onChange={(v) => update('darkButton', { borderWidth: v })} max={10} />
-            <NumField label="Padding X" value={d.paddingX} onChange={(v) => update('darkButton', { paddingX: v })} max={60} />
-            <NumField label="Padding Y" value={d.paddingY} onChange={(v) => update('darkButton', { paddingY: v })} max={30} />
             <ColorField label="Background" value={d.bgColor} onChange={(v) => update('darkButton', { bgColor: v })} />
-            <ColorField label="Border" value={d.borderColor} onChange={(v) => update('darkButton', { borderColor: v })} />
+            {d.buttonStyle !== 'flat' && <ColorField label="Border" value={d.borderColor} onChange={(v) => update('darkButton', { borderColor: v })} />}
+            {d.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={d.innerLineColor} onChange={(v) => update('darkButton', { innerLineColor: v })} />}
           </>
         }
-        tokens={[d.scale, 'dark', 'radius.lg']}
+        tokens={[d.scale, d.buttonStyle]}
       />
 
       {/* RedButton */}
@@ -714,22 +682,22 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="그라데이션 강조 버튼. 긴박한 액션('광고보고 부활')에 사용."
         preview={
           <Preview bg="#111">
-            <RedButton fontSize={rs.fontSize} style={{ borderRadius: r.borderRadius, border: `${r.borderWidth}px solid ${r.borderColor}`, padding: `${r.paddingY}px ${r.paddingX}px`, WebkitTextStroke: `${rs.stroke}px #000`, background: `linear-gradient(135deg, ${r.gradientFrom}, ${r.gradientTo})` }}>광고보고 부활</RedButton>
+            <GameButton variant={r.buttonStyle} scale={r.scale} bgColor={`linear-gradient(135deg, ${r.gradientFrom}, ${r.gradientTo})`} borderColor={r.borderColor} doubleLineColor={r.innerLineColor} borderRadius={r.borderRadius}>광고보고 부활</GameButton>
           </Preview>
         }
         original="/game01/game-over-screen/btn-revive.png"
         controls={
           <>
+            <ButtonStyleField label="Button Style" value={r.buttonStyle} onChange={(v) => update('redButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={r.scale} onChange={(v) => update('redButton', { scale: v })} />
             <NumField label="Border Radius" value={r.borderRadius} onChange={(v) => update('redButton', { borderRadius: v })} max={40} />
-            <NumField label="Padding X" value={r.paddingX} onChange={(v) => update('redButton', { paddingX: v })} max={60} />
-            <NumField label="Padding Y" value={r.paddingY} onChange={(v) => update('redButton', { paddingY: v })} max={30} />
             <ColorField label="Gradient From" value={r.gradientFrom} onChange={(v) => update('redButton', { gradientFrom: v })} />
             <ColorField label="Gradient To" value={r.gradientTo} onChange={(v) => update('redButton', { gradientTo: v })} />
-            <ColorField label="Border" value={r.borderColor} onChange={(v) => update('redButton', { borderColor: v })} />
+            {r.buttonStyle !== 'flat' && <ColorField label="Border" value={r.borderColor} onChange={(v) => update('redButton', { borderColor: v })} />}
+            {r.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={r.innerLineColor} onChange={(v) => update('redButton', { innerLineColor: v })} />}
           </>
         }
-        tokens={[r.scale, 'red → redDark', 'radius.lg']}
+        tokens={[r.scale, r.buttonStyle]}
       />
 
       {/* IconButton */}
@@ -740,22 +708,22 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         preview={
           <Preview bg="#111">
             <div style={{ display: 'flex', gap: 12 }}>
-              <IconButton icon="🔥" fontSize={ics.fontSize} style={{ borderRadius: ic.borderRadius, border: `${ic.borderWidth}px solid ${ic.borderColor}`, outline: `2px solid ${ic.outlineColor}`, padding: `${ic.paddingY}px ${ic.paddingX}px`, backgroundColor: ic.bgColor, WebkitTextStroke: `${ics.stroke}px #000` }}>도전장 보내기</IconButton>
-              <IconButton icon="🏆" fontSize={ics.fontSize} style={{ borderRadius: ic.borderRadius, border: `${ic.borderWidth}px solid ${ic.borderColor}`, outline: `2px solid ${ic.outlineColor}`, padding: `${ic.paddingY}px ${ic.paddingX}px`, backgroundColor: ic.bgColor, WebkitTextStroke: `${ics.stroke}px #000` }}>랭킹 보기</IconButton>
+              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🔥" bgColor={ic.bgColor} borderColor={ic.borderColor} doubleLineColor={ic.innerLineColor} borderRadius={ic.borderRadius}>도전장 보내기</GameButton>
+              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🏆" bgColor={ic.bgColor} borderColor={ic.borderColor} doubleLineColor={ic.innerLineColor} borderRadius={ic.borderRadius}>랭킹 보기</GameButton>
             </div>
           </Preview>
         }
         controls={
           <>
+            <ButtonStyleField label="Button Style" value={ic.buttonStyle} onChange={(v) => update('iconButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={ic.scale} onChange={(v) => update('iconButton', { scale: v })} />
             <NumField label="Border Radius" value={ic.borderRadius} onChange={(v) => update('iconButton', { borderRadius: v })} max={30} />
-            <NumField label="Padding X" value={ic.paddingX} onChange={(v) => update('iconButton', { paddingX: v })} max={40} />
-            <NumField label="Padding Y" value={ic.paddingY} onChange={(v) => update('iconButton', { paddingY: v })} max={24} />
             <ColorField label="Background" value={ic.bgColor} onChange={(v) => update('iconButton', { bgColor: v })} />
-            <ColorField label="Border" value={ic.borderColor} onChange={(v) => update('iconButton', { borderColor: v })} />
+            {ic.buttonStyle !== 'flat' && <ColorField label="Border" value={ic.borderColor} onChange={(v) => update('iconButton', { borderColor: v })} />}
+            {ic.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={ic.innerLineColor} onChange={(v) => update('iconButton', { innerLineColor: v })} />}
           </>
         }
-        tokens={[ic.scale, 'darker', 'radius.md']}
+        tokens={[ic.scale, ic.buttonStyle]}
       />
 
       {/* StoneButton */}
@@ -765,21 +733,21 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="돌 텍스처의 메인 CTA 버튼. 메인 화면의 '퇴근하기'에 사용."
         preview={
           <Preview bg="#111">
-            <StoneButton fontSize={sts.fontSize} style={{ borderRadius: st.borderRadius, border: `${st.borderWidth}px solid ${st.borderColor}`, padding: `${st.paddingY}px ${st.paddingX}px`, WebkitTextStroke: `${sts.stroke}px #000` }}>퇴근하기</StoneButton>
+            <GameButton variant={st.buttonStyle} scale={st.scale} bgColor={st.bgColor} borderColor={st.borderColor} doubleLineColor={st.innerLineColor} borderRadius={st.borderRadius}>퇴근하기</GameButton>
           </Preview>
         }
         original="/game01/main-screen/main-btn.png"
         controls={
           <>
+            <ButtonStyleField label="Button Style" value={st.buttonStyle} onChange={(v) => update('stoneButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={st.scale} onChange={(v) => update('stoneButton', { scale: v })} />
             <NumField label="Border Radius" value={st.borderRadius} onChange={(v) => update('stoneButton', { borderRadius: v })} max={40} />
-            <NumField label="Padding X" value={st.paddingX} onChange={(v) => update('stoneButton', { paddingX: v })} max={60} />
-            <NumField label="Padding Y" value={st.paddingY} onChange={(v) => update('stoneButton', { paddingY: v })} max={30} />
             <ColorField label="Background" value={st.bgColor} onChange={(v) => update('stoneButton', { bgColor: v })} />
-            <ColorField label="Border" value={st.borderColor} onChange={(v) => update('stoneButton', { borderColor: v })} />
+            {st.buttonStyle !== 'flat' && <ColorField label="Border" value={st.borderColor} onChange={(v) => update('stoneButton', { borderColor: v })} />}
+            {st.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={st.innerLineColor} onChange={(v) => update('stoneButton', { innerLineColor: v })} />}
           </>
         }
-        tokens={[st.scale, 'blueGray', 'radius.lg']}
+        tokens={[st.scale, st.buttonStyle]}
       />
 
       {/* CircleButton */}
@@ -1034,6 +1002,29 @@ function NumField({ label, value, onChange, min = 0, max = 100, step = 1 }: {
         onChange={(e) => onChange(+e.target.value)}
         style={{ width: '100%', accentColor: '#111' }}
       />
+    </label>
+  )
+}
+
+const BUTTON_STYLES: { value: ButtonStyleType; label: string }[] = [
+  { value: 'flat', label: 'Flat — 테두리 없음' },
+  { value: 'outline', label: 'Outline — 외곽 테두리' },
+  { value: 'doubleLine', label: 'Double Line — 외곽 + 이너' },
+]
+
+function ButtonStyleField({ label, value, onChange }: { label: string; value: ButtonStyleType; onChange: (v: ButtonStyleType) => void }) {
+  return (
+    <label style={labelStyle}>
+      <span>{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as ButtonStyleType)}
+        style={inputStyle}
+      >
+        {BUTTON_STYLES.map((s) => (
+          <option key={s.value} value={s.value}>{s.label}</option>
+        ))}
+      </select>
     </label>
   )
 }

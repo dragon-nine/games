@@ -3,21 +3,23 @@
 import type { typeScale } from './design-tokens'
 
 export type TypeScaleKey = keyof typeof typeScale
+export type ButtonStyleType = 'flat' | 'outline' | 'doubleLine'
 
-export interface ComponentSpec {
+export interface ButtonSpec {
   scale: TypeScaleKey
+  buttonStyle: ButtonStyleType
+  bgColor: string
+  borderColor: string
+  innerLineColor: string
   borderRadius: number
-  borderWidth: number
-  paddingX: number
-  paddingY: number
   [key: string]: number | string | undefined
 }
 
 export interface DesignSpec {
-  darkButton: ComponentSpec & { bgColor: string; borderColor: string }
-  redButton: ComponentSpec & { gradientFrom: string; gradientTo: string; borderColor: string }
-  iconButton: ComponentSpec & { bgColor: string; borderColor: string; outlineColor: string }
-  stoneButton: ComponentSpec & { bgColor: string; borderColor: string }
+  darkButton: ButtonSpec
+  redButton: ButtonSpec & { gradientFrom: string; gradientTo: string }
+  iconButton: ButtonSpec
+  stoneButton: ButtonSpec
   circleButton: { size: number; iconSize: number }
   gaugeBar: { height: number; borderWidth: number; fillColor: string }
   mainTitle: {
@@ -43,41 +45,37 @@ export interface DesignSpec {
 export const DEFAULT_SPEC: DesignSpec = {
   darkButton: {
     scale: 'lg',
-    borderRadius: 16,
-    borderWidth: 3,
-    paddingX: 24,
-    paddingY: 14,
-    bgColor: '#2d2d2d',
+    buttonStyle: 'outline',
+    bgColor: '#24282c',
     borderColor: '#000000',
+    innerLineColor: '#4d4340',
+    borderRadius: 12,
   },
   redButton: {
     scale: 'lg',
-    borderRadius: 16,
-    borderWidth: 3,
-    paddingX: 24,
-    paddingY: 14,
+    buttonStyle: 'flat',
+    bgColor: '#c41e1e',
+    borderColor: '#8b1a1a',
+    innerLineColor: '#4d4340',
+    borderRadius: 12,
     gradientFrom: '#e53935',
     gradientTo: '#8b1a1a',
-    borderColor: '#8b1a1a',
   },
   iconButton: {
     scale: 'md',
+    buttonStyle: 'doubleLine',
+    bgColor: '#231816',
+    borderColor: '#000000',
+    innerLineColor: '#4d4340',
     borderRadius: 12,
-    borderWidth: 3,
-    paddingX: 20,
-    paddingY: 12,
-    bgColor: '#1a1a1f',
-    borderColor: '#333333',
-    outlineColor: '#555555',
   },
   stoneButton: {
     scale: 'lg',
-    borderRadius: 16,
-    borderWidth: 4,
-    paddingX: 40,
-    paddingY: 16,
+    buttonStyle: 'outline',
     bgColor: '#4a5a6a',
     borderColor: '#3a4a5a',
+    innerLineColor: '#4d4340',
+    borderRadius: 16,
   },
   circleButton: {
     size: 80,
