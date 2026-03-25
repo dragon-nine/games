@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, Trash2 } from 'lucide-react'
 import { getJson, putJson } from '../api'
 
 interface Memo {
@@ -9,6 +10,7 @@ interface Memo {
 }
 
 const STORE_KEY = 'admin/memos.json'
+const AUTOSAVE_DELAY = 800
 
 interface Props {
   onBanner: (type: 'success' | 'error', message: string) => void
@@ -26,10 +28,13 @@ function formatDate(iso: string): string {
 export default function MemoTab({ onBanner }: Props) {
   const [memos, setMemos] = useState<Memo[]>([])
   const [loaded, setLoaded] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const memosRef = useRef(memos)
+  memosRef.current = memos
 
   const load = useCallback(async () => {
     try {
@@ -44,17 +49,37 @@ export default function MemoTab({ onBanner }: Props) {
 
   useEffect(() => { load() }, [load])
 
-  const save = useCallback(async (updated: Memo[]) => {
-    setSaving(true)
+  const persistNow = useCallback(async (updated: Memo[]) => {
+    setAutoSaveStatus('saving')
     try {
       await putJson(STORE_KEY, updated)
       setMemos(updated)
+      setAutoSaveStatus('saved')
+      setTimeout(() => setAutoSaveStatus((s) => s === 'saved' ? 'idle' : s), 2000)
     } catch (err) {
       onBanner('error', `저장 실패: ${(err as Error).message}`)
-    } finally {
-      setSaving(false)
+      setAutoSaveStatus('idle')
     }
   }, [onBanner])
+
+  const scheduleAutoSave = useCallback((title: string, content: string) => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => {
+      const updated = memosRef.current.map((m) =>
+        m.id === selectedId
+          ? { ...m, title: title || '제목 없음', content, updatedAt: new Date().toISOString() }
+          : m
+      )
+      persistNow(updated)
+    }, AUTOSAVE_DELAY)
+  }, [selectedId, persistNow])
+
+  // Flush pending autosave on unmount or memo switch
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [selectedId])
 
   const selected = memos.find((m) => m.id === selectedId) || null
 
@@ -70,44 +95,53 @@ export default function MemoTab({ onBanner }: Props) {
     setSelectedId(memo.id)
     setEditTitle(memo.title)
     setEditContent(memo.content)
-    save(updated)
+    persistNow(updated)
   }
 
   const handleSelect = (memo: Memo) => {
+    // Flush pending save before switching
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      if (selectedId) {
+        const updated = memosRef.current.map((m) =>
+          m.id === selectedId
+            ? { ...m, title: editTitle || '제목 없음', content: editContent, updatedAt: new Date().toISOString() }
+            : m
+        )
+        persistNow(updated)
+      }
+    }
     setSelectedId(memo.id)
     setEditTitle(memo.title)
     setEditContent(memo.content)
   }
 
-  const handleSave = () => {
-    if (!selectedId) return
-    const updated = memos.map((m) =>
-      m.id === selectedId
-        ? { ...m, title: editTitle || '제목 없음', content: editContent, updatedAt: new Date().toISOString() }
-        : m
-    )
-    save(updated)
-    onBanner('success', '저장 완료')
+  const handleTitleChange = (val: string) => {
+    setEditTitle(val)
+    scheduleAutoSave(val, editContent)
+  }
+
+  const handleContentChange = (val: string) => {
+    setEditContent(val)
+    scheduleAutoSave(editTitle, val)
   }
 
   const handleDelete = () => {
     if (!selectedId || !confirm('이 메모를 삭제하시겠습니까?')) return
+    if (timerRef.current) clearTimeout(timerRef.current)
     const updated = memos.filter((m) => m.id !== selectedId)
     setSelectedId(null)
-    save(updated)
+    persistNow(updated)
     onBanner('success', '삭제 완료')
   }
 
   return (
-    <div>
-      <h1 className="page-title">메모</h1>
-      <p className="page-subtitle">팀 공유 메모 및 노트</p>
-
+    <div className="memo-fullscreen">
       <div className="memo-layout">
         <div className="memo-list card">
           <div className="category-header">
-            <div className="card-title" style={{ marginBottom: 0 }}>목록</div>
-            <button className="category-add-btn" onClick={handleNew} title="새 메모">+</button>
+            <div className="card-title" style={{ marginBottom: 0 }}>메모</div>
+            <button className="category-add-btn" onClick={handleNew} title="새 메모"><Plus size={16} /></button>
           </div>
           {!loaded && <div className="empty">로딩 중...</div>}
           {loaded && memos.length === 0 && <div className="empty">메모가 없습니다</div>}
@@ -126,24 +160,25 @@ export default function MemoTab({ onBanner }: Props) {
         <div className="memo-editor card">
           {selected ? (
             <>
-              <input
-                className="memo-title-input"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="제목"
-              />
+              <div className="memo-editor-header">
+                <input
+                  className="memo-title-input"
+                  value={editTitle}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  placeholder="제목"
+                />
+                <div className="memo-editor-actions">
+                  {autoSaveStatus === 'saving' && <span className="memo-autosave-status">저장 중...</span>}
+                  {autoSaveStatus === 'saved' && <span className="memo-autosave-status saved">저장됨</span>}
+                  <button className="memo-delete-btn" onClick={handleDelete} title="삭제"><Trash2 size={16} /></button>
+                </div>
+              </div>
               <textarea
                 className="memo-content-input"
                 value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
+                onChange={(e) => handleContentChange(e.target.value)}
                 placeholder="내용을 입력하세요..."
               />
-              <div className="memo-actions">
-                <button className="memo-save-btn" onClick={handleSave} disabled={saving}>
-                  {saving ? '저장 중...' : '저장'}
-                </button>
-                <button className="memo-delete-btn" onClick={handleDelete}>삭제</button>
-              </div>
             </>
           ) : (
             <div className="empty">메모를 선택하거나 새로 만드세요</div>

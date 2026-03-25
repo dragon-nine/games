@@ -1598,14 +1598,21 @@ body {
 }
 
 /* ── Memo ── */
+.memo-fullscreen {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 32px);
+}
+
 .memo-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 260px 1fr;
   gap: 16px;
+  flex: 1;
+  min-height: 0;
 }
 
 .memo-list {
-  max-height: calc(100vh - 200px);
   overflow-y: auto;
 }
 
@@ -1639,21 +1646,43 @@ body {
 .memo-editor {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+
+.memo-editor-header {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  min-height: 400px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 12px;
 }
 
 .memo-title-input {
+  flex: 1;
   border: none;
-  border-bottom: 1px solid var(--border-light);
-  padding: 8px 0;
+  padding: 4px 0;
   font-size: 18px;
   font-weight: 700;
   outline: none;
   color: var(--text-primary);
+  background: transparent;
 }
 
-.memo-title-input:focus { border-color: var(--accent); }
+.memo-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.memo-autosave-status {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.memo-autosave-status.saved {
+  color: var(--success, #22c55e);
+}
 
 .memo-content-input {
   flex: 1;
@@ -1661,41 +1690,30 @@ body {
   outline: none;
   resize: none;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.8;
   color: var(--text-primary);
   font-family: inherit;
-  min-height: 300px;
-}
-
-.memo-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.memo-save-btn {
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 4px 0;
 }
 
 .memo-delete-btn {
+  display: flex;
+  align-items: center;
   background: none;
-  border: 1px solid var(--danger);
-  color: var(--danger);
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
+  border: none;
+  color: var(--text-tertiary);
   cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+.memo-delete-btn:hover {
+  color: var(--danger);
+  background: var(--danger-light);
 }
 
 @media (max-width: 768px) {
   .memo-layout { grid-template-columns: 1fr; }
+  .memo-fullscreen { height: auto; }
 }
 
 /* ── Checklist ── */
