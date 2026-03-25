@@ -12,19 +12,60 @@ interface CategoryDef {
   darkBg?: boolean
 }
 
-const CATEGORY_DEFS = [
-  { key: 'new', label: 'NEW', accept: 'image/*,audio/*', darkBg: true },
-  { key: 'main-screen', label: '메인 화면', accept: 'image/*', darkBg: true },
-  { key: 'character', label: '캐릭터', accept: 'image/*', darkBg: true },
-  { key: 'map', label: '맵 타일', accept: 'image/*', darkBg: true },
-  { key: 'background', label: '배경', accept: 'image/*', darkBg: true },
-  { key: 'game-over-screen', label: '게임오버 스크린', accept: 'image/*', darkBg: true },
-  { key: 'ui', label: 'UI', accept: 'image/*' },
-  { key: 'audio', label: '오디오', accept: 'audio/*' },
+interface TabDef {
+  id: string
+  label: string
+  categories: Omit<CategoryDef, 'prefix'>[]
+}
+
+const TABS: TabDef[] = [
+  {
+    id: 'common',
+    label: '공통',
+    categories: [
+      { key: 'character', label: '캐릭터', accept: 'image/*', darkBg: true },
+      { key: 'ui', label: 'UI', accept: 'image/*' },
+      { key: 'audio', label: '오디오', accept: 'audio/*' },
+    ],
+  },
+  {
+    id: 'main',
+    label: '메인',
+    categories: [
+      { key: 'main-screen', label: '메인 화면', accept: 'image/*', darkBg: true },
+      { key: 'background', label: '배경', accept: 'image/*', darkBg: true },
+    ],
+  },
+  {
+    id: 'game',
+    label: '게임',
+    categories: [
+      { key: 'map', label: '맵 타일', accept: 'image/*', darkBg: true },
+    ],
+  },
+  {
+    id: 'gameover',
+    label: '게임오버',
+    categories: [
+      { key: 'game-over-screen', label: '게임오버 스크린', accept: 'image/*', darkBg: true },
+    ],
+  },
+  {
+    id: 'launch',
+    label: '출시',
+    categories: [
+      { key: 'launch/icon', label: '앱 아이콘', accept: 'image/*' },
+      { key: 'launch/feature', label: '피처 그래픽', accept: 'image/*' },
+      { key: 'launch/screenshots', label: '스크린샷', accept: 'image/*' },
+    ],
+  },
 ]
 
-function buildCategories(gameId: string): CategoryDef[] {
-  return CATEGORY_DEFS.map((c) => ({ ...c, prefix: `${gameId}/${c.key}/` }))
+function buildCategories(gameId: string, tab: TabDef): CategoryDef[] {
+  return tab.categories.map((c) => ({
+    ...c,
+    prefix: c.key.startsWith('launch/') ? `${c.key.replace('launch/', `launch/${gameId}/`)}/` : `${gameId}/${c.key}/`,
+  }))
 }
 
 interface Props {
@@ -287,11 +328,41 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
 }
 
 export default function GameAssetsTab({ gameId, gameName, onBanner }: Props) {
-  const categories = buildCategories(gameId)
+  const [activeTab, setActiveTab] = useState(TABS[0].id)
+  const currentTab = TABS.find((t) => t.id === activeTab) || TABS[0]
+  const categories = buildCategories(gameId, currentTab)
+
   return (
     <div>
       <h1 className="page-title">{gameId} 에셋 관리</h1>
       <p className="page-subtitle">{gameName} — 게임 에셋을 업로드하고 관리합니다</p>
+
+      <div style={{
+        display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--border)',
+        paddingBottom: 0,
+      }}>
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '8px 16px',
+              fontSize: 13,
+              fontWeight: activeTab === tab.id ? 700 : 500,
+              color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-secondary)',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === tab.id ? '2px solid var(--accent)' : '2px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 150ms',
+              marginBottom: -1,
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {categories.map((cat) => (
         <CategorySection key={cat.key} cat={cat} onBanner={onBanner} />
       ))}
