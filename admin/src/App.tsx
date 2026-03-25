@@ -8,6 +8,7 @@ import GameDashboard from './tabs/GameDashboard'
 import TodoHomePage from './tabs/TodoHomePage'
 import MemoTab from './tabs/MemoTab'
 import ContentTab from './tabs/ContentTab'
+import CommonComponentsTab from './tabs/CommonComponentsTab'
 import Banner from './components/Banner'
 
 export type PageId =
@@ -19,6 +20,7 @@ export type PageId =
   | 'shared-files'
   | 'memo'
   | 'checklist'
+  | 'common-components'
 
 function getInitialPage(): PageId {
   const params = new URLSearchParams(window.location.search)
@@ -58,6 +60,7 @@ export default function App() {
         {page === 'shared-files' && <SharedFilesTab onBanner={showBanner} />}
         {page === 'memo' && <MemoTab onBanner={showBanner} />}
         {page === 'checklist' && <TodoHomePage />}
+        {page === 'common-components' && <CommonComponentsTab />}
       </main>
       {banner && (
         <Banner type={banner.type} message={banner.message} onDismiss={() => setBanner(null)} />
