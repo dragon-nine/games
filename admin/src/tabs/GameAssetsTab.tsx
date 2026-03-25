@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Download } from 'lucide-react'
 import type { BlobItem } from '../types'
 import { listBlobs, uploadBlob, deleteBlob } from '../api'
 import { getLocalAssetsByCategory, getLocalAssetUrl } from '../local-assets'
@@ -281,7 +282,7 @@ function CategorySection({ cat, onBanner }: { cat: CategoryDef; onBanner: Props[
             onClick={(e) => { e.stopPropagation(); handleDownloadAll() }}
             title="전체 다운로드"
             disabled={downloadingAll}
-          >{downloadingAll ? '...' : '↓'}</button>
+          >{downloadingAll ? '...' : <Download size={14} />}</button>
         )}
         <button
           className="category-add-btn"

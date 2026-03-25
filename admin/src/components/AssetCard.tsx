@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Download } from 'lucide-react'
 import type { BlobItem } from '../types'
 import LazyImage from './LazyImage'
 
@@ -96,7 +97,7 @@ export default function AssetCard({ blob, isDeleting, onDelete, onReplace }: Pro
         <div className="asset-card-name" title={filename}>{filename}</div>
         <div className="asset-card-meta">
           <span>{dims ? `${dims} / ` : ''}{formatSize(blob.size)}</span>
-          <button className="asset-card-download" onClick={handleDownload} title="다운로드" disabled={busy || downloading}>{downloading ? '...' : '\u21A9'}</button>
+          <button className="asset-card-download" onClick={handleDownload} title="다운로드" disabled={busy || downloading}>{downloading ? '...' : <Download size={14} />}</button>
           <button className="asset-card-delete" onClick={handleDelete} title="삭제" disabled={busy}>&#x2715;</button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Download } from 'lucide-react'
 import type { BlobItem } from '../types'
 import { listFolder, uploadBlob, deleteBlob } from '../api'
 
@@ -7,6 +8,8 @@ interface Props {
 }
 
 const ROOT = 'shared/'
+
+type FileCategory = 'image' | 'document' | 'media' | 'archive' | 'other'
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes}B`
@@ -19,7 +22,6 @@ function getFilename(pathname: string): string {
 }
 
 function getFolderName(folderPath: string): string {
-  // "shared/디자인/" → "디자인"
   const parts = folderPath.replace(/\/$/, '').split('/')
   return parts[parts.length - 1]
 }
@@ -38,6 +40,49 @@ function getFileIcon(name: string): string {
 
 function isImage(name: string): boolean {
   return /\.(png|jpe?g|gif|webp|svg)$/i.test(name)
+}
+
+function getFileCategory(name: string): FileCategory {
+  if (/\.(png|jpe?g|gif|webp|svg)$/i.test(name)) return 'image'
+  if (/\.(xlsx?|csv|docx?|txt|pptx?|key|pdf|hwp)$/i.test(name)) return 'document'
+  if (/\.(mp3|ogg|wav|m4a|mp4|mov|avi|webm)$/i.test(name)) return 'media'
+  if (/\.(zip|rar|7z|tar|gz)$/i.test(name)) return 'archive'
+  return 'other'
+}
+
+const CATEGORY_META: Record<FileCategory, { label: string; icon: string }> = {
+  image: { label: '이미지', icon: '🖼' },
+  document: { label: '문서', icon: '📄' },
+  media: { label: '미디어', icon: '🎵' },
+  archive: { label: '압축 파일', icon: '📦' },
+  other: { label: '기타', icon: '📎' },
+}
+
+const CATEGORY_ORDER: FileCategory[] = ['image', 'document', 'media', 'archive', 'other']
+
+function groupByCategory(blobs: BlobItem[]): { category: FileCategory; items: BlobItem[] }[] {
+  const map = new Map<FileCategory, BlobItem[]>()
+  for (const b of blobs) {
+    const name = getFilename(b.pathname)
+    if (name === '.folder') continue
+    const cat = getFileCategory(name)
+    if (!map.has(cat)) map.set(cat, [])
+    map.get(cat)!.push(b)
+  }
+  return CATEGORY_ORDER.filter((c) => map.has(c)).map((c) => ({ category: c, items: map.get(c)! }))
+}
+
+async function downloadFile(url: string, filename: string) {
+  const res = await fetch(url)
+  const blob = await res.blob()
+  const blobUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = blobUrl
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
 }
 
 function getBreadcrumbs(currentPath: string): { label: string; path: string }[] {
@@ -62,7 +107,9 @@ export default function SharedFilesTab({ onBanner }: Props) {
   const [loaded, setLoaded] = useState(false)
   const [uploading, setUploading] = useState<string[]>([])
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
+  const [downloading, setDownloading] = useState<Set<string>>(new Set())
   const [newFolderName, setNewFolderName] = useState<string | null>(null)
+  const [previewBlob, setPreviewBlob] = useState<BlobItem | null>(null)
 
   const refresh = useCallback(async () => {
     setLoaded(false)
@@ -133,7 +180,67 @@ export default function SharedFilesTab({ onBanner }: Props) {
     }
   }
 
+  const handleDownload = async (b: BlobItem) => {
+    const name = getFilename(b.pathname)
+    setDownloading((prev) => new Set(prev).add(b.url))
+    try {
+      await downloadFile(b.downloadUrl || b.url, name)
+    } catch (err) {
+      onBanner('error', `다운로드 실패: ${(err as Error).message}`)
+    } finally {
+      setDownloading((prev) => { const next = new Set(prev); next.delete(b.url); return next })
+    }
+  }
+
   const breadcrumbs = getBreadcrumbs(currentPath)
+  const fileGroups = groupByCategory(blobs)
+  const visibleFiles = blobs.filter((b) => getFilename(b.pathname) !== '.folder')
+
+  const renderFileCard = (b: BlobItem) => {
+    const name = getFilename(b.pathname)
+    const icon = getFileIcon(name)
+    const cacheBust = b.uploadedAt ? `?t=${new Date(b.uploadedAt).getTime()}` : ''
+    const isBusy = deleting.has(b.url)
+    const isDl = downloading.has(b.url)
+    return (
+      <div key={b.url} className={`asset-card${isBusy ? ' busy' : ''}`}>
+        <div
+          className="asset-card-preview"
+          style={{ cursor: isBusy ? 'default' : 'pointer' }}
+          onClick={() => { if (!isBusy && isImage(name)) setPreviewBlob(b) }}
+        >
+          {isImage(name) ? (
+            <img
+              src={b.url + cacheBust}
+              alt={name}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+            />
+          ) : (
+            <span style={{ fontSize: 40 }}>{icon}</span>
+          )}
+          {isBusy && <div className="asset-card-overlay busy-overlay"><div className="upload-spinner" />삭제 중...</div>}
+        </div>
+        <div className="asset-card-info">
+          <div className="asset-card-name" title={name}>{name}</div>
+          <div className="asset-card-meta">
+            <span>{formatSize(b.size)}</span>
+            <button
+              className="asset-card-download"
+              onClick={() => handleDownload(b)}
+              title="다운로드"
+              disabled={isBusy || isDl}
+            >{isDl ? '...' : <Download size={14} />}</button>
+            <button
+              className="asset-card-delete"
+              onClick={() => handleDelete(b)}
+              title="삭제"
+              disabled={isBusy}
+            >&#x2715;</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -156,7 +263,7 @@ export default function SharedFilesTab({ onBanner }: Props) {
               </span>
             ))}
           </div>
-          <span className="section-count">{blobs.length}개 파일</span>
+          <span className="section-count">{visibleFiles.length}개 파일</span>
           <button
             className="category-add-btn"
             onClick={() => setNewFolderName('')}
@@ -209,90 +316,97 @@ export default function SharedFilesTab({ onBanner }: Props) {
           </div>
         )}
 
-        {loaded && folders.length === 0 && blobs.length === 0 && uploading.length === 0 && (
+        {loaded && folders.length === 0 && visibleFiles.length === 0 && uploading.length === 0 && (
           <div className="empty">아직 업로드된 파일이 없습니다</div>
         )}
 
         {loaded && (
-          <div className="asset-grid">
-            {/* 폴더들 */}
-            {folders.map((folder) => {
-              const name = getFolderName(folder)
-              if (name === '') return null
-              return (
-                <div
-                  key={folder}
-                  className="asset-card clickable"
-                  onClick={() => setCurrentPath(folder)}
-                >
-                  <div className="asset-card-preview" style={{ background: 'var(--surface-secondary)' }}>
-                    <span style={{ fontSize: 40 }}>📁</span>
-                  </div>
-                  <div className="asset-card-info">
-                    <div className="asset-card-name" title={name}>{name}</div>
-                  </div>
+          <>
+            {/* 폴더 섹션 */}
+            {folders.filter((f) => getFolderName(f) !== '').length > 0 && (
+              <div className="sf-section">
+                <div className="sf-section-header">
+                  <span className="sf-section-icon">📁</span>
+                  <span className="sf-section-label">폴더</span>
+                  <span className="sf-section-count">{folders.filter((f) => getFolderName(f) !== '').length}</span>
                 </div>
-              )
-            })}
-
-            {/* 업로드 중 */}
-            {uploading.map((name) => (
-              <div key={name} className="asset-card uploading">
-                <div className="asset-card-preview">
-                  <div className="upload-spinner" />
-                </div>
-                <div className="asset-card-info">
-                  <div className="asset-card-name">{name}</div>
-                  <div className="asset-card-meta"><span className="uploading-text">업로드 중...</span></div>
+                <div className="asset-grid">
+                  {folders.map((folder) => {
+                    const name = getFolderName(folder)
+                    if (name === '') return null
+                    return (
+                      <div
+                        key={folder}
+                        className="asset-card clickable"
+                        onClick={() => setCurrentPath(folder)}
+                      >
+                        <div className="asset-card-preview" style={{ background: 'var(--surface-secondary)' }}>
+                          <span style={{ fontSize: 40 }}>📁</span>
+                        </div>
+                        <div className="asset-card-info">
+                          <div className="asset-card-name" title={name}>{name}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
-            ))}
+            )}
 
-            {/* 파일들 (.folder placeholder 숨김) */}
-            {blobs.filter((b) => getFilename(b.pathname) !== '.folder').map((b) => {
-              const name = getFilename(b.pathname)
-              const icon = getFileIcon(name)
-              const cacheBust = b.uploadedAt ? `?t=${new Date(b.uploadedAt).getTime()}` : ''
-              const isBusy = deleting.has(b.url)
-              return (
-                <div key={b.url} className={`asset-card${isBusy ? ' busy' : ''}`}>
-                  <a
-                    href={b.downloadUrl || b.url}
-                    target="_blank"
-                    rel="noopener"
-                    className="asset-card-preview"
-                    style={{ textDecoration: 'none', cursor: isBusy ? 'default' : 'pointer' }}
-                    onClick={(e) => { if (isBusy) e.preventDefault() }}
-                  >
-                    {isImage(name) ? (
-                      <img
-                        src={b.url + cacheBust}
-                        alt={name}
-                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: 40 }}>{icon}</span>
-                    )}
-                    {isBusy && <div className="asset-card-overlay busy-overlay"><div className="upload-spinner" />삭제 중...</div>}
-                  </a>
-                  <div className="asset-card-info">
-                    <div className="asset-card-name" title={name}>{name}</div>
-                    <div className="asset-card-meta">
-                      <span>{formatSize(b.size)}</span>
-                      <button
-                        className="asset-card-delete"
-                        onClick={() => handleDelete(b)}
-                        title="삭제"
-                        disabled={isBusy}
-                      >&#x2715;</button>
+            {/* 업로드 중 */}
+            {uploading.length > 0 && (
+              <div className="asset-grid" style={{ marginTop: 12 }}>
+                {uploading.map((name) => (
+                  <div key={name} className="asset-card uploading">
+                    <div className="asset-card-preview">
+                      <div className="upload-spinner" />
                     </div>
+                    <div className="asset-card-info">
+                      <div className="asset-card-name">{name}</div>
+                      <div className="asset-card-meta"><span className="uploading-text">업로드 중...</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 종류별 파일 섹션 */}
+            {fileGroups.map(({ category, items }) => {
+              const meta = CATEGORY_META[category]
+              return (
+                <div key={category} className="sf-section">
+                  <div className="sf-section-header">
+                    <span className="sf-section-icon">{meta.icon}</span>
+                    <span className="sf-section-label">{meta.label}</span>
+                    <span className="sf-section-count">{items.length}</span>
+                  </div>
+                  <div className="asset-grid">
+                    {items.map(renderFileCard)}
                   </div>
                 </div>
               )
             })}
-          </div>
+          </>
         )}
       </div>
+
+      {/* 이미지 미리보기 모달 */}
+      {previewBlob && (
+        <div className="sf-preview-overlay" onClick={() => setPreviewBlob(null)}>
+          <div className="sf-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={previewBlob.url + (previewBlob.uploadedAt ? `?t=${new Date(previewBlob.uploadedAt).getTime()}` : '')}
+              alt={getFilename(previewBlob.pathname)}
+            />
+            <div className="sf-preview-info">
+              <span className="sf-preview-name">{getFilename(previewBlob.pathname)}</span>
+              <span className="sf-preview-size">{formatSize(previewBlob.size)}</span>
+              <button className="sf-preview-download" onClick={() => handleDownload(previewBlob)}><Download size={14} /> 다운로드</button>
+              <button className="sf-preview-close" onClick={() => setPreviewBlob(null)}>&#x2715;</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
