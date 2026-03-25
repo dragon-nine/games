@@ -29,6 +29,8 @@ type EventMap = {
   'action-switch': void;
   'action-forward': void;
   'action-pause': void;
+  // Challenge modal
+  'show-challenge': number; // score
 };
 
 type Listener<T> = (data: T) => void;

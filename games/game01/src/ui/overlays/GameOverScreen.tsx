@@ -54,6 +54,7 @@ export function GameOverScreen({ data }: Props) {
     'go-btn-challenge': () => {
       gameBus.emit('play-sfx', 'sfx-click');
       logClick('challenge_send');
+      gameBus.emit('show-challenge', score);
     },
     'go-btn-ranking': () => {
       gameBus.emit('play-sfx', 'sfx-click');

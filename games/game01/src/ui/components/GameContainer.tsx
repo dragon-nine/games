@@ -8,6 +8,7 @@ import { SettingsOverlay } from '../overlays/SettingsOverlay';
 import { PauseOverlay } from '../overlays/PauseOverlay';
 import { GameOverScreen } from '../overlays/GameOverScreen';
 import { GameplayHUD } from '../overlays/GameplayHUD';
+import { ChallengeOverlay } from '../overlays/ChallengeOverlay';
 
 const GAME_CONTAINER_ID = 'game-container';
 
@@ -15,6 +16,7 @@ export function GameContainer() {
   const gameRef = useRef<Phaser.Game | null>(null);
   const [screen, setScreen] = useState<GameScreen>('main');
   const [gameOverData, setGameOverData] = useState<GameOverData | null>(null);
+  const [challengeScore, setChallengeScore] = useState<number | null>(null);
 
   useEffect(() => {
     if (gameRef.current) return;
@@ -36,7 +38,8 @@ export function GameContainer() {
       setGameOverData(data);
       setScreen('game-over');
     });
-    return () => { unsub1(); unsub2(); };
+    const unsub3 = gameBus.on('show-challenge', (score) => setChallengeScore(score));
+    return () => { unsub1(); unsub2(); unsub3(); };
   }, []);
 
   return (
@@ -56,6 +59,9 @@ export function GameContainer() {
       {(screen === 'playing' || screen === 'paused') && <GameplayHUD />}
       {screen === 'paused' && <PauseOverlay />}
       {screen === 'game-over' && gameOverData && <GameOverScreen data={gameOverData} />}
+      {challengeScore !== null && (
+        <ChallengeOverlay score={challengeScore} onClose={() => setChallengeScore(null)} />
+      )}
     </div>
   );
 }

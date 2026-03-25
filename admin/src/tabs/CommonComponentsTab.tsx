@@ -19,6 +19,7 @@ export default function CommonComponentsTab() {
 
   // ChallengeModal state
   const [modalScore, setModalScore] = useState(1000)
+  const [modalImage, setModalImage] = useState('')
   const [modalMessage, setModalMessage] = useState('퇴근 직전 1000에서 \'잠깐만\' 당했다.\n분하면 도전해봐')
   const [modalCTA, setModalCTA] = useState('카카오톡으로 도전장 보내기')
   const [modalRefresh, setModalRefresh] = useState('다른 멘트로 바꾸기')
@@ -123,6 +124,7 @@ export default function CommonComponentsTab() {
             }}>
               <ChallengeModal
                 score={modalScore}
+                imageSrc={modalImage || undefined}
                 message={modalMessage}
                 ctaText={modalCTA}
                 refreshText={modalRefresh}
@@ -150,6 +152,10 @@ export default function CommonComponentsTab() {
             <label style={labelStyle}>
               <span>Score</span>
               <input type="text" value={modalScore} onChange={(e) => setModalScore(Number(e.target.value) || 0)} style={inputStyle} />
+            </label>
+            <label style={labelStyle}>
+              <span>Image URL (비워두면 이미지 없음)</span>
+              <input type="text" value={modalImage} onChange={(e) => setModalImage(e.target.value)} style={inputStyle} placeholder="https://..." />
             </label>
             <label style={labelStyle}>
               <span>Message</span>

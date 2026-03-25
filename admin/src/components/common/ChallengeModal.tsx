@@ -7,6 +7,7 @@ import CTAButton from './CTAButton'
 
 interface ChallengeModalProps {
   score?: number
+  imageSrc?: string
   message?: string
   ctaText?: string
   refreshText?: string
@@ -19,6 +20,7 @@ interface ChallengeModalProps {
 
 export default function ChallengeModal({
   score = 1000,
+  imageSrc,
   message = '퇴근 직전 1000에서 \'잠깐만\' 당했다.\n분하면 도전해봐',
   ctaText = '카카오톡으로 도전장 보내기',
   refreshText = '다른 멘트로 바꾸기',
@@ -50,9 +52,39 @@ export default function ChallengeModal({
       />
 
       {/* Score */}
-      <div style={{ paddingTop: 16, paddingBottom: 24 }}>
+      <div style={{ paddingTop: 16, paddingBottom: imageSrc ? 8 : 24 }}>
         <ScoreDisplay score={score} />
       </div>
+
+      {/* Challenge image */}
+      {imageSrc && (
+        <div style={{ position: 'relative', width: '60%', maxWidth: 180 }}>
+          <span style={{
+            position: 'absolute',
+            top: -8,
+            right: -8,
+            background: '#ff3b30',
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: 10,
+            zIndex: 1,
+          }}>
+            NEW
+          </span>
+          <img
+            src={imageSrc}
+            alt="challenge"
+            style={{
+              width: '100%',
+              height: 'auto',
+              borderRadius: 12,
+              objectFit: 'contain',
+            }}
+          />
+        </div>
+      )}
 
       {/* Message card */}
       <MessageCard
