@@ -284,6 +284,9 @@ const COLOR_GROUPS: { title: string; desc: string; items: { name: string; hex: s
       { name: 'darker', hex: colors.darker, usage: '카드, 아이콘 버튼 배경' },
       { name: 'modalBg', hex: colors.modalBg, usage: '모달 배경' },
       { name: 'black', hex: colors.black, usage: 'CTA, 텍스트 스트로크' },
+      { name: 'gameOverBtnLg', hex: colors.gameOverBtnLg, usage: '게임오버 큰 버튼' },
+      { name: 'gameOverBtnSm', hex: colors.gameOverBtnSm, usage: '게임오버 작은 버튼' },
+      { name: 'gameOverBtnLine', hex: colors.gameOverBtnLine, usage: '게임오버 작은 버튼 이너 라인' },
     ],
   },
   {

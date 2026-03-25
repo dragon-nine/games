@@ -6,6 +6,9 @@ export const colors = {
   darker: '#1a1a1f',
   modalBg: '#2a292e',
   black: '#000000',
+  gameOverBtnLg: '#24282c',
+  gameOverBtnSm: '#231816',
+  gameOverBtnLine: '#4d4340',
 
   // 강조
   red: '#c41e1e',
