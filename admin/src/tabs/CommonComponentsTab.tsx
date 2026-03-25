@@ -2,6 +2,7 @@ import { useState } from 'react'
 import GameButton from '../components/common/GameButton'
 import ChallengeModal from '../components/common/ChallengeModal'
 import MainTitle from '../components/common/MainTitle'
+import ButtonGuide from '../components/common/ButtonGuide'
 
 export default function CommonComponentsTab() {
   // GameButton state
@@ -17,6 +18,12 @@ export default function CommonComponentsTab() {
   const [textStrokeColor, setTextStrokeColor] = useState('#000000')
   const [paddingX, setPaddingX] = useState(48)
   const [paddingY, setPaddingY] = useState(16)
+
+  // ButtonGuide state
+  const [guideText, setGuideText] = useState('앞으로 한 칸 이동!')
+  const [guideDirection, setGuideDirection] = useState<'left' | 'right' | 'up' | 'down'>('right')
+  const [guideGlowColor, setGuideGlowColor] = useState('#00e5ff')
+  const [guideBtnSize, setGuideBtnSize] = useState(72)
 
   // MainTitle state
   const [titleLine1, setTitleLine1] = useState('직장인 잔혹사')
@@ -39,6 +46,68 @@ export default function CommonComponentsTab() {
   return (
     <div style={{ padding: 24 }}>
       <h2 style={{ marginBottom: 24, fontSize: 20, fontWeight: 600 }}>Common Components</h2>
+
+      {/* ── ButtonGuide Section ── */}
+      <section style={{ marginBottom: 48 }}>
+        <h3 style={sectionTitle}>ButtonGuide (튜토리얼 가이드)</h3>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 400px' }}>
+            <div style={{
+              background: '#111',
+              borderRadius: 12,
+              padding: 48,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 200,
+              gap: 60,
+              flexWrap: 'wrap',
+            }}>
+              {/* 전진 버튼 가이드 */}
+              <ButtonGuide
+                text={guideText}
+                arrowDirection={guideDirection}
+                glowColor={guideGlowColor}
+                buttonSize={guideBtnSize}
+              />
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <span style={{ fontSize: 13, color: '#666' }}>Original (unnamed.jpg)</span>
+              <div style={{ background: '#111', borderRadius: 12, padding: 24, marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="https://pub-a6e8e0aec44d4a69ae3ed4e096c5acc5.r2.dev/shared/unnamed.jpg" alt="tutorial original" style={{ maxWidth: 280, height: 'auto' }} />
+              </div>
+            </div>
+          </div>
+
+          <div style={controlsBox}>
+            <label style={labelStyle}>
+              <span>Guide Text</span>
+              <input type="text" value={guideText} onChange={(e) => setGuideText(e.target.value)} style={inputStyle} />
+            </label>
+            <label style={labelStyle}>
+              <span>Arrow Direction</span>
+              <select
+                value={guideDirection}
+                onChange={(e) => setGuideDirection(e.target.value as 'left' | 'right' | 'up' | 'down')}
+                style={inputStyle}
+              >
+                <option value="right">Right →</option>
+                <option value="left">← Left</option>
+                <option value="up">↑ Up</option>
+                <option value="down">↓ Down</option>
+              </select>
+            </label>
+            <label style={labelStyle}>
+              <span>Button Size: {guideBtnSize}px</span>
+              <input type="range" min={40} max={120} value={guideBtnSize} onChange={(e) => setGuideBtnSize(+e.target.value)} />
+            </label>
+            <label style={labelStyle}>
+              <span>Glow Color</span>
+              <input type="color" value={guideGlowColor} onChange={(e) => setGuideGlowColor(e.target.value)} />
+            </label>
+          </div>
+        </div>
+      </section>
 
       {/* ── MainTitle Section ── */}
       <section style={{ marginBottom: 48 }}>
