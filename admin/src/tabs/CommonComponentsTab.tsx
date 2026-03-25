@@ -162,7 +162,7 @@ function TypographySection() {
             />
           </label>
         </div>
-        <div style={{ background: '#111', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ background: '#6b7280', borderRadius: 12, overflow: 'hidden' }}>
           {typeScale.map((ts, i) => (
             <div
               key={ts.key}
@@ -171,7 +171,7 @@ function TypographySection() {
                 gridTemplateColumns: '140px 1fr 200px',
                 alignItems: 'center',
                 padding: '16px 20px',
-                borderBottom: i < typeScale.length - 1 ? '1px solid #222' : 'none',
+                borderBottom: i < typeScale.length - 1 ? '1px solid rgba(255,255,255,0.1)' : 'none',
                 gap: 16,
               }}
             >
@@ -207,7 +207,7 @@ function TypographySection() {
               </div>
 
               {/* Usage */}
-              <div style={{ fontSize: 12, color: '#666', textAlign: 'right' }}>{ts.usage}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'right' }}>{ts.usage}</div>
             </div>
           ))}
         </div>
