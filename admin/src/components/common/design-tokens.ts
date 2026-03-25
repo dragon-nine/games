@@ -57,26 +57,24 @@ export const font = {
 } as const
 
 /**
- * 타입 스케일 — 7단계 크기 시스템
+ * 타입 스케일 — 6단계 크기 시스템 (2xl ~ xs)
  * 모든 텍스트는 이 스케일 안에서 선택. 용도는 매핑으로 관리.
  */
 export const typeScale = {
-  display: { fontSize: 90, fontWeight: 900, stroke: 6 },
-  heading1: { fontSize: 72, fontWeight: 900, stroke: 6 },
-  heading2: { fontSize: 56, fontWeight: 900, stroke: 6 },
-  heading3: { fontSize: 28, fontWeight: 900, stroke: 3 },
-  body: { fontSize: 22, fontWeight: 700, stroke: 2.5 },
-  caption: { fontSize: 16, fontWeight: 700, stroke: 0 },
-  small: { fontSize: 13, fontWeight: 700, stroke: 0 },
+  '2xl': { fontSize: 72, fontWeight: 900, stroke: 6 },
+  xl: { fontSize: 56, fontWeight: 900, stroke: 6 },
+  lg: { fontSize: 28, fontWeight: 900, stroke: 3 },
+  md: { fontSize: 22, fontWeight: 700, stroke: 2.5 },
+  sm: { fontSize: 16, fontWeight: 700, stroke: 0 },
+  xs: { fontSize: 13, fontWeight: 700, stroke: 0 },
 } as const
 
 /** 용도별 스케일 매핑 */
 export const typeUsage: Record<string, { scale: keyof typeof typeScale; usages: string[] }> = {
-  display: { scale: 'display', usages: ['인게임 HUD 점수'] },
-  heading1: { scale: 'heading1', usages: ['게임오버 점수', '도전장 점수'] },
-  heading2: { scale: 'heading2', usages: ['메인 타이틀 (직장인 잔혹사)'] },
-  heading3: { scale: 'heading3', usages: ['홈으로 가기', '광고보고 부활', '퇴근하기'] },
-  body: { scale: 'body', usages: ['도전장 보내기', '랭킹 보기', '서브타이틀'] },
-  caption: { scale: 'caption', usages: ['카카오톡 CTA', '게임오버 멘트'] },
-  small: { scale: 'small', usages: ['가이드 텍스트', '라벨', '최고기록'] },
+  '2xl': { scale: '2xl', usages: ['게임 점수 (HUD, 게임오버, 도전장)'] },
+  xl: { scale: 'xl', usages: ['메인 타이틀 (직장인 잔혹사)'] },
+  lg: { scale: 'lg', usages: ['홈으로 가기', '광고보고 부활', '퇴근하기'] },
+  md: { scale: 'md', usages: ['도전장 보내기', '랭킹 보기', '서브타이틀'] },
+  sm: { scale: 'sm', usages: ['카카오톡 CTA', '게임오버 멘트'] },
+  xs: { scale: 'xs', usages: ['가이드 텍스트', '라벨', '최고기록'] },
 }
