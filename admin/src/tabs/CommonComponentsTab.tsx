@@ -155,7 +155,7 @@ function TypographySection() {
           <EffectCard
             label="No Stroke"
             desc="CTA, 본문, 라벨에 사용"
-            bg="#555"
+            bg="#969696"
             text="텍스트"
             renderText={(text) => (
               <span style={{ fontFamily: font.primary, fontSize: 32, fontWeight: 900, color: '#fff' }}>{text}</span>
@@ -164,7 +164,7 @@ function TypographySection() {
           <EffectCard
             label="Single Stroke"
             desc="버튼 텍스트에 사용 (2-3px)"
-            bg="#555"
+            bg="#969696"
             text="텍스트"
             renderText={(text) => (
               <span style={{ fontFamily: font.primary, fontSize: 32, fontWeight: 900, color: '#fff', WebkitTextStroke: '3px #000', paintOrder: 'stroke fill' }}>{text}</span>
@@ -173,7 +173,7 @@ function TypographySection() {
           <EffectCard
             label="Double Stroke"
             desc="타이틀에 사용 — 3중 레이어 (흰색 외곽 → 검정 내곽 → 그라데이션 fill)"
-            bg="#555"
+            bg="#969696"
             text="텍스트"
             renderText={(text) => (
               <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -203,7 +203,7 @@ function TypographySection() {
             />
           </label>
         </div>
-        <div style={{ background: '#555', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ background: '#969696', borderRadius: 12, overflow: 'hidden' }}>
           {typeScale.map((ts, i) => (
             <div
               key={ts.key}
