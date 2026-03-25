@@ -110,8 +110,6 @@ export default function CommonComponentsTab() {
    ═══════════════════════════════════════════ */
 
 function TypographySection() {
-  const [sampleText, setSampleText] = useState('직장인 잔혹사')
-
   const scaleEntries = Object.entries(typeScale) as [keyof typeof typeScale, typeof typeScale[keyof typeof typeScale]][]
 
   return (
@@ -165,17 +163,6 @@ function TypographySection() {
           title="Type Scale"
           desc="폰트 크기별 위계. 큰 것부터 작은 것 순서로 — 모든 텍스트는 이 스케일 안에서 선택."
         />
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#888' }}>
-            <span>Sample</span>
-            <input
-              type="text"
-              value={sampleText}
-              onChange={(e) => setSampleText(e.target.value)}
-              style={inputStyle}
-            />
-          </label>
-        </div>
         <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', border: '1px solid #e8e8e8' }}>
           {scaleEntries.map(([name, ts], i) => {
             const usage = typeUsage[name]
@@ -214,7 +201,7 @@ function TypographySection() {
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}>
-                  {sampleText}
+                  {usage?.usages[0] ?? name}
                 </div>
 
                 {/* Usages */}
