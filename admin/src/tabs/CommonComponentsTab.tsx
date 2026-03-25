@@ -401,8 +401,8 @@ function ColorSection() {
           <GradientCard
             label="Title Gradient"
             desc="메인 타이틀 텍스트"
-            from={colors.blue}
-            to={colors.blueLight}
+            from="#ffffff"
+            to="#c1e5ff"
             direction="to bottom"
           />
           <GradientCard
