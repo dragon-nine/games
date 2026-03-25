@@ -1,18 +1,11 @@
 {
-  "name": "직장인 잔혹시",
-  "short_name": "직장인 잔혹시",
-  "description": "당신의 하루를 견뎌내세요 - 출퇴근 서바이벌 게임",
+  "name": "DragonNine",
+  "short_name": "DragonNine",
+  "description": "DragonNine Games",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0a14",
   "theme_color": "#e94560",
-  "icons": [
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
-  ]
+  "icons": []
 }
