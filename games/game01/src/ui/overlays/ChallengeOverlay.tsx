@@ -63,7 +63,7 @@ export function ChallengeOverlay({ score, onClose }: Props) {
         className={styles.fadeInUp}
         style={{
           position: 'relative',
-          width: 'min(340px, 88vw)',
+          width: 'min(340px, 92vw)',
           backgroundColor: '#2a292e',
           borderRadius: 20,
           padding: '24px 20px 20px',
