@@ -159,7 +159,7 @@ function useTodoDone() {
     } catch { return new Set() }
   })
   const [synced, setSynced] = useState(false)
-  const saveTimer = useRef<ReturnType<typeof setTimeout>>()
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // R2에서 초기 로드
   useEffect(() => {
@@ -176,7 +176,7 @@ function useTodoDone() {
   // R2에 디바운스 저장 (500ms)
   const saveToR2 = useCallback((next: Set<string>) => {
     localStorage.setItem(LOCAL_KEY, JSON.stringify([...next]))
-    if (saveTimer.current) clearTimeout(saveTimer.current)
+    if (saveTimer.current !== null) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
       putJson(R2_KEY, [...next]).catch(() => {/* R2 실패 시 localStorage만 유지 */})
     }, 500)
