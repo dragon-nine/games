@@ -288,7 +288,7 @@ const COLOR_GROUPS: { title: string; desc: string; items: { name: string; hex: s
       { name: 'black', hex: colors.black, usage: 'CTA, 텍스트 스트로크' },
       { name: 'gameOverBtnLg', hex: colors.gameOverBtnLg, usage: '게임오버 큰 버튼' },
       { name: 'gameOverBtnSm', hex: colors.gameOverBtnSm, usage: '게임오버 작은 버튼' },
-      { name: 'gameOverBtnLine', hex: colors.gameOverBtnLine, usage: '게임오버 작은 버튼 이너 라인' },
+      { name: 'gameOverBtnLine', hex: colors.gameOverBtnLine, usage: '게임오버 작은 버튼 더블 라인' },
     ],
   },
   {
@@ -498,22 +498,22 @@ function SpaceShapeSection() {
    4. BUTTONS — 버튼 스타일 유형
    ═══════════════════════════════════════════ */
 
-type ButtonStyle = 'flat' | 'outline' | 'innerLine'
+type ButtonStyle = 'flat' | 'outline' | 'doubleLine'
 
-function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor, borderColor, innerLineColor, borderRadius = 12 }: {
+function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor, borderColor, doubleLineColor, borderRadius = 12 }: {
   variant?: ButtonStyle
   children: React.ReactNode
   icon?: string
   scale?: TypeScaleKey
   bgColor?: string
   borderColor?: string
-  innerLineColor?: string
+  doubleLineColor?: string
   borderRadius?: number
 }) {
   const s = typeScale[scale]
   const bg = bgColor || colors.gameOverBtnLg
   const border = borderColor || '#000'
-  const innerLine = innerLineColor || colors.gameOverBtnLine
+  const doubleLine = doubleLineColor || colors.gameOverBtnLine
 
   return (
     <div style={{
@@ -521,14 +521,14 @@ function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor, b
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      padding: variant === 'innerLine' ? '4px' : undefined,
+      padding: variant === 'doubleLine' ? '4px' : undefined,
       background: bg,
       borderRadius,
       border: variant !== 'flat' ? `3px solid ${border}` : 'none',
       cursor: 'pointer',
       position: 'relative',
     }}>
-      {variant === 'innerLine' ? (
+      {variant === 'doubleLine' ? (
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -536,7 +536,7 @@ function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor, b
           gap: 8,
           padding: `${Math.round(s.fontSize * 0.5)}px ${Math.round(s.fontSize * 0.9)}px`,
           borderRadius: borderRadius - 4,
-          border: `2px solid ${innerLine}`,
+          border: `2px solid ${doubleLine}`,
           width: '100%',
         }}>
           {icon && <span style={{ fontSize: s.fontSize }}>{icon}</span>}
@@ -611,18 +611,18 @@ function ButtonStylesSection() {
             </div>
           </div>
 
-          {/* Inner Line */}
+          {/* Double Line */}
           <div style={{ border: '1px solid #e8e8e8', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ background: '#333', padding: '40px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <GameButton variant="innerLine" scale="md" icon="🔥" bgColor={colors.gameOverBtnSm} innerLineColor={colors.gameOverBtnLine}>도전장 보내기</GameButton>
+              <GameButton variant="doubleLine" scale="md" icon="🔥" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>도전장 보내기</GameButton>
             </div>
             <div style={{ padding: '16px 20px' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>Inner Line</div>
-              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>외곽 테두리 + 안쪽 이너 라인. 강조 액션 버튼에 사용.</p>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>Double Line</div>
+              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>외곽 테두리 + 안쪽 더블 라인. 강조 액션 버튼에 사용.</p>
               <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
                 <Tag>배경색</Tag>
                 <Tag>외곽 border</Tag>
-                <Tag>이너 라인</Tag>
+                <Tag>더블 라인</Tag>
               </div>
             </div>
           </div>
@@ -631,13 +631,13 @@ function ButtonStylesSection() {
 
       {/* Anatomy */}
       <section>
-        <SectionHeader title="Anatomy" desc="Inner Line 버튼의 구조 분해." />
+        <SectionHeader title="Anatomy" desc="Double Line 버튼의 구조 분해." />
         <div style={{ background: '#333', borderRadius: 12, padding: 40, display: 'flex', justifyContent: 'center' }}>
           <div style={{ position: 'relative', display: 'inline-block' }}>
-            <GameButton variant="innerLine" scale="lg" icon="🔥" bgColor={colors.gameOverBtnSm} innerLineColor={colors.gameOverBtnLine}>도전장 보내기</GameButton>
+            <GameButton variant="doubleLine" scale="lg" icon="🔥" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>도전장 보내기</GameButton>
             {/* Labels */}
             <div style={{ position: 'absolute', top: -24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap' }}>outer border (3px)</div>
-            <div style={{ position: 'absolute', bottom: -24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: colors.gameOverBtnLine, background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap' }}>inner line (2px)</div>
+            <div style={{ position: 'absolute', bottom: -24, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: colors.gameOverBtnLine, background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap' }}>double line — inner (2px)</div>
           </div>
         </div>
       </section>
@@ -646,10 +646,10 @@ function ButtonStylesSection() {
       <section>
         <SectionHeader title="Scale Variants" desc="같은 유형에 다른 Type Scale 적용." />
         <div style={{ background: '#333', borderRadius: 12, padding: 32, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          <GameButton variant="innerLine" scale="lg" icon="🔥" bgColor={colors.gameOverBtnSm} innerLineColor={colors.gameOverBtnLine}>lg — 도전장</GameButton>
-          <GameButton variant="innerLine" scale="md" icon="🏆" bgColor={colors.gameOverBtnSm} innerLineColor={colors.gameOverBtnLine}>md — 랭킹</GameButton>
-          <GameButton variant="innerLine" scale="sm" bgColor={colors.gameOverBtnSm} innerLineColor={colors.gameOverBtnLine}>sm — 더보기</GameButton>
-          <GameButton variant="innerLine" scale="xs" bgColor={colors.gameOverBtnSm} innerLineColor={colors.gameOverBtnLine}>xs — 라벨</GameButton>
+          <GameButton variant="doubleLine" scale="lg" icon="🔥" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>lg — 도전장</GameButton>
+          <GameButton variant="doubleLine" scale="md" icon="🏆" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>md — 랭킹</GameButton>
+          <GameButton variant="doubleLine" scale="sm" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>sm — 더보기</GameButton>
+          <GameButton variant="doubleLine" scale="xs" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>xs — 라벨</GameButton>
         </div>
       </section>
     </div>
