@@ -5,7 +5,7 @@ import GaugeBar from '../components/common/GaugeBar'
 import MainTitle from '../components/common/MainTitle'
 import ButtonGuide from '../components/common/ButtonGuide'
 import ChallengeModal from '../components/common/ChallengeModal'
-import { colors, radius, font, spacing, typeScale, typeUsage } from '../components/common/design-tokens'
+import { colors, radius, font, spacing, typeScale, typeUsage, buttonStyleDefaults } from '../components/common/design-tokens'
 import { DEFAULT_SPEC, R2_KEY, type DesignSpec, type TypeScaleKey, type ButtonStyleType } from '../components/common/design-spec'
 import { getJson, putJson } from '../api'
 
@@ -496,20 +496,16 @@ function SpaceShapeSection() {
 
 type ButtonStyle = 'flat' | 'outline' | 'doubleLine'
 
-function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor, borderColor, doubleLineColor, borderRadius = 12 }: {
+function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor }: {
   variant?: ButtonStyle
   children: React.ReactNode
   icon?: string
   scale?: TypeScaleKey
   bgColor?: string
-  borderColor?: string
-  doubleLineColor?: string
-  borderRadius?: number
 }) {
   const s = typeScale[scale]
+  const d = buttonStyleDefaults[variant]
   const bg = bgColor || colors.gameOverBtnLg
-  const border = borderColor || '#000'
-  const doubleLine = doubleLineColor || colors.gameOverBtnLine
 
   return (
     <div style={{
@@ -519,8 +515,8 @@ function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor, b
       gap: 8,
       padding: variant === 'doubleLine' ? '4px' : undefined,
       background: bg,
-      borderRadius,
-      border: variant !== 'flat' ? `3px solid ${border}` : 'none',
+      borderRadius: d.borderRadius,
+      border: d.borderWidth > 0 ? `${d.borderWidth}px solid ${d.borderColor}` : 'none',
       cursor: 'pointer',
       position: 'relative',
     }}>
@@ -531,8 +527,8 @@ function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor, b
           justifyContent: 'center',
           gap: 8,
           padding: `${Math.round(s.fontSize * 0.5)}px ${Math.round(s.fontSize * 0.9)}px`,
-          borderRadius: borderRadius - 4,
-          border: `2px solid ${doubleLine}`,
+          borderRadius: d.borderRadius - 4,
+          border: `${d.innerLineWidth}px solid ${d.innerLineColor}`,
           width: '100%',
         }}>
           {icon && <span style={{ fontSize: s.fontSize }}>{icon}</span>}
@@ -610,7 +606,7 @@ function ButtonStylesSection() {
           {/* Double Line */}
           <div style={{ border: '1px solid #e8e8e8', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ background: '#333', padding: '40px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <GameButton variant="doubleLine" scale="md" icon="🔥" bgColor={colors.gameOverBtnSm} doubleLineColor={colors.gameOverBtnLine}>도전장 보내기</GameButton>
+              <GameButton variant="doubleLine" scale="md" icon="🔥" bgColor={colors.gameOverBtnSm}>도전장 보내기</GameButton>
             </div>
             <div style={{ padding: '16px 20px' }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>Double Line</div>
@@ -658,7 +654,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="어두운 배경의 기본 액션 버튼. 게임오버 화면의 '홈으로 가기'에 사용."
         preview={
           <Preview bg="#444">
-            <GameButton variant={d.buttonStyle} scale={d.scale} bgColor={d.bgColor} borderColor={d.borderColor} doubleLineColor={d.innerLineColor} borderRadius={d.borderRadius}>홈으로 가기</GameButton>
+            <GameButton variant={d.buttonStyle} scale={d.scale} bgColor={d.bgColor}>홈으로 가기</GameButton>
           </Preview>
         }
         original="/game01/game-over-screen/btn-home.png"
@@ -666,10 +662,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
           <>
             <ButtonStyleField label="Button Style" value={d.buttonStyle} onChange={(v) => update('darkButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={d.scale} onChange={(v) => update('darkButton', { scale: v })} />
-            <NumField label="Border Radius" value={d.borderRadius} onChange={(v) => update('darkButton', { borderRadius: v })} max={40} />
             <ColorField label="Background" value={d.bgColor} onChange={(v) => update('darkButton', { bgColor: v })} />
-            {d.buttonStyle !== 'flat' && <ColorField label="Border" value={d.borderColor} onChange={(v) => update('darkButton', { borderColor: v })} />}
-            {d.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={d.innerLineColor} onChange={(v) => update('darkButton', { innerLineColor: v })} />}
           </>
         }
         tokens={[d.scale, d.buttonStyle]}
@@ -682,7 +675,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="그라데이션 강조 버튼. 긴박한 액션('광고보고 부활')에 사용."
         preview={
           <Preview bg="#111">
-            <GameButton variant={r.buttonStyle} scale={r.scale} bgColor={`linear-gradient(135deg, ${r.gradientFrom}, ${r.gradientTo})`} borderColor={r.borderColor} doubleLineColor={r.innerLineColor} borderRadius={r.borderRadius}>광고보고 부활</GameButton>
+            <GameButton variant={r.buttonStyle} scale={r.scale} bgColor={`linear-gradient(135deg, ${r.gradientFrom}, ${r.gradientTo})`}>광고보고 부활</GameButton>
           </Preview>
         }
         original="/game01/game-over-screen/btn-revive.png"
@@ -690,11 +683,8 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
           <>
             <ButtonStyleField label="Button Style" value={r.buttonStyle} onChange={(v) => update('redButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={r.scale} onChange={(v) => update('redButton', { scale: v })} />
-            <NumField label="Border Radius" value={r.borderRadius} onChange={(v) => update('redButton', { borderRadius: v })} max={40} />
             <ColorField label="Gradient From" value={r.gradientFrom} onChange={(v) => update('redButton', { gradientFrom: v })} />
             <ColorField label="Gradient To" value={r.gradientTo} onChange={(v) => update('redButton', { gradientTo: v })} />
-            {r.buttonStyle !== 'flat' && <ColorField label="Border" value={r.borderColor} onChange={(v) => update('redButton', { borderColor: v })} />}
-            {r.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={r.innerLineColor} onChange={(v) => update('redButton', { innerLineColor: v })} />}
           </>
         }
         tokens={[r.scale, r.buttonStyle]}
@@ -708,8 +698,8 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         preview={
           <Preview bg="#111">
             <div style={{ display: 'flex', gap: 12 }}>
-              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🔥" bgColor={ic.bgColor} borderColor={ic.borderColor} doubleLineColor={ic.innerLineColor} borderRadius={ic.borderRadius}>도전장 보내기</GameButton>
-              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🏆" bgColor={ic.bgColor} borderColor={ic.borderColor} doubleLineColor={ic.innerLineColor} borderRadius={ic.borderRadius}>랭킹 보기</GameButton>
+              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🔥" bgColor={ic.bgColor}>도전장 보내기</GameButton>
+              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🏆" bgColor={ic.bgColor}>랭킹 보기</GameButton>
             </div>
           </Preview>
         }
@@ -717,10 +707,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
           <>
             <ButtonStyleField label="Button Style" value={ic.buttonStyle} onChange={(v) => update('iconButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={ic.scale} onChange={(v) => update('iconButton', { scale: v })} />
-            <NumField label="Border Radius" value={ic.borderRadius} onChange={(v) => update('iconButton', { borderRadius: v })} max={30} />
             <ColorField label="Background" value={ic.bgColor} onChange={(v) => update('iconButton', { bgColor: v })} />
-            {ic.buttonStyle !== 'flat' && <ColorField label="Border" value={ic.borderColor} onChange={(v) => update('iconButton', { borderColor: v })} />}
-            {ic.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={ic.innerLineColor} onChange={(v) => update('iconButton', { innerLineColor: v })} />}
           </>
         }
         tokens={[ic.scale, ic.buttonStyle]}
@@ -733,7 +720,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="돌 텍스처의 메인 CTA 버튼. 메인 화면의 '퇴근하기'에 사용."
         preview={
           <Preview bg="#111">
-            <GameButton variant={st.buttonStyle} scale={st.scale} bgColor={st.bgColor} borderColor={st.borderColor} doubleLineColor={st.innerLineColor} borderRadius={st.borderRadius}>퇴근하기</GameButton>
+            <GameButton variant={st.buttonStyle} scale={st.scale} bgColor={st.bgColor}>퇴근하기</GameButton>
           </Preview>
         }
         original="/game01/main-screen/main-btn.png"
@@ -741,10 +728,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
           <>
             <ButtonStyleField label="Button Style" value={st.buttonStyle} onChange={(v) => update('stoneButton', { buttonStyle: v })} />
             <ScaleField label="Type Scale" value={st.scale} onChange={(v) => update('stoneButton', { scale: v })} />
-            <NumField label="Border Radius" value={st.borderRadius} onChange={(v) => update('stoneButton', { borderRadius: v })} max={40} />
             <ColorField label="Background" value={st.bgColor} onChange={(v) => update('stoneButton', { bgColor: v })} />
-            {st.buttonStyle !== 'flat' && <ColorField label="Border" value={st.borderColor} onChange={(v) => update('stoneButton', { borderColor: v })} />}
-            {st.buttonStyle === 'doubleLine' && <ColorField label="Inner Line" value={st.innerLineColor} onChange={(v) => update('stoneButton', { innerLineColor: v })} />}
           </>
         }
         tokens={[st.scale, st.buttonStyle]}

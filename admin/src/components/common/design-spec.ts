@@ -9,9 +9,6 @@ export interface ButtonSpec {
   scale: TypeScaleKey
   buttonStyle: ButtonStyleType
   bgColor: string
-  borderColor: string
-  innerLineColor: string
-  borderRadius: number
   [key: string]: number | string | undefined
 }
 
@@ -47,17 +44,11 @@ export const DEFAULT_SPEC: DesignSpec = {
     scale: 'lg',
     buttonStyle: 'outline',
     bgColor: '#24282c',
-    borderColor: '#000000',
-    innerLineColor: '#4d4340',
-    borderRadius: 12,
   },
   redButton: {
     scale: 'lg',
     buttonStyle: 'flat',
     bgColor: '#c41e1e',
-    borderColor: '#8b1a1a',
-    innerLineColor: '#4d4340',
-    borderRadius: 12,
     gradientFrom: '#e53935',
     gradientTo: '#8b1a1a',
   },
@@ -65,17 +56,11 @@ export const DEFAULT_SPEC: DesignSpec = {
     scale: 'md',
     buttonStyle: 'doubleLine',
     bgColor: '#231816',
-    borderColor: '#000000',
-    innerLineColor: '#4d4340',
-    borderRadius: 12,
   },
   stoneButton: {
     scale: 'lg',
     buttonStyle: 'outline',
     bgColor: '#4a5a6a',
-    borderColor: '#3a4a5a',
-    innerLineColor: '#4d4340',
-    borderRadius: 16,
   },
   circleButton: {
     size: 80,

@@ -72,6 +72,31 @@ export const typeScale = {
   xs: { fontSize: 13, fontWeight: 700, stroke: 0 },
 } as const
 
+/** 버튼 스타일 기본값 */
+export const buttonStyleDefaults = {
+  flat: {
+    borderWidth: 0,
+    borderColor: 'transparent',
+    innerLineWidth: 0,
+    innerLineColor: 'transparent',
+    borderRadius: 12,
+  },
+  outline: {
+    borderWidth: 3,
+    borderColor: '#000000',
+    innerLineWidth: 0,
+    innerLineColor: 'transparent',
+    borderRadius: 12,
+  },
+  doubleLine: {
+    borderWidth: 3,
+    borderColor: '#000000',
+    innerLineWidth: 2,
+    innerLineColor: '#4d4340',
+    borderRadius: 12,
+  },
+} as const
+
 /** 용도별 스케일 매핑 */
 export const typeUsage: Record<string, { scale: keyof typeof typeScale; usages: string[] }> = {
   '2xl': { scale: '2xl', usages: ['게임 점수 (HUD, 게임오버, 도전장)'] },
