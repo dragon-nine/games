@@ -88,7 +88,6 @@ export default function TabNav({ activePage, onPageChange, open }: Props) {
     return () => clearInterval(id)
   }, [])
 
-  const commonPageIds = COMMON_ITEMS.map((i) => i.id as string)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {}
     GAMES.forEach((g) => {

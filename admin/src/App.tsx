@@ -6,6 +6,7 @@ import SharedFilesTab from './tabs/SharedFilesTab'
 import LayoutEditorTab from './tabs/LayoutEditorTab'
 import LaunchPrepTab from './tabs/LaunchPrepTab'
 import GameDashboard from './tabs/GameDashboard'
+import TodoHomePage from './tabs/TodoHomePage'
 import MemoTab from './tabs/MemoTab'
 import ChecklistTab from './tabs/ChecklistTab'
 import ContentTab from './tabs/ContentTab'
@@ -52,7 +53,7 @@ export default function App() {
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
       <TabNav activePage={page} onPageChange={handlePageChange} open={sidebarOpen} />
       <main className="admin-content">
-        {page === 'dashboard' && <GameDashboard />}
+        {page === 'dashboard' && <TodoHomePage />}
         {page === 'game01-assets' && <GameAssetsTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
         {page === 'game02-assets' && <PlaceholderTab title="game02 에셋 관리" message="game02 프로젝트가 생성되면 활성화됩니다." />}
         {page === 'game01-layout' && <LayoutEditorTab gameId="game01" gameName="직장인 잔혹시" onBanner={showBanner} />}
