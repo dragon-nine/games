@@ -1,9 +1,11 @@
 /** 디자인 시스템 스펙 — R2에 JSON으로 저장/로드 */
 
+import type { typeScale } from './design-tokens'
+
+export type TypeScaleKey = keyof typeof typeScale
+
 export interface ComponentSpec {
-  fontSize: number
-  fontWeight: number
-  strokeWidth: number
+  scale: TypeScaleKey
   borderRadius: number
   borderWidth: number
   paddingX: number
@@ -19,9 +21,8 @@ export interface DesignSpec {
   circleButton: { size: number; iconSize: number }
   gaugeBar: { height: number; borderWidth: number; fillColor: string }
   mainTitle: {
-    line1Size: number
-    line2Size: number
-    strokeWidth: number
+    line1Scale: TypeScaleKey
+    line2Scale: TypeScaleKey
     gradientFrom: string
     gradientTo: string
     line2Color: string
@@ -33,17 +34,15 @@ export interface DesignSpec {
     paddingY: number
     gap: number
     bgColor: string
-    scoreFontSize: number
-    messageFontSize: number
-    ctaFontSize: number
+    scoreScale: TypeScaleKey
+    messageScale: TypeScaleKey
+    ctaScale: TypeScaleKey
   }
 }
 
 export const DEFAULT_SPEC: DesignSpec = {
   darkButton: {
-    fontSize: 28,
-    fontWeight: 900,
-    strokeWidth: 3,
+    scale: 'lg',
     borderRadius: 16,
     borderWidth: 3,
     paddingX: 24,
@@ -52,9 +51,7 @@ export const DEFAULT_SPEC: DesignSpec = {
     borderColor: '#000000',
   },
   redButton: {
-    fontSize: 28,
-    fontWeight: 900,
-    strokeWidth: 3,
+    scale: 'lg',
     borderRadius: 16,
     borderWidth: 3,
     paddingX: 24,
@@ -64,9 +61,7 @@ export const DEFAULT_SPEC: DesignSpec = {
     borderColor: '#8b1a1a',
   },
   iconButton: {
-    fontSize: 22,
-    fontWeight: 900,
-    strokeWidth: 2.5,
+    scale: 'md',
     borderRadius: 12,
     borderWidth: 3,
     paddingX: 20,
@@ -76,9 +71,7 @@ export const DEFAULT_SPEC: DesignSpec = {
     outlineColor: '#555555',
   },
   stoneButton: {
-    fontSize: 26,
-    fontWeight: 900,
-    strokeWidth: 3,
+    scale: 'lg',
     borderRadius: 16,
     borderWidth: 4,
     paddingX: 40,
@@ -96,9 +89,8 @@ export const DEFAULT_SPEC: DesignSpec = {
     fillColor: '#c41e1e',
   },
   mainTitle: {
-    line1Size: 56,
-    line2Size: 24,
-    strokeWidth: 6,
+    line1Scale: 'xl',
+    line2Scale: 'md',
     gradientFrom: '#1a6fc4',
     gradientTo: '#7ec8e3',
     line2Color: '#ffffff',
@@ -110,9 +102,9 @@ export const DEFAULT_SPEC: DesignSpec = {
     paddingY: 26,
     gap: 16,
     bgColor: '#2a292e',
-    scoreFontSize: 72,
-    messageFontSize: 14,
-    ctaFontSize: 16,
+    scoreScale: '2xl',
+    messageScale: 'sm',
+    ctaScale: 'sm',
   },
 }
 

@@ -10,7 +10,7 @@ import MainTitle from '../components/common/MainTitle'
 import ButtonGuide from '../components/common/ButtonGuide'
 import ChallengeModal from '../components/common/ChallengeModal'
 import { colors, radius, font, spacing, typeScale, typeUsage } from '../components/common/design-tokens'
-import { DEFAULT_SPEC, R2_KEY, type DesignSpec } from '../components/common/design-spec'
+import { DEFAULT_SPEC, R2_KEY, type DesignSpec, type TypeScaleKey } from '../components/common/design-spec'
 import { getJson, putJson } from '../api'
 
 type Tab = 'typography' | 'color' | 'space' | 'components' | 'compositions'
@@ -495,11 +495,20 @@ function SpaceShapeSection() {
 
 type UpdateFn = <K extends keyof DesignSpec>(key: K, partial: Partial<DesignSpec[K]>) => void
 
+/** typeScale 키에서 fontSize, stroke 가져오기 */
+function getScale(key: TypeScaleKey) {
+  return typeScale[key]
+}
+
 function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateFn }) {
   const d = spec.darkButton
+  const ds = getScale(d.scale)
   const r = spec.redButton
+  const rs = getScale(r.scale)
   const ic = spec.iconButton
+  const ics = getScale(ic.scale)
   const st = spec.stoneButton
+  const sts = getScale(st.scale)
   const cb = spec.circleButton
   const [gaugeVal, setGaugeVal] = useState(0.7)
   const g = spec.gaugeBar
@@ -513,14 +522,13 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="어두운 배경의 기본 액션 버튼. 게임오버 화면의 '홈으로 가기'에 사용."
         preview={
           <Preview bg="#fff">
-            <DarkButton fontSize={d.fontSize} style={{ borderRadius: d.borderRadius, border: `${d.borderWidth}px solid ${d.borderColor}`, padding: `${d.paddingY}px ${d.paddingX}px`, WebkitTextStroke: `${d.strokeWidth}px #000`, backgroundColor: d.bgColor }}>홈으로 가기</DarkButton>
+            <DarkButton fontSize={ds.fontSize} style={{ borderRadius: d.borderRadius, border: `${d.borderWidth}px solid ${d.borderColor}`, padding: `${d.paddingY}px ${d.paddingX}px`, WebkitTextStroke: `${ds.stroke}px #000`, backgroundColor: d.bgColor }}>홈으로 가기</DarkButton>
           </Preview>
         }
         original="/game01/game-over-screen/btn-home.png"
         controls={
           <>
-            <NumField label="Font Size" value={d.fontSize} onChange={(v) => update('darkButton', { fontSize: v })} min={16} max={48} />
-            <NumField label="Stroke" value={d.strokeWidth} onChange={(v) => update('darkButton', { strokeWidth: v })} min={0} max={8} step={0.5} />
+            <ScaleField label="Type Scale" value={d.scale} onChange={(v) => update('darkButton', { scale: v })} />
             <NumField label="Border Radius" value={d.borderRadius} onChange={(v) => update('darkButton', { borderRadius: v })} max={40} />
             <NumField label="Border Width" value={d.borderWidth} onChange={(v) => update('darkButton', { borderWidth: v })} max={10} />
             <NumField label="Padding X" value={d.paddingX} onChange={(v) => update('darkButton', { paddingX: v })} max={60} />
@@ -529,7 +537,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
             <ColorField label="Border" value={d.borderColor} onChange={(v) => update('darkButton', { borderColor: v })} />
           </>
         }
-        tokens={['dark', 'buttonLarge', 'radius.lg']}
+        tokens={[d.scale, 'dark', 'radius.lg']}
       />
 
       {/* RedButton */}
@@ -539,14 +547,13 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="그라데이션 강조 버튼. 긴박한 액션('광고보고 부활')에 사용."
         preview={
           <Preview bg="#111">
-            <RedButton fontSize={r.fontSize} style={{ borderRadius: r.borderRadius, border: `${r.borderWidth}px solid ${r.borderColor}`, padding: `${r.paddingY}px ${r.paddingX}px`, WebkitTextStroke: `${r.strokeWidth}px #000`, background: `linear-gradient(135deg, ${r.gradientFrom}, ${r.gradientTo})` }}>광고보고 부활</RedButton>
+            <RedButton fontSize={rs.fontSize} style={{ borderRadius: r.borderRadius, border: `${r.borderWidth}px solid ${r.borderColor}`, padding: `${r.paddingY}px ${r.paddingX}px`, WebkitTextStroke: `${rs.stroke}px #000`, background: `linear-gradient(135deg, ${r.gradientFrom}, ${r.gradientTo})` }}>광고보고 부활</RedButton>
           </Preview>
         }
         original="/game01/game-over-screen/btn-revive.png"
         controls={
           <>
-            <NumField label="Font Size" value={r.fontSize} onChange={(v) => update('redButton', { fontSize: v })} min={16} max={48} />
-            <NumField label="Stroke" value={r.strokeWidth} onChange={(v) => update('redButton', { strokeWidth: v })} min={0} max={8} step={0.5} />
+            <ScaleField label="Type Scale" value={r.scale} onChange={(v) => update('redButton', { scale: v })} />
             <NumField label="Border Radius" value={r.borderRadius} onChange={(v) => update('redButton', { borderRadius: v })} max={40} />
             <NumField label="Padding X" value={r.paddingX} onChange={(v) => update('redButton', { paddingX: v })} max={60} />
             <NumField label="Padding Y" value={r.paddingY} onChange={(v) => update('redButton', { paddingY: v })} max={30} />
@@ -555,7 +562,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
             <ColorField label="Border" value={r.borderColor} onChange={(v) => update('redButton', { borderColor: v })} />
           </>
         }
-        tokens={['red → redDark', 'buttonLarge', 'radius.lg']}
+        tokens={[r.scale, 'red → redDark', 'radius.lg']}
       />
 
       {/* IconButton */}
@@ -566,15 +573,14 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         preview={
           <Preview bg="#111">
             <div style={{ display: 'flex', gap: 12 }}>
-              <IconButton icon="🔥" fontSize={ic.fontSize} style={{ borderRadius: ic.borderRadius, border: `${ic.borderWidth}px solid ${ic.borderColor}`, outline: `2px solid ${ic.outlineColor}`, padding: `${ic.paddingY}px ${ic.paddingX}px`, backgroundColor: ic.bgColor, WebkitTextStroke: `${ic.strokeWidth}px #000` }}>도전장 보내기</IconButton>
-              <IconButton icon="🏆" fontSize={ic.fontSize} style={{ borderRadius: ic.borderRadius, border: `${ic.borderWidth}px solid ${ic.borderColor}`, outline: `2px solid ${ic.outlineColor}`, padding: `${ic.paddingY}px ${ic.paddingX}px`, backgroundColor: ic.bgColor, WebkitTextStroke: `${ic.strokeWidth}px #000` }}>랭킹 보기</IconButton>
+              <IconButton icon="🔥" fontSize={ics.fontSize} style={{ borderRadius: ic.borderRadius, border: `${ic.borderWidth}px solid ${ic.borderColor}`, outline: `2px solid ${ic.outlineColor}`, padding: `${ic.paddingY}px ${ic.paddingX}px`, backgroundColor: ic.bgColor, WebkitTextStroke: `${ics.stroke}px #000` }}>도전장 보내기</IconButton>
+              <IconButton icon="🏆" fontSize={ics.fontSize} style={{ borderRadius: ic.borderRadius, border: `${ic.borderWidth}px solid ${ic.borderColor}`, outline: `2px solid ${ic.outlineColor}`, padding: `${ic.paddingY}px ${ic.paddingX}px`, backgroundColor: ic.bgColor, WebkitTextStroke: `${ics.stroke}px #000` }}>랭킹 보기</IconButton>
             </div>
           </Preview>
         }
         controls={
           <>
-            <NumField label="Font Size" value={ic.fontSize} onChange={(v) => update('iconButton', { fontSize: v })} min={12} max={36} />
-            <NumField label="Stroke" value={ic.strokeWidth} onChange={(v) => update('iconButton', { strokeWidth: v })} min={0} max={6} step={0.5} />
+            <ScaleField label="Type Scale" value={ic.scale} onChange={(v) => update('iconButton', { scale: v })} />
             <NumField label="Border Radius" value={ic.borderRadius} onChange={(v) => update('iconButton', { borderRadius: v })} max={30} />
             <NumField label="Padding X" value={ic.paddingX} onChange={(v) => update('iconButton', { paddingX: v })} max={40} />
             <NumField label="Padding Y" value={ic.paddingY} onChange={(v) => update('iconButton', { paddingY: v })} max={24} />
@@ -582,7 +588,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
             <ColorField label="Border" value={ic.borderColor} onChange={(v) => update('iconButton', { borderColor: v })} />
           </>
         }
-        tokens={['darker', 'buttonMedium', 'radius.md']}
+        tokens={[ic.scale, 'darker', 'radius.md']}
       />
 
       {/* StoneButton */}
@@ -592,14 +598,13 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="돌 텍스처의 메인 CTA 버튼. 메인 화면의 '퇴근하기'에 사용."
         preview={
           <Preview bg="#111">
-            <StoneButton fontSize={st.fontSize} style={{ borderRadius: st.borderRadius, border: `${st.borderWidth}px solid ${st.borderColor}`, padding: `${st.paddingY}px ${st.paddingX}px`, WebkitTextStroke: `${st.strokeWidth}px #000` }}>퇴근하기</StoneButton>
+            <StoneButton fontSize={sts.fontSize} style={{ borderRadius: st.borderRadius, border: `${st.borderWidth}px solid ${st.borderColor}`, padding: `${st.paddingY}px ${st.paddingX}px`, WebkitTextStroke: `${sts.stroke}px #000` }}>퇴근하기</StoneButton>
           </Preview>
         }
         original="/game01/main-screen/main-btn.png"
         controls={
           <>
-            <NumField label="Font Size" value={st.fontSize} onChange={(v) => update('stoneButton', { fontSize: v })} min={16} max={40} />
-            <NumField label="Stroke" value={st.strokeWidth} onChange={(v) => update('stoneButton', { strokeWidth: v })} min={0} max={8} step={0.5} />
+            <ScaleField label="Type Scale" value={st.scale} onChange={(v) => update('stoneButton', { scale: v })} />
             <NumField label="Border Radius" value={st.borderRadius} onChange={(v) => update('stoneButton', { borderRadius: v })} max={40} />
             <NumField label="Padding X" value={st.paddingX} onChange={(v) => update('stoneButton', { paddingX: v })} max={60} />
             <NumField label="Padding Y" value={st.paddingY} onChange={(v) => update('stoneButton', { paddingY: v })} max={30} />
@@ -607,7 +612,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
             <ColorField label="Border" value={st.borderColor} onChange={(v) => update('stoneButton', { borderColor: v })} />
           </>
         }
-        tokens={['blueGray', 'buttonLarge', 'radius.lg']}
+        tokens={[st.scale, 'blueGray', 'radius.lg']}
       />
 
       {/* CircleButton */}
@@ -679,6 +684,8 @@ function CompositionsSection({ spec, update }: { spec: DesignSpec; update: Updat
   const [line1, setLine1] = useState('직장인 잔혹사')
   const [line2, setLine2] = useState('당신의 하루를 견뎌내세요...')
   const t = spec.mainTitle
+  const t1s = getScale(t.line1Scale)
+  const t2s = getScale(t.line2Scale)
   const m = spec.challengeModal
   const [msg, setMsg] = useState("퇴근 직전 1000에서 '잠깐만' 당했다.\n분하면 도전해봐")
   const [guideText, setGuideText] = useState('앞으로 한 칸 이동!')
@@ -694,7 +701,7 @@ function CompositionsSection({ spec, update }: { spec: DesignSpec; update: Updat
         desc="메인 타이틀 텍스트. 3중 레이어 (외곽 흰색 → 내곽 검정 → 그라데이션 fill)로 임팩트 있는 타이틀 구현."
         preview={
           <Preview bg="linear-gradient(to bottom, #2a0c10, #000)" minH={160}>
-            <MainTitle line1={line1} line2={line2} line1Size={t.line1Size} line2Size={t.line2Size} gradientFrom={t.gradientFrom} gradientTo={t.gradientTo} strokeWidth={t.strokeWidth} line2Color={t.line2Color} />
+            <MainTitle line1={line1} line2={line2} line1Size={t1s.fontSize} line2Size={t2s.fontSize} gradientFrom={t.gradientFrom} gradientTo={t.gradientTo} strokeWidth={t1s.stroke} line2Color={t.line2Color} />
           </Preview>
         }
         original="/game01/main-screen/main-text.png"
@@ -703,15 +710,14 @@ function CompositionsSection({ spec, update }: { spec: DesignSpec; update: Updat
           <>
             <InputRow label="Line 1" value={line1} onChange={setLine1} />
             <InputRow label="Line 2" value={line2} onChange={setLine2} />
-            <NumField label="Line 1 Size" value={t.line1Size} onChange={(v) => update('mainTitle', { line1Size: v })} min={24} max={80} />
-            <NumField label="Line 2 Size" value={t.line2Size} onChange={(v) => update('mainTitle', { line2Size: v })} min={12} max={40} />
-            <NumField label="Stroke" value={t.strokeWidth} onChange={(v) => update('mainTitle', { strokeWidth: v })} min={0} max={12} />
+            <ScaleField label="Line 1 Scale" value={t.line1Scale} onChange={(v) => update('mainTitle', { line1Scale: v })} />
+            <ScaleField label="Line 2 Scale" value={t.line2Scale} onChange={(v) => update('mainTitle', { line2Scale: v })} />
             <ColorField label="Grad From" value={t.gradientFrom} onChange={(v) => update('mainTitle', { gradientFrom: v })} />
             <ColorField label="Grad To" value={t.gradientTo} onChange={(v) => update('mainTitle', { gradientTo: v })} />
             <ColorField label="Line 2" value={t.line2Color} onChange={(v) => update('mainTitle', { line2Color: v })} />
           </>
         }
-        tokens={['titleLarge', 'titleSub', 'blue → blueLight']}
+        tokens={[t.line1Scale, t.line2Scale, 'blue → blueLight']}
       />
 
       {/* ChallengeModal */}
@@ -731,13 +737,14 @@ function CompositionsSection({ spec, update }: { spec: DesignSpec; update: Updat
             <NumField label="Padding X" value={m.paddingX} onChange={(v) => update('challengeModal', { paddingX: v })} max={40} />
             <NumField label="Padding Y" value={m.paddingY} onChange={(v) => update('challengeModal', { paddingY: v })} max={40} />
             <NumField label="Gap" value={m.gap} onChange={(v) => update('challengeModal', { gap: v })} max={32} />
-            <NumField label="Score Font" value={m.scoreFontSize} onChange={(v) => update('challengeModal', { scoreFontSize: v })} min={36} max={96} />
-            <NumField label="CTA Font" value={m.ctaFontSize} onChange={(v) => update('challengeModal', { ctaFontSize: v })} min={12} max={24} />
+            <ScaleField label="Score Scale" value={m.scoreScale} onChange={(v) => update('challengeModal', { scoreScale: v })} />
+            <ScaleField label="Message Scale" value={m.messageScale} onChange={(v) => update('challengeModal', { messageScale: v })} />
+            <ScaleField label="CTA Scale" value={m.ctaScale} onChange={(v) => update('challengeModal', { ctaScale: v })} />
             <ColorField label="Background" value={m.bgColor} onChange={(v) => update('challengeModal', { bgColor: v })} />
             <label style={labelStyle}><span>Message</span><textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></label>
           </>
         }
-        tokens={['modalBg', 'score', 'body', 'buttonCTA', 'radius.xl']}
+        tokens={[m.scoreScale, m.messageScale, m.ctaScale, 'modalBg', 'radius.xl']}
       />
 
       {/* ButtonGuide */}
@@ -860,6 +867,33 @@ function NumField({ label, value, onChange, min = 0, max = 100, step = 1 }: {
         onChange={(e) => onChange(+e.target.value)}
         style={{ width: '100%', accentColor: '#111' }}
       />
+    </label>
+  )
+}
+
+const SCALE_KEYS = Object.keys(typeScale) as TypeScaleKey[]
+
+function ScaleField({ label, value, onChange }: { label: string; value: TypeScaleKey; onChange: (v: TypeScaleKey) => void }) {
+  const s = typeScale[value]
+  return (
+    <label style={labelStyle}>
+      <span>{label}</span>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value as TypeScaleKey)}
+          style={{ ...inputStyle, flex: 1 }}
+        >
+          {SCALE_KEYS.map((k) => (
+            <option key={k} value={k}>{k} — {typeScale[k].fontSize}px / stroke {typeScale[k].stroke}</option>
+          ))}
+        </select>
+      </div>
+      <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+        <span style={{ fontSize: 10, color: '#999', background: '#f0f0f0', padding: '1px 6px', borderRadius: 3 }}>{s.fontSize}px</span>
+        <span style={{ fontSize: 10, color: '#999', background: '#f0f0f0', padding: '1px 6px', borderRadius: 3 }}>w{s.fontWeight}</span>
+        {s.stroke > 0 && <span style={{ fontSize: 10, color: '#999', background: '#f0f0f0', padding: '1px 6px', borderRadius: 3 }}>stroke {s.stroke}</span>}
+      </div>
     </label>
   )
 }
