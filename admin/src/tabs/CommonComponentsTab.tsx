@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import GameButton from '../components/common/GameButton'
+import ChallengeModal from '../components/common/ChallengeModal'
 
 export default function CommonComponentsTab() {
+  // GameButton state
   const [text, setText] = useState('홈으로 가기')
   const [fontSize, setFontSize] = useState(32)
   const [fontWeight, setFontWeight] = useState(900)
@@ -15,135 +17,188 @@ export default function CommonComponentsTab() {
   const [paddingX, setPaddingX] = useState(48)
   const [paddingY, setPaddingY] = useState(16)
 
+  // ChallengeModal state
+  const [modalScore, setModalScore] = useState(1000)
+  const [modalMessage, setModalMessage] = useState('퇴근 직전 1000에서 \'잠깐만\' 당했다.\n분하면 도전해봐')
+  const [modalCTA, setModalCTA] = useState('카카오톡으로 도전장 보내기')
+  const [modalRefresh, setModalRefresh] = useState('다른 멘트로 바꾸기')
+
   return (
     <div style={{ padding: 24 }}>
       <h2 style={{ marginBottom: 24, fontSize: 20, fontWeight: 600 }}>Common Components</h2>
 
-      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-        {/* Preview */}
-        <div style={{ flex: '1 1 400px' }}>
-          <h3 style={{ marginBottom: 16, fontSize: 16, fontWeight: 600, color: '#888' }}>GameButton Preview</h3>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: 12,
-            padding: 48,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 200,
-          }}>
-            <GameButton
-              fontSize={fontSize}
-              fontWeight={fontWeight}
-              borderRadius={borderRadius}
-              borderWidth={borderWidth}
-              borderColor={borderColor}
-              bgColor={bgColor}
-              textColor={textColor}
-              textStroke={textStroke}
-              textStrokeColor={textStrokeColor}
-              paddingX={paddingX}
-              paddingY={paddingY}
-            >
-              {text || '텍스트를 입력하세요'}
-            </GameButton>
+      {/* ── GameButton Section ── */}
+      <section style={{ marginBottom: 48 }}>
+        <h3 style={sectionTitle}>GameButton</h3>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 400px' }}>
+            <div style={previewBox}>
+              <GameButton
+                fontSize={fontSize}
+                fontWeight={fontWeight}
+                borderRadius={borderRadius}
+                borderWidth={borderWidth}
+                borderColor={borderColor}
+                bgColor={bgColor}
+                textColor={textColor}
+                textStroke={textStroke}
+                textStrokeColor={textStrokeColor}
+                paddingX={paddingX}
+                paddingY={paddingY}
+              >
+                {text || '텍스트를 입력하세요'}
+              </GameButton>
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <span style={{ fontSize: 13, color: '#666' }}>Original (btn-home.png)</span>
+              <div style={{ ...previewBox, background: '#111', padding: 24, marginTop: 8 }}>
+                <img
+                  src="/game01/game-over-screen/btn-home.png"
+                  alt="btn-home original"
+                  style={{ maxWidth: '100%', height: 'auto' }}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Original image for comparison */}
-          <div style={{ marginTop: 16 }}>
-            <h3 style={{ marginBottom: 8, fontSize: 14, fontWeight: 600, color: '#888' }}>Original (btn-home.png)</h3>
-            <div style={{
-              background: '#111',
-              borderRadius: 12,
-              padding: 24,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <img
-                src="/game01/game-over-screen/btn-home.png"
-                alt="btn-home original"
-                style={{ maxWidth: '100%', height: 'auto' }}
-              />
+          <div style={controlsBox}>
+            <label style={labelStyle}>
+              <span>Text</span>
+              <input type="text" value={text} onChange={(e) => setText(e.target.value)} style={inputStyle} placeholder="버튼 텍스트" />
+            </label>
+            <label style={labelStyle}>
+              <span>Font Size: {fontSize}px</span>
+              <input type="range" min={12} max={64} value={fontSize} onChange={(e) => setFontSize(+e.target.value)} />
+            </label>
+            <label style={labelStyle}>
+              <span>Font Weight: {fontWeight}</span>
+              <input type="range" min={100} max={900} step={100} value={fontWeight} onChange={(e) => setFontWeight(+e.target.value)} />
+            </label>
+            <label style={labelStyle}>
+              <span>Text Stroke: {textStroke}px</span>
+              <input type="range" min={0} max={6} step={0.5} value={textStroke} onChange={(e) => setTextStroke(+e.target.value)} />
+            </label>
+            <label style={labelStyle}>
+              <span>Border Radius: {borderRadius}px</span>
+              <input type="range" min={0} max={40} value={borderRadius} onChange={(e) => setBorderRadius(+e.target.value)} />
+            </label>
+            <label style={labelStyle}>
+              <span>Border Width: {borderWidth}px</span>
+              <input type="range" min={0} max={10} value={borderWidth} onChange={(e) => setBorderWidth(+e.target.value)} />
+            </label>
+            <label style={labelStyle}>
+              <span>Padding X: {paddingX}px</span>
+              <input type="range" min={8} max={80} value={paddingX} onChange={(e) => setPaddingX(+e.target.value)} />
+            </label>
+            <label style={labelStyle}>
+              <span>Padding Y: {paddingY}px</span>
+              <input type="range" min={4} max={40} value={paddingY} onChange={(e) => setPaddingY(+e.target.value)} />
+            </label>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <label style={{ ...labelStyle, flex: 1 }}><span>BG</span><input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} /></label>
+              <label style={{ ...labelStyle, flex: 1 }}><span>Text</span><input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} /></label>
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <label style={{ ...labelStyle, flex: 1 }}><span>Border</span><input type="color" value={borderColor} onChange={(e) => setBorderColor(e.target.value)} /></label>
+              <label style={{ ...labelStyle, flex: 1 }}><span>Stroke</span><input type="color" value={textStrokeColor} onChange={(e) => setTextStrokeColor(e.target.value)} /></label>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Controls */}
-        <div style={{ flex: '0 0 280px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: '#888' }}>Settings</h3>
+      {/* ── ChallengeModal Section ── */}
+      <section>
+        <h3 style={sectionTitle}>ChallengeModal (도전장 보내기)</h3>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          {/* Modal preview */}
+          <div style={{ flex: '1 1 400px' }}>
+            <div style={{
+              background: 'rgba(0,0,0,0.7)',
+              borderRadius: 12,
+              padding: 48,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 500,
+            }}>
+              <ChallengeModal
+                score={modalScore}
+                message={modalMessage}
+                ctaText={modalCTA}
+                refreshText={modalRefresh}
+                onClose={() => alert('닫기')}
+                onRefresh={() => alert('멘트 변경')}
+                onCTA={() => alert('도전장 보내기')}
+              />
+            </div>
 
-          <label style={labelStyle}>
-            <span>Text</span>
-            <input
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              style={inputStyle}
-              placeholder="버튼 텍스트"
-            />
-          </label>
-
-          <label style={labelStyle}>
-            <span>Font Size: {fontSize}px</span>
-            <input type="range" min={12} max={64} value={fontSize} onChange={(e) => setFontSize(+e.target.value)} />
-          </label>
-
-          <label style={labelStyle}>
-            <span>Font Weight: {fontWeight}</span>
-            <input type="range" min={100} max={900} step={100} value={fontWeight} onChange={(e) => setFontWeight(+e.target.value)} />
-          </label>
-
-          <label style={labelStyle}>
-            <span>Text Stroke: {textStroke}px</span>
-            <input type="range" min={0} max={6} step={0.5} value={textStroke} onChange={(e) => setTextStroke(+e.target.value)} />
-          </label>
-
-          <label style={labelStyle}>
-            <span>Border Radius: {borderRadius}px</span>
-            <input type="range" min={0} max={40} value={borderRadius} onChange={(e) => setBorderRadius(+e.target.value)} />
-          </label>
-
-          <label style={labelStyle}>
-            <span>Border Width: {borderWidth}px</span>
-            <input type="range" min={0} max={10} value={borderWidth} onChange={(e) => setBorderWidth(+e.target.value)} />
-          </label>
-
-          <label style={labelStyle}>
-            <span>Padding X: {paddingX}px</span>
-            <input type="range" min={8} max={80} value={paddingX} onChange={(e) => setPaddingX(+e.target.value)} />
-          </label>
-
-          <label style={labelStyle}>
-            <span>Padding Y: {paddingY}px</span>
-            <input type="range" min={4} max={40} value={paddingY} onChange={(e) => setPaddingY(+e.target.value)} />
-          </label>
-
-          <div style={{ display: 'flex', gap: 12 }}>
-            <label style={{ ...labelStyle, flex: 1 }}>
-              <span>BG</span>
-              <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} />
-            </label>
-            <label style={{ ...labelStyle, flex: 1 }}>
-              <span>Text</span>
-              <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} />
-            </label>
+            {/* Original screenshot */}
+            <div style={{ marginTop: 16 }}>
+              <span style={{ fontSize: 13, color: '#666' }}>Original (스크린샷)</span>
+              <div style={{ ...previewBox, background: '#111', padding: 24, marginTop: 8 }}>
+                <img
+                  src="https://pub-a6e8e0aec44d4a69ae3ed4e096c5acc5.r2.dev/shared/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202026-03-25%20%EC%98%A4%ED%9B%84%207.58.30.png"
+                  alt="challenge modal original"
+                  style={{ maxWidth: 340, height: 'auto' }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12 }}>
-            <label style={{ ...labelStyle, flex: 1 }}>
-              <span>Border</span>
-              <input type="color" value={borderColor} onChange={(e) => setBorderColor(e.target.value)} />
+          {/* Controls */}
+          <div style={controlsBox}>
+            <label style={labelStyle}>
+              <span>Score</span>
+              <input type="text" value={modalScore} onChange={(e) => setModalScore(Number(e.target.value) || 0)} style={inputStyle} />
             </label>
-            <label style={{ ...labelStyle, flex: 1 }}>
-              <span>Stroke</span>
-              <input type="color" value={textStrokeColor} onChange={(e) => setTextStrokeColor(e.target.value)} />
+            <label style={labelStyle}>
+              <span>Message</span>
+              <textarea
+                value={modalMessage}
+                onChange={(e) => setModalMessage(e.target.value)}
+                rows={3}
+                style={{ ...inputStyle, resize: 'vertical' }}
+              />
+            </label>
+            <label style={labelStyle}>
+              <span>CTA Button Text</span>
+              <input type="text" value={modalCTA} onChange={(e) => setModalCTA(e.target.value)} style={inputStyle} />
+            </label>
+            <label style={labelStyle}>
+              <span>Refresh Button Text</span>
+              <input type="text" value={modalRefresh} onChange={(e) => setModalRefresh(e.target.value)} style={inputStyle} />
             </label>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   )
+}
+
+const sectionTitle: React.CSSProperties = {
+  marginBottom: 16,
+  fontSize: 17,
+  fontWeight: 600,
+  color: '#aaa',
+  borderBottom: '1px solid #333',
+  paddingBottom: 8,
+}
+
+const previewBox: React.CSSProperties = {
+  background: '#ffffff',
+  borderRadius: 12,
+  padding: 48,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: 200,
+}
+
+const controlsBox: React.CSSProperties = {
+  flex: '0 0 280px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
 }
 
 const labelStyle: React.CSSProperties = {
