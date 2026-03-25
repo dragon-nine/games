@@ -66,7 +66,7 @@ export function ChallengeOverlay({ score, onClose }: Props) {
           width: 'min(340px, 92vw)',
           backgroundColor: '#2a292e',
           borderRadius: 20,
-          padding: '24px 20px 20px',
+          padding: '26px 20px 26px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -74,20 +74,27 @@ export function ChallengeOverlay({ score, onClose }: Props) {
           animationDelay: '0.1s',
         }}
       >
-        {/* Close button */}
+        {/* Close button — 모달 우상단 바깥쪽에 걸쳐서 떠있음 */}
         <button
           onClick={handleClose}
           style={{
             position: 'absolute',
-            top: 12,
-            right: 12,
-            background: 'transparent',
+            top: -14,
+            right: -14,
+            width: 32,
+            height: 32,
+            background: '#000',
             border: 'none',
+            borderRadius: '50%',
             color: '#fff',
-            fontSize: 22,
+            fontSize: 16,
+            fontWeight: 700,
             cursor: 'pointer',
-            padding: 4,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             lineHeight: 1,
+            zIndex: 1,
           }}
         >
           ✕
@@ -143,6 +150,7 @@ export function ChallengeOverlay({ score, onClose }: Props) {
             backgroundColor: '#3c3c44',
             color: '#969696',
             fontSize: 13,
+            fontWeight: 700,
             border: 'none',
             borderRadius: 20,
             padding: '8px 16px',
