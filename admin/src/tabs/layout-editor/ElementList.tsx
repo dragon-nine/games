@@ -10,18 +10,21 @@ interface Props {
   onRemove: (id: string) => void
   onDuplicate: (id: string) => void
   onReorder: (id: string, patch: Partial<LayoutElement>) => void
+  onSetParent: (childId: string, parentId: string | undefined) => void
 }
 
-type DropTarget = { type: 'between'; order: number } | { type: 'merge'; targetId: string }
+type DropTarget = { type: 'between'; order: number } | { type: 'merge'; targetId: string } | { type: 'nest'; parentId: string }
 
-export default function ElementList({ elements, selectedId, onSelect, onUpdate, onRemove, onDuplicate, onReorder }: Props) {
+export default function ElementList({ elements, selectedId, onSelect, onUpdate, onRemove, onDuplicate, onReorder, onSetParent }: Props) {
   const [dragId, setDragId] = useState<string | null>(null)
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null)
   const dragRef = useRef<string | null>(null)
 
-  // 행 그룹으로 묶기
-  const groupEls = elements.filter((e): e is GroupElement => e.positioning === 'group')
-  const anchorEls = elements.filter((e) => e.positioning === 'anchor')
+  // 루트 요소만 (parentId 없는)
+  const rootEls = elements.filter((e) => !e.parentId)
+  const groupEls = rootEls.filter((e): e is GroupElement => e.positioning === 'group')
+  const anchorEls = rootEls.filter((e) => e.positioning === 'anchor')
+  const childrenOf = (parentId: string) => elements.filter((e) => e.parentId === parentId)
   const rowMap = new Map<number, GroupElement[]>()
   for (const el of groupEls) {
     const row = rowMap.get(el.order) || []
@@ -48,6 +51,14 @@ export default function ElementList({ elements, selectedId, onSelect, onUpdate, 
     const target = elements.find((e) => e.id === targetId) as GroupElement | undefined
     if (!source || !target || source.positioning !== 'group' || target.positioning !== 'group') { handleDragEnd(); return }
     onReorder(sourceId, { order: target.order })
+    handleDragEnd()
+  }
+
+  // 카드/모달 위에 드롭 → 자식으로 넣기
+  const handleDropNest = (parentId: string) => {
+    const sourceId = dragRef.current
+    if (!sourceId || sourceId === parentId) { handleDragEnd(); return }
+    onSetParent(sourceId, parentId)
     handleDragEnd()
   }
 
@@ -95,25 +106,60 @@ export default function ElementList({ elements, selectedId, onSelect, onUpdate, 
                     같은 행 ({rowEls.length}개)
                   </div>
                 )}
-                {rowEls.map((el) => (
-                  <ElementRow
-                    key={el.id}
-                    el={el}
-                    selected={selectedId === el.id}
-                    dragging={dragId === el.id}
-                    dropOver={dropTarget?.type === 'merge' && dropTarget.targetId === el.id}
-                    onSelect={() => onSelect(el.id)}
-                    onDragStart={() => handleDragStart(el.id)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => { e.preventDefault(); setDropTarget({ type: 'merge', targetId: el.id }) }}
-                    onDragLeave={() => setDropTarget(null)}
-                    onDrop={() => handleDropOnElement(el.id)}
-                    onToggleVisible={() => onUpdate(el.id, { visible: el.visible === false })}
-                    onToggleLock={() => onUpdate(el.id, { locked: !el.locked })}
-                    onDuplicate={() => onDuplicate(el.id)}
-                    onRemove={() => onRemove(el.id)}
-                  />
-                ))}
+                {rowEls.map((el) => {
+                  const isContainer = el.type === 'card' || el.type === 'modal'
+                  const children = isContainer ? childrenOf(el.id) : []
+                  const isNestTarget = dropTarget?.type === 'nest' && dropTarget.parentId === el.id
+                  const isMergeTarget = dropTarget?.type === 'merge' && dropTarget.targetId === el.id
+                  return (
+                    <div key={el.id}>
+                      <ElementRow
+                        el={el}
+                        selected={selectedId === el.id}
+                        dragging={dragId === el.id}
+                        dropOver={isNestTarget || isMergeTarget}
+                        onSelect={() => onSelect(el.id)}
+                        onDragStart={() => handleDragStart(el.id)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => {
+                          e.preventDefault()
+                          setDropTarget(isContainer ? { type: 'nest', parentId: el.id } : { type: 'merge', targetId: el.id })
+                        }}
+                        onDragLeave={() => setDropTarget(null)}
+                        onDrop={() => isContainer ? handleDropNest(el.id) : handleDropOnElement(el.id)}
+                        onToggleVisible={() => onUpdate(el.id, { visible: el.visible === false })}
+                        onToggleLock={() => onUpdate(el.id, { locked: !el.locked })}
+                        onDuplicate={() => onDuplicate(el.id)}
+                        onRemove={() => onRemove(el.id)}
+                      />
+                      {/* 자식 요소 (인덴트) */}
+                      {children.length > 0 && (
+                        <div style={{ borderLeft: '3px solid #f59e0b', marginLeft: 14, background: 'rgba(245,158,11,0.03)' }}>
+                          <div style={{ padding: '2px 14px 0', fontSize: 10, color: '#f59e0b', fontWeight: 600 }}>
+                            하위 ({children.length}개)
+                          </div>
+                          {children.map((child) => (
+                            <ElementRow
+                              key={child.id}
+                              el={child}
+                              indent
+                              selected={selectedId === child.id}
+                              dragging={dragId === child.id}
+                              dropOver={false}
+                              onSelect={() => onSelect(child.id)}
+                              onDragStart={() => handleDragStart(child.id)}
+                              onDragEnd={handleDragEnd}
+                              onToggleVisible={() => onUpdate(child.id, { visible: child.visible === false })}
+                              onToggleLock={() => onUpdate(child.id, { locked: !child.locked })}
+                              onDuplicate={() => onDuplicate(child.id)}
+                              onRemove={() => onRemove(child.id)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )
@@ -177,8 +223,8 @@ function DropZone({ active, onDragOver, onDragLeave, onDrop }: {
   )
 }
 
-function ElementRow({ el, selected, dragging, dropOver, onSelect, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onToggleVisible, onToggleLock, onDuplicate, onRemove }: {
-  el: LayoutElement; selected: boolean; dragging: boolean; dropOver: boolean
+function ElementRow({ el, indent, selected, dragging, dropOver, onSelect, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onToggleVisible, onToggleLock, onDuplicate, onRemove }: {
+  el: LayoutElement; indent?: boolean; selected: boolean; dragging: boolean; dropOver: boolean
   onSelect: () => void
   onDragStart?: () => void; onDragEnd?: () => void
   onDragOver?: (e: React.DragEvent) => void; onDragLeave?: () => void; onDrop?: () => void
@@ -196,8 +242,8 @@ function ElementRow({ el, selected, dragging, dropOver, onSelect, onDragStart, o
       onClick={onSelect}
       style={{
         display: 'flex', alignItems: 'center', gap: 6,
-        padding: '6px 14px',
-        background: selected ? '#e8f0fe' : dropOver ? '#e0ecff' : 'transparent',
+        padding: indent ? '6px 14px 6px 28px' : '6px 14px',
+        background: selected ? '#e8f0fe' : dropOver ? (el.type === 'card' || el.type === 'modal' ? '#fff7e0' : '#e0ecff') : 'transparent',
         opacity: dragging ? 0.3 : 1,
         cursor: 'pointer',
         borderBottom: '1px solid #f0f0f0',
