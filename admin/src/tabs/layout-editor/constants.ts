@@ -3,8 +3,8 @@
 export const DESIGN_W = 390
 export const DESIGN_H = 844
 
-export const PHONE_PREVIEW_W = 320
-export const PHONE_PREVIEW_H = Math.round(PHONE_PREVIEW_W * (DESIGN_H / DESIGN_W))
+export const PHONE_PREVIEW_W = 360
+export const PHONE_PREVIEW_H = 740
 
 export const R2_LAYOUT_PREFIX = 'game01/layout/'
 export const R2_LAYOUT_INDEX_KEY = 'layout-editor/game01-index'
