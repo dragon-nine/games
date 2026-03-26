@@ -109,8 +109,16 @@ export function computePreviewLayout(
   interface RowInfo { elements: GroupElement[]; height: number; gapPx: number }
   const rows: RowInfo[] = []
 
+  // 컴포넌트 고정 크기 맵 (디자인 시스템과 동일)
+  const COMPONENT_SIZES: Record<string, { w: number; h: number }> = {
+    toggle: { w: 77, h: 44 },
+    close: { w: 32, h: 32 },
+    'circle-btn': { w: 80, h: 80 },
+  }
+
   /** full 모드 요소의 너비 계산 — 같은 행에 여러 개면 균등 분할 */
   function resolveElWidth(el: GroupElement, rowCount: number): number {
+    if (COMPONENT_SIZES[el.type]) return COMPONENT_SIZES[el.type].w * scale
     if (el.widthMode === 'fixed') return el.widthPx * scale
     if (rowCount <= 1) return contentW * scale
     const hGap = (el.hGapPx ?? 8)

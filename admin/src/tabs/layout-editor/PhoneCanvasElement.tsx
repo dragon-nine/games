@@ -50,8 +50,8 @@ export default function PhoneCanvasElement({ el, pos, scale, selected, assetUrl,
     }
 
     if (el.type === 'toggle') {
-      const h = pos.h
-      const w = pos.w
+      const h = 44 * scale
+      const w = 77 * scale
       const knob = h - 4 * scale
       return (
         <div style={{ width: w, height: h, borderRadius: h / 2, background: '#434750', position: 'relative' }}>
@@ -61,12 +61,13 @@ export default function PhoneCanvasElement({ el, pos, scale, selected, assetUrl,
     }
 
     if (el.type === 'close') {
+      const s = 32 * scale
       return (
         <div style={{
-          width: pos.w, height: pos.h, borderRadius: 999,
+          width: s, height: s, borderRadius: 999,
           background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: '#fff', fontSize: pos.h * 0.5, fontWeight: 700, lineHeight: 1 }}>✕</span>
+          <span style={{ color: '#fff', fontSize: s * 0.5, fontWeight: 700, lineHeight: 1 }}>✕</span>
         </div>
       )
     }
@@ -83,10 +84,11 @@ export default function PhoneCanvasElement({ el, pos, scale, selected, assetUrl,
     }
 
     if (el.type === 'circle-btn') {
-      const r = pos.w / 2
+      const sz = 80 * scale
+      const r = sz / 2
       return (
         <div style={{
-          width: pos.w, height: pos.h, borderRadius: 999,
+          width: sz, height: sz, borderRadius: 999,
           background: 'radial-gradient(circle at 35% 35%, #5a7080, #4a5a6a 50%, #3a4a5a)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
