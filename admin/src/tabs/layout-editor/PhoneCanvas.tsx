@@ -91,38 +91,24 @@ export default function PhoneCanvas({
 
   return (
     <div
+      ref={canvasRef}
+      onClick={(e) => { if (e.target === e.currentTarget) onSelect(null) }}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
       style={{
-        width: PHONE_PREVIEW_W + 24,
-        background: '#111',
-        borderRadius: 32,
-        padding: '40px 12px',
+        width: PHONE_PREVIEW_W,
+        height: PHONE_PREVIEW_H,
+        background: bgCss === 'transparent'
+          ? 'repeating-conic-gradient(#e0e0e0 0% 25%, #fff 0% 50%) 0 0 / 16px 16px'
+          : bgCss,
+        borderRadius: 8,
+        border: '1px solid #e8e8e8',
         position: 'relative',
+        overflow: 'hidden',
+        cursor: 'default',
         flexShrink: 0,
       }}
     >
-      {/* Notch */}
-      <div style={{
-        position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
-        width: 80, height: 24, background: '#000', borderRadius: 12,
-      }} />
-      {/* Screen */}
-      <div
-        ref={canvasRef}
-        onClick={(e) => { if (e.target === e.currentTarget) onSelect(null) }}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        style={{
-          width: PHONE_PREVIEW_W,
-          height: PHONE_PREVIEW_H,
-          background: bgCss === 'transparent'
-            ? 'repeating-conic-gradient(#e0e0e0 0% 25%, #fff 0% 50%) 0 0 / 16px 16px'
-            : bgCss,
-          borderRadius: 4,
-          position: 'relative',
-          overflow: 'hidden',
-          cursor: 'default',
-        }}
-      >
         {positions.map((pos) => {
           const el = elements.find((x) => x.id === pos.id)
           if (!el || el.visible === false) return null
@@ -139,7 +125,6 @@ export default function PhoneCanvas({
             />
           )
         })}
-      </div>
     </div>
   )
 }
