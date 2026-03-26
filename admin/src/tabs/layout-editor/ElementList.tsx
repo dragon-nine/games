@@ -132,29 +132,61 @@ export default function ElementList({ elements, selectedId, onSelect, onUpdate, 
                         onDuplicate={() => onDuplicate(el.id)}
                         onRemove={() => onRemove(el.id)}
                       />
-                      {/* 자식 요소 (인덴트) */}
+                      {/* 자식 요소 (인덴트, 재귀) */}
                       {children.length > 0 && (
                         <div style={{ borderLeft: '3px solid #f59e0b', marginLeft: 14, background: 'rgba(245,158,11,0.03)' }}>
                           <div style={{ padding: '2px 14px 0', fontSize: 10, color: '#f59e0b', fontWeight: 600 }}>
                             하위 ({children.length}개)
                           </div>
-                          {children.map((child) => (
-                            <ElementRow
-                              key={child.id}
-                              el={child}
-                              indent
-                              selected={selectedId === child.id}
-                              dragging={dragId === child.id}
-                              dropOver={false}
-                              onSelect={() => onSelect(child.id)}
-                              onDragStart={() => handleDragStart(child.id)}
-                              onDragEnd={handleDragEnd}
-                              onToggleVisible={() => onUpdate(child.id, { visible: child.visible === false })}
-                              onToggleLock={() => onUpdate(child.id, { locked: !child.locked })}
-                              onDuplicate={() => onDuplicate(child.id)}
-                              onRemove={() => onRemove(child.id)}
-                            />
-                          ))}
+                          {children.map((child) => {
+                            const isChildContainer = child.type === 'card' || child.type === 'modal'
+                            const grandchildren = isChildContainer ? childrenOf(child.id) : []
+                            return (
+                              <div key={child.id}>
+                                <ElementRow
+                                  el={child}
+                                  indent
+                                  selected={selectedId === child.id}
+                                  dragging={dragId === child.id}
+                                  dropOver={dropTarget?.type === 'nest' && dropTarget.parentId === child.id}
+                                  onSelect={() => onSelect(child.id)}
+                                  onDragStart={() => handleDragStart(child.id)}
+                                  onDragEnd={handleDragEnd}
+                                  onDragOver={isChildContainer ? (e) => { e.preventDefault(); setDropTarget({ type: 'nest', parentId: child.id }) } : undefined}
+                                  onDragLeave={isChildContainer ? () => setDropTarget(null) : undefined}
+                                  onDrop={isChildContainer ? () => handleDropNest(child.id) : undefined}
+                                  onToggleVisible={() => onUpdate(child.id, { visible: child.visible === false })}
+                                  onToggleLock={() => onUpdate(child.id, { locked: !child.locked })}
+                                  onDuplicate={() => onDuplicate(child.id)}
+                                  onRemove={() => onRemove(child.id)}
+                                />
+                                {grandchildren.length > 0 && (
+                                  <div style={{ borderLeft: '3px solid #8b5cf6', marginLeft: 14, background: 'rgba(139,92,246,0.03)' }}>
+                                    <div style={{ padding: '2px 14px 0', fontSize: 10, color: '#8b5cf6', fontWeight: 600 }}>
+                                      하위 ({grandchildren.length}개)
+                                    </div>
+                                    {grandchildren.map((gc) => (
+                                      <ElementRow
+                                        key={gc.id}
+                                        el={gc}
+                                        indent
+                                        selected={selectedId === gc.id}
+                                        dragging={dragId === gc.id}
+                                        dropOver={false}
+                                        onSelect={() => onSelect(gc.id)}
+                                        onDragStart={() => handleDragStart(gc.id)}
+                                        onDragEnd={handleDragEnd}
+                                        onToggleVisible={() => onUpdate(gc.id, { visible: gc.visible === false })}
+                                        onToggleLock={() => onUpdate(gc.id, { locked: !gc.locked })}
+                                        onDuplicate={() => onDuplicate(gc.id)}
+                                        onRemove={() => onRemove(gc.id)}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
