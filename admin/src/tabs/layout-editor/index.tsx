@@ -43,15 +43,12 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
       if (!editor.selectedId) return
       const el = editor.elements.find((x) => x.id === editor.selectedId)
       if (!el || el.locked) return
-
       const step = e.shiftKey ? 10 : 1
-
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return
         e.preventDefault()
         editor.removeElement(editor.selectedId)
       }
-
       if (el.positioning === 'group') {
         if (e.key === 'ArrowUp') { e.preventDefault(); editor.updateElement(el.id, { gapPx: (el as any).gapPx - step }) }
         if (e.key === 'ArrowDown') { e.preventDefault(); editor.updateElement(el.id, { gapPx: (el as any).gapPx + step }) }
@@ -71,21 +68,44 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 16px', color: '#111' }}>Layout Editor</h2>
+    <div style={{ padding: 24, maxWidth: 1200 }}>
+      {/* Header — 디자인 시스템과 동일 패턴 */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 4 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: '#111' }}>Layout Editor</h1>
+          {editor.dirty && <span style={{ fontSize: 12, color: '#e53935', background: '#fee', padding: '2px 8px', borderRadius: 4, fontWeight: 500 }}>변경사항 있음</span>}
+        </div>
+        <p style={{ fontSize: 14, color: '#888', margin: 0 }}>직장인 잔혹사 — 게임 화면 레이아웃 편집</p>
+      </div>
 
-      <ScreenSelector
-        screens={editor.screens}
-        activeKey={editor.screenKey}
-        onSelect={editor.loadScreen}
-        onCreate={editor.createScreen}
-      />
+      {/* Screen tabs — 디자인 시스템 탭바 스타일 */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 24, borderBottom: '2px solid #e8e8e8' }}>
+        <ScreenSelector
+          screens={editor.screens}
+          activeKey={editor.screenKey}
+          onSelect={editor.loadScreen}
+          onCreate={editor.createScreen}
+        />
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 8 }}>
+          <button
+            onClick={handleSave}
+            disabled={editor.saving || !editor.dirty}
+            style={{
+              padding: '5px 14px', borderRadius: 6, border: '1px solid #ddd',
+              background: editor.dirty ? '#111' : '#f5f5f5',
+              color: editor.dirty ? '#fff' : '#999',
+              fontSize: 12, fontWeight: 600,
+              cursor: editor.dirty ? 'pointer' : 'default',
+            }}
+          >
+            {editor.saving ? '저장 중...' : '저장'}
+          </button>
+        </div>
+      </div>
 
+      {/* Toolbar */}
       <Toolbar
         onAddElement={editor.addElement}
-        onSave={handleSave}
-        saving={editor.saving}
-        dirty={editor.dirty}
         onOpenAssetPicker={handleOpenAssetPicker}
       />
 
@@ -125,6 +145,7 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
               onUpdate={editor.updateElement}
               onRemove={editor.removeElement}
               onDuplicate={editor.duplicateElement}
+              onReorder={editor.updateElement}
             />
           </div>
         </div>
