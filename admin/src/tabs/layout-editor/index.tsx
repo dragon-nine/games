@@ -158,7 +158,6 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
               elements={editor.elements}
               selectedId={editor.selectedId}
               onSelect={editor.selectElement}
-              onUpdate={editor.updateElement}
               onRemove={editor.removeElement}
               onDuplicate={editor.duplicateElement}
               onReorder={editor.updateElement}

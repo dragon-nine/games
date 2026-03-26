@@ -15,7 +15,7 @@ interface Props {
 
 type DropTarget = { type: 'between'; order: number } | { type: 'merge'; targetId: string } | { type: 'nest'; parentId: string }
 
-export default function ElementList({ elements, selectedId, onSelect, onUpdate, onRemove, onDuplicate, onReorder, onSetParent }: Props) {
+export default function ElementList({ elements, selectedId, onSelect, onRemove, onDuplicate, onReorder, onSetParent }: Props) {
   const [dragId, setDragId] = useState<string | null>(null)
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null)
   const dragRef = useRef<string | null>(null)
