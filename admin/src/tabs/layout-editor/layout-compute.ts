@@ -29,6 +29,54 @@ function calcButtonHeight(el: LayoutElement, scale: number): number {
   return fontSize + padY * 2  // font + 상하 패딩
 }
 
+/** 카드/모달 높이를 자식 기반으로 재귀 계산 */
+function calcContainerHeight(
+  el: LayoutElement,
+  allElements: LayoutElement[],
+  imageSizes: Record<string, { w: number; h: number }>,
+  scale: number,
+): number {
+  const children = allElements.filter((e) => e.parentId === el.id && e.visible !== false)
+  const ip = el.innerPadding || { top: 16, right: 16, bottom: 16, left: 16 }
+
+  if (children.length === 0) return (ip.top + ip.bottom + 40) * scale
+
+  const groups = children.filter((c): c is GroupElement => c.positioning === 'group')
+  const rowMap = new Map<number, GroupElement[]>()
+  for (const c of groups) {
+    const r = rowMap.get(c.order) || []
+    r.push(c)
+    rowMap.set(c.order, r)
+  }
+  const orders = [...rowMap.keys()].sort((a, b) => a - b)
+
+  let totalH = 0
+  for (let i = 0; i < orders.length; i++) {
+    const row = rowMap.get(orders[i])!
+    if (i > 0) totalH += (row[0].gapPx || 0) * scale
+
+    let rowH = 0
+    for (const c of row) {
+      if ((c.type === 'card' || c.type === 'modal') && !c.heightPx) {
+        // 재귀: 중첩된 카드/모달
+        rowH = Math.max(rowH, calcContainerHeight(c, allElements, imageSizes, scale))
+      } else if (c.type === 'image' && imageSizes[c.id]) {
+        const cw = (c.widthMode === 'fixed' ? c.widthPx : 100) * scale
+        rowH = Math.max(rowH, imageSizes[c.id].h * (cw / imageSizes[c.id].w))
+      } else if (c.heightPx) {
+        rowH = Math.max(rowH, c.heightPx * scale)
+      } else if (c.type === 'button') {
+        rowH = Math.max(rowH, calcButtonHeight(c, scale))
+      } else {
+        rowH = Math.max(rowH, calcTextHeight(c, scale))
+      }
+    }
+    totalH += rowH
+  }
+
+  return totalH + (ip.top + ip.bottom) * scale
+}
+
 export function computePreviewLayout(
   elements: LayoutElement[],
   screenW: number,
@@ -77,41 +125,7 @@ export function computePreviewLayout(
     for (const el of rowEls) {
       const elW = resolveElWidth(el, n)
       if ((el.type === 'card' || el.type === 'modal') && !el.heightPx) {
-        // 자식 기반 높이 직접 계산 (재귀 호출 대신)
-        const children = allElements.filter((e) => e.parentId === el.id && e.visible !== false)
-        const ip = el.innerPadding || { top: 16, right: 16, bottom: 16, left: 16 }
-        if (children.length > 0) {
-          const childGroups = children.filter((c): c is GroupElement => c.positioning === 'group')
-          const childRowMap = new Map<number, GroupElement[]>()
-          for (const c of childGroups) {
-            const r = childRowMap.get(c.order) || []
-            r.push(c)
-            childRowMap.set(c.order, r)
-          }
-          const childOrders = [...childRowMap.keys()].sort((a, b) => a - b)
-          let totalChildH = 0
-          for (let ci = 0; ci < childOrders.length; ci++) {
-            const crow = childRowMap.get(childOrders[ci])!
-            if (ci > 0) totalChildH += (crow[0].gapPx || 0) * scale
-            let rowH = 0
-            for (const c of crow) {
-              if (c.type === 'image' && imageSizes[c.id]) {
-                const cw = (c.widthMode === 'fixed' ? c.widthPx : 100) * scale
-                rowH = Math.max(rowH, imageSizes[c.id].h * (cw / imageSizes[c.id].w))
-              } else if (c.heightPx) {
-                rowH = Math.max(rowH, c.heightPx * scale)
-              } else if (c.type === 'button') {
-                rowH = Math.max(rowH, calcButtonHeight(c, scale))
-              } else {
-                rowH = Math.max(rowH, calcTextHeight(c, scale))
-              }
-            }
-            totalChildH += rowH
-          }
-          maxH = Math.max(maxH, totalChildH + (ip.top + ip.bottom) * scale)
-        } else {
-          maxH = Math.max(maxH, (ip.top + ip.bottom + 40) * scale)
-        }
+        maxH = Math.max(maxH, calcContainerHeight(el, allElements, imageSizes, scale))
       } else if (el.type === 'image' && imageSizes[el.id]) {
         maxH = Math.max(maxH, imageSizes[el.id].h * (elW / imageSizes[el.id].w))
       } else if (el.heightPx) {
