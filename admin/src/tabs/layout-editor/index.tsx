@@ -1,5 +1,15 @@
 import { useState, useCallback, useEffect } from 'react'
+import { gradients, type GradientKey } from '../../components/common/design-tokens'
 import { useLayoutEditor } from './useLayoutEditor'
+
+function computeBgCss(bgType: string, bgColor: string, bgGradient: string): string {
+  if (bgType === 'transparent') return 'transparent'
+  if (bgType === 'gradient') {
+    const g = gradients[bgGradient as GradientKey]
+    if (g) return `linear-gradient(${g.direction}, ${g.from}, ${g.to})`
+  }
+  return bgColor
+}
 import ScreenSelector from './ScreenSelector'
 import Toolbar from './Toolbar'
 import PhoneCanvas from './PhoneCanvas'
@@ -118,12 +128,7 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
             elements={editor.elements}
             imageSizes={editor.imageSizes}
             groupVAlign={editor.groupVAlign}
-            bgColor={
-              editor.bgType === 'transparent' ? 'transparent'
-                : editor.bgType === 'gradient'
-                  ? `linear-gradient(${editor.bgGradientDirection}, ${editor.bgGradientFrom}, ${editor.bgGradientTo})`
-                  : editor.bgColor
-            }
+            bgCss={computeBgCss(editor.bgType, editor.bgColor, editor.bgGradient)}
             screenKey={editor.screenKey}
             gameId={gameId}
             selectedId={editor.selectedId}
@@ -140,9 +145,7 @@ export default function LayoutEditorTab({ gameId, onBanner }: Props) {
               onDuplicate={editor.duplicateElement}
               bgType={editor.bgType}
               bgColor={editor.bgColor}
-              bgGradientFrom={editor.bgGradientFrom}
-              bgGradientTo={editor.bgGradientTo}
-              bgGradientDirection={editor.bgGradientDirection}
+              bgGradient={editor.bgGradient}
               onBgUpdate={editor.updateBg}
               groupVAlign={editor.groupVAlign}
               onGroupVAlignChange={editor.setGroupVAlign}

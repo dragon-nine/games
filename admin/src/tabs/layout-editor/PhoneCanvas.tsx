@@ -10,7 +10,7 @@ interface Props {
   elements: LayoutElement[]
   imageSizes: Record<string, { w: number; h: number }>
   groupVAlign: 'center' | 'top'
-  bgColor: string
+  bgCss: string
   screenKey: string
   gameId: string
   selectedId: string | null
@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function PhoneCanvas({
-  elements, imageSizes, groupVAlign, bgColor, screenKey, gameId,
+  elements, imageSizes, groupVAlign, bgCss, screenKey, gameId,
   selectedId, onSelect, onUpdate,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -114,9 +114,9 @@ export default function PhoneCanvas({
         style={{
           width: PHONE_PREVIEW_W,
           height: PHONE_PREVIEW_H,
-          background: bgColor === 'transparent'
+          background: bgCss === 'transparent'
             ? 'repeating-conic-gradient(#e0e0e0 0% 25%, #fff 0% 50%) 0 0 / 16px 16px'
-            : bgColor,
+            : bgCss,
           borderRadius: 4,
           position: 'relative',
           overflow: 'hidden',

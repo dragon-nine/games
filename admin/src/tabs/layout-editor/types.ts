@@ -56,9 +56,7 @@ export interface ScreenLayout {
   groupVAlign?: 'center' | 'top'
   bgType?: 'transparent' | 'solid' | 'gradient'
   bgColor?: string
-  bgGradientFrom?: string
-  bgGradientTo?: string
-  bgGradientDirection?: string
+  bgGradient?: string
   bgAssetKey?: string
 }
 

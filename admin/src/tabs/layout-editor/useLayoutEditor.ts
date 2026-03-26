@@ -14,9 +14,7 @@ interface EditorState {
   groupVAlign: 'center' | 'top'
   bgType: 'transparent' | 'solid' | 'gradient'
   bgColor: string
-  bgGradientFrom: string
-  bgGradientTo: string
-  bgGradientDirection: string
+  bgGradient: string
   selectedId: string | null
   imageSizes: Record<string, { w: number; h: number }>
   dirty: boolean
@@ -36,9 +34,7 @@ export function useLayoutEditor(gameId: string) {
     groupVAlign: 'center',
     bgType: 'solid',
     bgColor: '#000000',
-    bgGradientFrom: '#2a0c10',
-    bgGradientTo: '#000000',
-    bgGradientDirection: 'to bottom',
+    bgGradient: 'Wine → Black',
     selectedId: null,
     imageSizes: {},
     dirty: false,
@@ -86,9 +82,7 @@ export function useLayoutEditor(gameId: string) {
           groupVAlign: layout.groupVAlign || 'center',
           bgType: layout.bgType || 'solid',
           bgColor: layout.bgColor || '#000000',
-          bgGradientFrom: layout.bgGradientFrom || '#2a0c10',
-          bgGradientTo: layout.bgGradientTo || '#000000',
-          bgGradientDirection: layout.bgGradientDirection || 'to bottom',
+          bgGradient: layout.bgGradient || 'Wine → Black',
           imageSizes: sizes,
           loading: false,
           dirty: false,
@@ -212,9 +206,7 @@ export function useLayoutEditor(gameId: string) {
         groupVAlign: state.groupVAlign,
         bgType: state.bgType,
         bgColor: state.bgColor,
-        bgGradientFrom: state.bgGradientFrom,
-        bgGradientTo: state.bgGradientTo,
-        bgGradientDirection: state.bgGradientDirection,
+        bgGradient: state.bgGradient,
       }
       const blob = new Blob([JSON.stringify(layout, null, 2)], { type: 'application/json' })
       const file = new File([blob], `${state.screenKey}.json`, { type: 'application/json' })
@@ -242,7 +234,7 @@ export function useLayoutEditor(gameId: string) {
   }, [state.screens, loadScreen])
 
   // Update bg
-  const updateBg = useCallback((patch: Partial<Pick<EditorState, 'bgType' | 'bgColor' | 'bgGradientFrom' | 'bgGradientTo' | 'bgGradientDirection'>>) => {
+  const updateBg = useCallback((patch: Partial<Pick<EditorState, 'bgType' | 'bgColor' | 'bgGradient'>>) => {
     setState((prev) => ({ ...prev, ...patch, dirty: true }))
   }, [])
 

@@ -1,6 +1,8 @@
 import type { LayoutElement, GroupElement, AnchorElement } from './types'
-import { colors, typeScale } from '../../components/common/design-tokens'
+import { colors, typeScale, gradients, type GradientKey } from '../../components/common/design-tokens'
 import type { TypeScaleKey, ButtonStyleType } from '../../components/common/design-spec'
+
+const GRADIENT_KEYS = Object.keys(gradients) as GradientKey[]
 
 const SCALE_KEYS = Object.keys(typeScale) as TypeScaleKey[]
 const COLOR_ENTRIES = Object.entries(colors) as [string, string][]
@@ -14,17 +16,15 @@ interface Props {
   onDuplicate: (id: string) => void
   bgType: BgType
   bgColor: string
-  bgGradientFrom: string
-  bgGradientTo: string
-  bgGradientDirection: string
-  onBgUpdate: (patch: { bgType?: BgType; bgColor?: string; bgGradientFrom?: string; bgGradientTo?: string; bgGradientDirection?: string }) => void
+  bgGradient: string
+  onBgUpdate: (patch: { bgType?: BgType; bgColor?: string; bgGradient?: string }) => void
   groupVAlign: 'center' | 'top'
   onGroupVAlignChange: (v: 'center' | 'top') => void
 }
 
 export default function Inspector({
   element, onUpdate, onRemove, onDuplicate,
-  bgType, bgColor, bgGradientFrom, bgGradientTo, bgGradientDirection,
+  bgType, bgColor, bgGradient,
   onBgUpdate, groupVAlign, onGroupVAlignChange,
 }: Props) {
   if (!element) {
@@ -43,24 +43,22 @@ export default function Inspector({
         )}
         {bgType === 'gradient' && (
           <>
-            <Field label="시작 색상"><ColorSelect value={bgGradientFrom} onChange={(v) => onBgUpdate({ bgGradientFrom: v })} /></Field>
-            <Field label="끝 색상"><ColorSelect value={bgGradientTo} onChange={(v) => onBgUpdate({ bgGradientTo: v })} /></Field>
-            <Field label="방향">
-              <select value={bgGradientDirection} onChange={(e) => onBgUpdate({ bgGradientDirection: e.target.value })} style={selectStyle}>
-                <option value="to bottom">↓ 위 → 아래</option>
-                <option value="to top">↑ 아래 → 위</option>
-                <option value="to right">→ 왼쪽 → 오른쪽</option>
-                <option value="to left">← 오른쪽 → 왼쪽</option>
-                <option value="135deg">↘ 대각선</option>
-                <option value="45deg">↗ 대각선</option>
+            <Field label="그라데이션">
+              <select value={bgGradient} onChange={(e) => onBgUpdate({ bgGradient: e.target.value })} style={selectStyle}>
+                {GRADIENT_KEYS.map((k) => <option key={k} value={k}>{k}</option>)}
               </select>
             </Field>
             {/* Preview */}
-            <div style={{
-              height: 32, borderRadius: 6, marginTop: 4,
-              background: `linear-gradient(${bgGradientDirection}, ${bgGradientFrom}, ${bgGradientTo})`,
-              border: '1px solid #eee',
-            }} />
+            {(() => {
+              const g = gradients[bgGradient as GradientKey]
+              return g ? (
+                <div style={{
+                  height: 32, borderRadius: 6, marginTop: 4,
+                  background: `linear-gradient(${g.direction}, ${g.from}, ${g.to})`,
+                  border: '1px solid #eee',
+                }} />
+              ) : null
+            })()}
           </>
         )}
         <Field label="그룹 정렬">

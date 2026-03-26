@@ -81,6 +81,15 @@ export const buttonStyleDefaults = {
   },
 } as const
 
+/** 그라데이션 토큰 */
+export const gradients = {
+  'White → Ice Blue': { from: '#ffffff', to: '#c1e5ff', direction: 'to bottom' },
+  'Crimson → Maroon': { from: '#e5332f', to: '#771615', direction: '135deg' },
+  'Wine → Black': { from: '#2a0c10', to: '#000000', direction: 'to bottom' },
+} as const
+
+export type GradientKey = keyof typeof gradients
+
 /** 용도별 스케일 매핑 */
 export const typeUsage: Record<string, { scale: keyof typeof typeScale; usages: string[] }> = {
   '2xl': { scale: '2xl', usages: ['게임 점수 (HUD, 게임오버, 도전장)'] },
