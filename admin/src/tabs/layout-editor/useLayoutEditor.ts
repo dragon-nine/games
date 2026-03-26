@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import type { LayoutElement, ScreenLayout, LayoutIndex, GroupElement, AnchorElement } from './types'
-import { R2_LAYOUT_INDEX_KEY, DESIGN_W, DEFAULT_SCREENS, DEFAULT_GAP, DEFAULT_PADDING } from './constants'
+import { R2_LAYOUT_INDEX_KEY, DESIGN_W, DESIGN_H, DEFAULT_SCREENS, DEFAULT_GAP, DEFAULT_PADDING } from './constants'
 import { getJson, putJson, uploadBlob } from '../../api'
 
 const R2_PUBLIC = 'https://pub-a6e8e0aec44d4a69ae3ed4e096c5acc5.r2.dev'
