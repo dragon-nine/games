@@ -26,7 +26,8 @@ export class CommuteScene extends Phaser.Scene {
   private hasRevived = false;
   private bgm?: Phaser.Sound.BaseSound;
   private bgSprites: Phaser.GameObjects.Image[] = [];
-  private bgCycleH = 0; // 1사이클(6장) 총 높이 (스케일 후)
+  private bgScale = 1;
+  private bgNextIdx = 0;   // 다음 재활용 시 사용할 시퀀스 인덱스
 
   private laneWorldX: number[] = [];
   private laneW = 0;
@@ -47,45 +48,50 @@ export class CommuteScene extends Phaser.Scene {
     this.justSwitched = false;
     this.gameStarted = false;
     this.hasRevived = false;
+    this.bgSprites = [];
+    this.bgScale = 1;
+    this.bgNextIdx = 0;
   }
 
   create() {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#000000');
 
-    // 배경 이미지: bg-1~6 순서대로 세로 배치, 무한 루프
+    // 배경 이미지: bg-1→2→3→4→5→6, 이후 4→5→6 무한 루프
     {
-      const BG_KEYS = ['bg-1', 'bg-2', 'bg-3', 'bg-4', 'bg-5', 'bg-6'];
-      const validKeys = BG_KEYS.filter((k) => this.textures.exists(k));
+      const BG_INITIAL = ['bg-1', 'bg-2', 'bg-3', 'bg-4', 'bg-5', 'bg-6'];
+      const BG_LOOP = ['bg-4', 'bg-5', 'bg-6'];
+      const getBgKey = (idx: number) =>
+        idx < BG_INITIAL.length
+          ? BG_INITIAL[idx]
+          : BG_LOOP[(idx - BG_INITIAL.length) % BG_LOOP.length];
 
-      if (validKeys.length > 0) {
-        const firstSrc = this.textures.get(validKeys[0]).getSourceImage();
-        const bgScale = width / firstSrc.width;
+      if (this.textures.exists('bg-1')) {
+        const bgScale = width / this.textures.get('bg-1').getSourceImage().width;
+        this.bgScale = bgScale;
 
-        // 1사이클 높이 계산
-        const heights = validKeys.map((k) => this.textures.get(k).getSourceImage().height * bgScale);
-        this.bgCycleH = heights.reduce((a, b) => a + b, 0);
-
-        // 화면 커버에 필요한 사이클 수 (위아래 여유분 포함)
-        const cycles = Math.ceil(height / this.bgCycleH) + 2;
-
-        let curY = 0;
-        for (let c = 0; c < cycles; c++) {
-          for (let i = 0; i < validKeys.length; i++) {
-            const spr = this.add.image(0, curY, validKeys[i])
-              .setOrigin(0, 0)
-              .setScale(bgScale)
-              .setDepth(0);
-            this.bgSprites.push(spr);
-            curY += heights[i];
-          }
+        // 위→아래 순서로 배치: bg-1 하단을 화면 하단에 맞추고, 위로 쌓아올림
+        // 배경은 아래로 스크롤되므로 위쪽에 여유 버퍼 필요
+        // bg-1 하단 = 화면 하단
+        let curY = height;
+        let i = 0;
+        // 화면 위로 충분히 채울 때까지 (버퍼 포함) + 최소 4장
+        while (curY > -height * 2 || i < 4) {
+          const key = getBgKey(i);
+          const srcH = this.textures.get(key).getSourceImage().height * bgScale;
+          curY -= srcH;
+          const spr = this.add.image(0, curY, key)
+            .setOrigin(0, 0)
+            .setScale(bgScale)
+            .setDepth(0);
+          this.bgSprites.push(spr);
+          i++;
         }
-
-        // 화면 하단 맞춤
-        const totalH = curY;
-        const offsetY = height - totalH;
-        for (const spr of this.bgSprites) spr.y += offsetY;
+        this.bgNextIdx = i;
       }
+
+      // getBgKey를 scrollToCurrentRow에서 사용하기 위해 저장
+      (this as any)._getBgKey = getBgKey;
     }
 
     // 화면에 보이는 2레인 기준으로 크기 계산
@@ -316,15 +322,28 @@ export class CommuteScene extends Phaser.Scene {
 
     // 배경 패럴랙스 스크롤 (도로보다 느리게 → 깊이감)
     if (this.bgSprites.length > 0) {
-      const dy = -scrollDelta * 0.3;
-      const totalSpriteH = this.bgCycleH * Math.ceil(this.bgSprites.length / 6);
+      const dy = scrollDelta * 0.3;
       for (const spr of this.bgSprites) {
         spr.y += dy;
       }
-      // 래핑: 위로 벗어나면 아래로, 아래로 벗어나면 위로
+
+      const getBgKey = (this as any)._getBgKey as (idx: number) => string;
+
+      // 화면 아래로 완전히 벗어난 스프라이트 → 맨 위로 재활용 (텍스처 교체)
       for (const spr of this.bgSprites) {
-        if (spr.y + spr.displayHeight < -this.bgCycleH) spr.y += totalSpriteH;
-        if (spr.y > this.scale.height + this.bgCycleH) spr.y -= totalSpriteH;
+        if (spr.y > this.scale.height) {
+          // 현재 가장 위쪽 스프라이트의 상단 찾기
+          let minTop = Infinity;
+          for (const s of this.bgSprites) {
+            if (s.y < minTop) minTop = s.y;
+          }
+          // 텍스처 교체 후 바로 위에 이어붙임
+          const nextKey = getBgKey(this.bgNextIdx);
+          spr.setTexture(nextKey);
+          spr.setScale(this.bgScale);
+          spr.y = minTop - spr.displayHeight;
+          this.bgNextIdx++;
+        }
       }
     }
 

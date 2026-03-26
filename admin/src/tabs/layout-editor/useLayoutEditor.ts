@@ -219,6 +219,30 @@ export function useLayoutEditor(gameId: string) {
     })
   }, [])
 
+  // Change positioning (group ↔ anchor)
+  const changePositioning = useCallback((id: string, positioning: 'group' | 'anchor') => {
+    setState((prev) => {
+      const el = prev.elements.find((e) => e.id === id)
+      if (!el || el.positioning === positioning) return prev
+      const maxOrder = prev.elements
+        .filter((e): e is GroupElement => e.positioning === 'group')
+        .reduce((max, e) => Math.max(max, e.order), -1)
+      let updated: LayoutElement
+      if (positioning === 'anchor') {
+        const { order: _o, gapPx: _g, hGapPx: _h, ...rest } = el as any
+        updated = { ...rest, positioning: 'anchor', anchor: 'top-left', offsetX: 20, offsetY: 20 } as any
+      } else {
+        const { anchor: _a, offsetX: _ox, offsetY: _oy, ...rest } = el as any
+        updated = { ...rest, positioning: 'group', order: maxOrder + 1, gapPx: 8 } as any
+      }
+      return {
+        ...prev,
+        dirty: true,
+        elements: prev.elements.map((e) => e.id === id ? updated : e),
+      }
+    })
+  }, [])
+
   // Set parent (nest element inside card/modal)
   const setParent = useCallback((childId: string, parentId: string | undefined) => {
     setState((prev) => ({
@@ -406,6 +430,7 @@ export function useLayoutEditor(gameId: string) {
     removeElement,
     duplicateElement,
     setParent,
+    changePositioning,
     setElementImage,
     save,
     createScreen,

@@ -110,6 +110,21 @@ export default function Inspector({
         </Field>
       )}
 
+      {/* 너비 */}
+      {el.type === 'image' && (
+        <Section title="크기">
+          <Field label="너비 모드">
+            <div style={{ display: 'flex', gap: 6 }}>
+              <MiniToggle active={el.widthMode === 'full'} label="전체" onClick={() => update({ widthMode: 'full' })} />
+              <MiniToggle active={el.widthMode !== 'full'} label="고정" onClick={() => update({ widthMode: 'fixed' })} />
+            </div>
+          </Field>
+          {el.widthMode !== 'full' && (
+            <Field label="너비 (px)"><NumInput value={el.widthPx} onChange={(v) => update({ widthPx: v })} /></Field>
+          )}
+        </Section>
+      )}
+
       {el.heightPx !== undefined && el.type !== 'card' && el.type !== 'modal' && (
         <Field label="높이 (px)"><NumInput value={el.heightPx} onChange={(v) => update({ heightPx: v })} /></Field>
       )}

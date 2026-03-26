@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import type { LayoutElement, GroupElement } from './types'
-import { Copy, Trash2, GripVertical, Plus } from 'lucide-react'
+import { Copy, Trash2, GripVertical } from 'lucide-react'
 
 interface Props {
   elements: LayoutElement[]
@@ -10,16 +10,19 @@ interface Props {
   onDuplicate: (id: string) => void
   onReorder: (id: string, patch: Partial<LayoutElement>) => void
   onSetParent: (childId: string, parentId: string | undefined) => void
-  onAddElement: (type: string, positioning: 'group' | 'anchor') => void
+  onChangePositioning: (id: string, positioning: 'group' | 'anchor') => void
 }
 
-type DropTarget = { type: 'between'; order: number } | { type: 'merge'; targetId: string } | { type: 'nest'; parentId: string }
+type DropTarget =
+  | { type: 'between'; order: number }
+  | { type: 'merge'; targetId: string }
+  | { type: 'nest'; parentId: string }
+  | { type: 'anchor-zone' }
 
-export default function ElementList({ elements, selectedId, onSelect, onRemove, onDuplicate, onReorder, onSetParent, onAddElement }: Props) {
+export default function ElementList({ elements, selectedId, onSelect, onRemove, onDuplicate, onReorder, onSetParent, onChangePositioning }: Props) {
   const [dragId, setDragId] = useState<string | null>(null)
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null)
   const dragRef = useRef<string | null>(null)
-  const [anchorMenuOpen, setAnchorMenuOpen] = useState(false)
 
   const rootEls = elements.filter((e) => !e.parentId)
   const groupEls = rootEls.filter((e): e is GroupElement => e.positioning === 'group')
@@ -57,8 +60,15 @@ export default function ElementList({ elements, selectedId, onSelect, onRemove, 
   const handleDropBetween = (newOrder: number) => {
     const sourceId = dragRef.current
     if (!sourceId) { handleDragEnd(); return }
-    const source = elements.find((e) => e.id === sourceId) as GroupElement | undefined
-    if (!source || source.positioning !== 'group') { handleDragEnd(); return }
+    const source = elements.find((e) => e.id === sourceId)
+    if (!source) { handleDragEnd(); return }
+    // 앵커→그룹 전환
+    if (source.positioning === 'anchor') {
+      onChangePositioning(sourceId, 'group')
+      handleDragEnd()
+      return
+    }
+    if (source.positioning !== 'group') { handleDragEnd(); return }
     groupEls.filter((e) => e.id !== sourceId).forEach((e) => {
       if (e.order >= newOrder) onReorder(e.id, { order: e.order + 1 })
     })
@@ -66,15 +76,21 @@ export default function ElementList({ elements, selectedId, onSelect, onRemove, 
     handleDragEnd()
   }
 
+  const handleDropToAnchor = () => {
+    const sourceId = dragRef.current
+    if (!sourceId) { handleDragEnd(); return }
+    onChangePositioning(sourceId, 'anchor')
+    handleDragEnd()
+  }
+
   const renderRow = (el: LayoutElement, indent = 0) => {
     const isContainer = el.type === 'card' || el.type === 'modal'
     const children = isContainer ? childrenOf(el.id) : []
-    const isGroup = el.positioning === 'group'
 
     return (
       <div key={el.id}>
         <div
-          draggable={isGroup}
+          draggable
           onDragStart={() => handleDragStart(el.id)}
           onDragEnd={handleDragEnd}
           onDragOver={(e) => {
@@ -97,7 +113,7 @@ export default function ElementList({ elements, selectedId, onSelect, onRemove, 
             borderBottom: '1px solid #f0f0f0',
           }}
         >
-          {isGroup && <span style={{ cursor: 'grab', color: '#ccc', display: 'flex' }}><GripVertical size={14} /></span>}
+          <span style={{ cursor: 'grab', color: '#ccc', display: 'flex' }}><GripVertical size={14} /></span>
           <TypeDot type={el.type} />
           <span style={{ fontSize: 12, color: '#333', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {el.label || el.id}
@@ -169,6 +185,8 @@ export default function ElementList({ elements, selectedId, onSelect, onRemove, 
     )
   }
 
+  const isAnchorDrop = dropTarget?.type === 'anchor-zone'
+
   return (
     <div style={{ background: '#fafafa', borderRadius: 12, border: '1px solid #eee', overflow: 'hidden' }}>
       <div style={{ padding: '10px 14px', borderBottom: '1px solid #eee' }}>
@@ -200,45 +218,24 @@ export default function ElementList({ elements, selectedId, onSelect, onRemove, 
             onDrop={() => handleDropBetween(rowOrders[rowOrders.length - 1] + 1)}
           />
         )}
-        {/* 앵커 섹션 — 항목이 없어도 항상 표시 */}
-        <div style={{ borderTop: '1px solid #eee', position: 'relative' }}>
-          <div style={{ padding: '6px 14px', fontSize: 10, color: '#999', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>앵커</span>
-            <button
-              onClick={() => setAnchorMenuOpen((v) => !v)}
-              style={{ padding: '1px 4px', background: 'transparent', border: '1px solid #e0e0e0', borderRadius: 4, cursor: 'pointer', color: '#999', display: 'flex', alignItems: 'center' }}
-            >
-              <Plus size={12} />
-            </button>
+        {/* 앵커 섹션 — 드래그 드롭으로 전환 */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDropTarget({ type: 'anchor-zone' }) }}
+          onDragLeave={() => setDropTarget(null)}
+          onDrop={handleDropToAnchor}
+          style={{
+            borderTop: '1px solid #eee',
+            background: isAnchorDrop ? '#e8f0fe' : 'transparent',
+            transition: 'background 0.1s',
+          }}
+        >
+          <div style={{ padding: '6px 14px', fontSize: 10, color: '#999', fontWeight: 600 }}>
+            앵커 <span style={{ fontWeight: 400, color: '#ccc' }}>— 여기로 드래그하면 앵커로 전환</span>
           </div>
-          {anchorMenuOpen && (
-            <div style={{
-              position: 'absolute', right: 14, top: 28, zIndex: 10,
-              background: '#fff', border: '1px solid #e0e0e0', borderRadius: 8,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden', minWidth: 100,
-            }}>
-              {[
-                { label: '텍스트', type: 'text' },
-                { label: '이미지', type: 'image' },
-                { label: 'X 닫기', type: 'close' },
-              ].map((item) => (
-                <button
-                  key={item.type}
-                  onClick={() => { onAddElement(item.type, 'anchor'); setAnchorMenuOpen(false) }}
-                  style={{
-                    display: 'block', width: '100%', padding: '8px 14px', border: 'none',
-                    background: '#fff', fontSize: 12, color: '#333', cursor: 'pointer', textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => { (e.target as HTMLElement).style.background = '#f5f5f5' }}
-                  onMouseLeave={(e) => { (e.target as HTMLElement).style.background = '#fff' }}
-                >
-                  + {item.label}
-                </button>
-              ))}
-            </div>
-          )}
           {anchorEls.map((el) => renderRow(el))}
-          {anchorEls.length === 0 && <div style={{ padding: '8px 14px', fontSize: 11, color: '#ccc' }}>앵커 요소 없음</div>}
+          {anchorEls.length === 0 && !isAnchorDrop && (
+            <div style={{ padding: '8px 14px', fontSize: 11, color: '#ccc' }}>앵커 요소 없음</div>
+          )}
         </div>
         {elements.length === 0 && <div style={{ padding: 24, textAlign: 'center', fontSize: 12, color: '#bbb' }}>요소가 없습니다</div>}
       </div>
