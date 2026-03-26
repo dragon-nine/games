@@ -34,7 +34,7 @@ export function computePreviewLayout(
   screenW: number,
   screenH: number,
   imageSizes: Record<string, { w: number; h: number }>,
-  _groupVAlign: 'center' | 'top' = 'center',
+  groupVAlign: 'center' | 'top' = 'center',
   padding = { top: 60, right: 24, bottom: 40, left: 24 },
   _allElements?: LayoutElement[],
   _designW?: number,  // 내부 재귀용 — 기준 디자인 너비
@@ -109,8 +109,9 @@ export function computePreviewLayout(
 
   // totalH = 모든 행 높이 + 행 사이 간격 (첫 행의 gapPx는 제외)
   const totalH = rows.reduce((sum, r, i) => sum + r.height + (i > 0 ? r.gapPx * scale : 0), 0)
-  // 항상 패딩 안에서 상하 중앙 정렬
-  let curY = Math.max(padTop, padTop + (contentAreaH - totalH) / 2)
+  let curY = groupVAlign === 'top'
+    ? padTop
+    : Math.max(padTop, padTop + (contentAreaH - totalH) / 2)
 
   for (let ri = 0; ri < rows.length; ri++) {
     const row = rows[ri]
