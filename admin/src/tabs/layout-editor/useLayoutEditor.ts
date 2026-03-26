@@ -66,7 +66,7 @@ export function useLayoutEditor(gameId: string) {
   const loadScreen = useCallback(async (key: string) => {
     setState((prev) => ({ ...prev, screenKey: key, loading: true, selectedId: null }))
     try {
-      const url = `${R2_PUBLIC}/${gameId}/layout/${key}.json?t=${Date.now()}`
+      const url = `${R2_PUBLIC}/layout-editor/drafts/${gameId}/${key}.json?t=${Date.now()}`
       const res = await fetch(url)
       if (res.ok) {
         const layout: ScreenLayout = await res.json()
@@ -224,7 +224,7 @@ export function useLayoutEditor(gameId: string) {
       }
       const blob = new Blob([JSON.stringify(layout, null, 2)], { type: 'application/json' })
       const file = new File([blob], `${state.screenKey}.json`, { type: 'application/json' })
-      await uploadBlob(file, `${gameId}/layout/`)
+      await uploadBlob(file, `layout-editor/drafts/${gameId}/`)
 
       // Update index
       const now = new Date().toISOString()
