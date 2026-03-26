@@ -49,6 +49,53 @@ export default function PhoneCanvasElement({ el, pos, scale, selected, assetUrl,
       )
     }
 
+    if (el.type === 'toggle') {
+      const h = pos.h
+      const w = pos.w
+      const knob = h - 4 * scale
+      return (
+        <div style={{ width: w, height: h, borderRadius: h / 2, background: '#434750', position: 'relative' }}>
+          <div style={{ width: knob, height: knob, borderRadius: knob / 2, background: '#000', position: 'absolute', top: 2 * scale, left: 2 * scale }} />
+        </div>
+      )
+    }
+
+    if (el.type === 'close') {
+      return (
+        <div style={{
+          width: pos.w, height: pos.h, borderRadius: 999,
+          background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ color: '#fff', fontSize: pos.h * 0.5, fontWeight: 700, lineHeight: 1 }}>✕</span>
+        </div>
+      )
+    }
+
+    if (el.type === 'gauge') {
+      return (
+        <div style={{
+          width: '100%', height: '100%', borderRadius: pos.h / 2,
+          background: '#1a1a1f', border: `${2 * scale}px solid #000`, overflow: 'hidden',
+        }}>
+          <div style={{ width: '70%', height: '100%', background: '#c41e1e', borderRadius: pos.h / 2 }} />
+        </div>
+      )
+    }
+
+    if (el.type === 'circle-btn') {
+      const r = pos.w / 2
+      return (
+        <div style={{
+          width: pos.w, height: pos.h, borderRadius: 999,
+          background: 'radial-gradient(circle at 35% 35%, #5a7080, #4a5a6a 50%, #3a4a5a)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+        }}>
+          <span style={{ fontSize: r * 0.6, color: '#fff' }}>▶</span>
+        </div>
+      )
+    }
+
     if (el.type === 'card') {
       return (
         <div style={{

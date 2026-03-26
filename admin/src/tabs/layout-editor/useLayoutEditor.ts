@@ -128,7 +128,7 @@ export function useLayoutEditor(gameId: string) {
   }, [])
 
   // Add element
-  const addElement = useCallback((type: 'text' | 'image' | 'button' | 'card' | 'modal', positioning: 'group' | 'anchor' = 'group') => {
+  const addElement = useCallback((type: string, positioning: 'group' | 'anchor' = 'group') => {
     const id = makeId()
     const maxOrder = state.elements
       .filter((e): e is GroupElement => e.positioning === 'group')
@@ -160,6 +160,24 @@ export function useLayoutEditor(gameId: string) {
       el.heightPx = 480
       el.label = '모달'
       el.innerPadding = { top: 48, right: 20, bottom: 24, left: 20 }
+    } else if (type === 'toggle') {
+      el.widthMode = 'fixed'
+      el.widthPx = 77  // 44 * 1.75
+      el.heightPx = 44
+      el.label = '토글'
+    } else if (type === 'close') {
+      el.widthMode = 'fixed'
+      el.widthPx = 32
+      el.heightPx = 32
+      el.label = '닫기'
+    } else if (type === 'gauge') {
+      el.heightPx = 28
+      el.label = '게이지'
+    } else if (type === 'circle-btn') {
+      el.widthMode = 'fixed'
+      el.widthPx = 80
+      el.heightPx = 80
+      el.label = '원형 버튼'
     }
 
     setState((prev) => ({

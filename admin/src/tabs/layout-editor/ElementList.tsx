@@ -304,7 +304,7 @@ function ElementRow({ el, indent, selected, dragging, dropOver, onSelect, onDrag
 }
 
 function TypeDot({ type }: { type: string }) {
-  const bg: Record<string, string> = { text: '#3182f6', image: '#e53935', button: '#111', card: '#8b5cf6', modal: '#f59e0b' }
+  const bg: Record<string, string> = { text: '#3182f6', image: '#e53935', button: '#111', card: '#8b5cf6', modal: '#f59e0b', toggle: '#434750', close: '#666', gauge: '#c41e1e', 'circle-btn': '#4a5a6a' }
   return <div style={{ width: 8, height: 8, borderRadius: 4, background: bg[type] || '#999', flexShrink: 0 }} />
 }
 

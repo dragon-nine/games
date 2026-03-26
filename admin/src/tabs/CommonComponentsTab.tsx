@@ -603,7 +603,6 @@ function getScale(key: TypeScaleKey) {
 }
 
 function ComponentsSection({ spec }: { spec: DesignSpec; update: UpdateFn }) {
-  const cb = spec.circleButton
   const g = spec.gaugeBar
 
   return (
@@ -616,9 +615,9 @@ function ComponentsSection({ spec }: { spec: DesignSpec; update: UpdateFn }) {
         preview={
           <Preview bg="#111">
             <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-              <CircleButton icon="rotate" size={cb.size} />
-              <CircleButton icon="play" size={cb.size} />
-              <CircleButton icon="pause" size={Math.round(cb.size * 0.65)} />
+              <CircleButton icon="rotate" size={80} />
+              <CircleButton icon="play" size={80} />
+              <CircleButton icon="pause" size={52} />
             </div>
           </Preview>
         }
@@ -633,11 +632,7 @@ function ComponentsSection({ spec }: { spec: DesignSpec; update: UpdateFn }) {
         desc="모달 닫기 버튼. 검정 원형 배경 + 굵은 X 아이콘."
         preview={
           <Preview bg="#2a292e">
-            <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-              <CloseButton size={24} />
-              <CloseButton size={32} />
-              <CloseButton size={40} />
-            </div>
+            <CloseButton size={32} />
           </Preview>
         }
         controls={null}
@@ -666,10 +661,8 @@ function ComponentsSection({ spec }: { spec: DesignSpec; update: UpdateFn }) {
         preview={
           <Preview bg="#111">
             <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-              <ToggleSwitch on={false} size={48} />
-              <ToggleSwitch on={true} size={48} />
-              <ToggleSwitch on={false} size={36} />
-              <ToggleSwitch on={true} size={36} />
+              <ToggleSwitch on={false} />
+              <ToggleSwitch on={true} />
             </div>
           </Preview>
         }

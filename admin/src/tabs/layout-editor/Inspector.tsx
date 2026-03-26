@@ -360,7 +360,7 @@ function ColorSelect({ value, onChange }: { value: string; onChange: (v: string)
 }
 
 function TypeBadge({ type }: { type: string }) {
-  const bg: Record<string, string> = { text: '#3182f6', image: '#e53935', button: '#111', card: '#8b5cf6', modal: '#f59e0b' }
+  const bg: Record<string, string> = { text: '#3182f6', image: '#e53935', button: '#111', card: '#8b5cf6', modal: '#f59e0b', toggle: '#434750', close: '#666', gauge: '#c41e1e', 'circle-btn': '#4a5a6a' }
   return <span style={{ fontSize: 10, background: bg[type] || '#999', color: '#fff', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>{type}</span>
 }
 

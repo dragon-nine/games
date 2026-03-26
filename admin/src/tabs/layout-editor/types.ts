@@ -23,7 +23,7 @@ export interface ButtonStyle {
 
 interface LayoutElementBase {
   id: string
-  type: 'text' | 'image' | 'button' | 'card' | 'modal'
+  type: 'text' | 'image' | 'button' | 'card' | 'modal' | 'toggle' | 'close' | 'gauge' | 'circle-btn'
   widthMode?: 'full' | 'fixed'
   widthPx: number
   heightPx?: number
