@@ -2064,3 +2064,40 @@ body {
   color: var(--text-secondary);
   cursor: pointer;
 }
+
+/* 도전장 멘트 — 필터 버튼 */
+.ct-filter,
+.ct-filter-active {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+.ct-filter-active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+}
+
+/* 도전장 멘트 — 타입 배지 */
+.ct-type-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.ct-type-normal {
+  background: #2a3a2a;
+  color: #6fcf6f;
+}
+.ct-type-record {
+  background: #3a2a1a;
+  color: #f0a050;
+}
