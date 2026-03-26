@@ -3,13 +3,13 @@
 export const colors = {
   white: '#ffffff',
   black: '#000000',
-  darkGray: '#1a1a1f',
-  gray: '#3c3c44',
-  midGray: '#969696',
-  modalBg: '#2a292e',
-  gameOverBtnLg: '#24282c',
-  gameOverBtnSm: '#231816',
-  gameOverBtnLine: '#4d4340',
+  charcoal: '#1a1a1f',
+  slate: '#3c3c44',
+  silver: '#969696',
+  ash: '#2a292e',
+  graphite: '#24282c',
+  cocoa: '#231816',
+  bronze: '#4d4340',
 } as const
 
 export const radius = {
@@ -76,7 +76,7 @@ export const buttonStyleDefaults = {
     borderWidth: 3,
     borderColor: '#000000',
     innerLineWidth: 2,
-    innerLineColor: '#4d4340',
+    innerLineColor: '#4d4340', // bronze
     borderRadius: 12,
   },
 } as const

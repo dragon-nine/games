@@ -276,13 +276,13 @@ function EffectCard({ label, desc, bg, text, renderText }: {
 const COLOR_ITEMS: { name: string; hex: string; usage: string }[] = [
   { name: 'white', hex: colors.white, usage: '텍스트, 테두리' },
   { name: 'black', hex: colors.black, usage: '스트로크, CTA 배경' },
-  { name: 'darkGray', hex: colors.darkGray, usage: '카드, 버튼 배경' },
-  { name: 'gray', hex: colors.gray, usage: '보조 버튼' },
-  { name: 'midGray', hex: colors.midGray, usage: '비활성 텍스트' },
-  { name: 'modalBg', hex: colors.modalBg, usage: '모달 배경' },
-  { name: 'gameOverBtnLg', hex: colors.gameOverBtnLg, usage: '게임오버 큰 버튼' },
-  { name: 'gameOverBtnSm', hex: colors.gameOverBtnSm, usage: '게임오버 작은 버튼' },
-  { name: 'gameOverBtnLine', hex: colors.gameOverBtnLine, usage: '더블 라인' },
+  { name: 'charcoal', hex: colors.charcoal, usage: '카드, 버튼 배경' },
+  { name: 'slate', hex: colors.slate, usage: '보조 버튼' },
+  { name: 'silver', hex: colors.silver, usage: '비활성 텍스트' },
+  { name: 'ash', hex: colors.ash, usage: '모달 배경' },
+  { name: 'graphite', hex: colors.graphite, usage: '게임오버 큰 버튼' },
+  { name: 'cocoa', hex: colors.cocoa, usage: '게임오버 작은 버튼' },
+  { name: 'bronze', hex: colors.bronze, usage: '더블 라인' },
 ]
 
 function ColorSection() {
@@ -336,21 +336,21 @@ function ColorSection() {
         <SectionHeader title="Gradients" desc="게임 내에서 사용하는 그라데이션 조합." />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           <GradientCard
-            label="Title Gradient"
+            label="White → Ice Blue"
             desc="메인 타이틀 텍스트"
             from="#ffffff"
             to="#c1e5ff"
             direction="to bottom"
           />
           <GradientCard
-            label="Revive Button"
+            label="Crimson → Maroon"
             desc="광고보고 부활 버튼"
             from="#e5332f"
             to="#771615"
             direction="135deg"
           />
           <GradientCard
-            label="Background"
+            label="Wine → Black"
             desc="메인 화면 배경"
             from="#2a0c10"
             to="#000000"
@@ -469,7 +469,7 @@ function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor }:
 }) {
   const s = typeScale[scale]
   const d = buttonStyleDefaults[variant]
-  const bg = bgColor || colors.gameOverBtnLg
+  const bg = bgColor || colors.graphite
 
   return (
     <div style={{
@@ -570,7 +570,7 @@ function ButtonStylesSection() {
           {/* Double Line */}
           <div style={{ border: '1px solid #e8e8e8', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ background: '#333', padding: '40px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <GameButton variant="doubleLine" scale="md" icon="🔥" bgColor={colors.gameOverBtnSm}>도전장 보내기</GameButton>
+              <GameButton variant="doubleLine" scale="md" icon="🔥" bgColor={colors.cocoa}>도전장 보내기</GameButton>
             </div>
             <div style={{ padding: '16px 20px' }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>Double Line</div>
