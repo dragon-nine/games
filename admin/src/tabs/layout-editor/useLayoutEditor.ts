@@ -89,7 +89,7 @@ export function useLayoutEditor(gameId: string) {
         setState((prev) => ({
           ...prev,
           elements: layout.elements,
-          groupVAlign: layout.groupVAlign || 'center',
+          groupVAlign: 'center',  // 화면 레벨은 항상 center
           padding: layout.padding || { ...DEFAULT_PADDING },
           bgType: layout.bgType || 'solid',
           bgColor: layout.bgColor || '#000000',
@@ -252,7 +252,7 @@ export function useLayoutEditor(gameId: string) {
         screen: state.screenKey,
         designWidth: DESIGN_W,
         elements: state.elements,
-        groupVAlign: state.groupVAlign,
+        groupVAlign: 'center',
         padding: state.padding,
         bgType: state.bgType,
         bgColor: state.bgColor,
