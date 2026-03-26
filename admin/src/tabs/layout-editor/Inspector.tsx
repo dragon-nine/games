@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import type { LayoutElement, GroupElement, AnchorElement } from './types'
 import { colors, typeScale, gradients, type GradientKey } from '../../components/common/design-tokens'
 import type { TypeScaleKey, ButtonStyleType } from '../../components/common/design-spec'
@@ -310,11 +311,22 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function NumInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState(String(value))
+  useEffect(() => { setText(String(value)) }, [value])
   return (
     <input
-      type="text" value={value}
-      onChange={(e) => { const n = Number(e.target.value); if (!isNaN(n)) onChange(n) }}
-      style={{ ...selectStyle, width: 70 }}
+      type="text" value={text}
+      onChange={(e) => {
+        setText(e.target.value)
+        const n = Number(e.target.value)
+        if (e.target.value !== '' && !isNaN(n)) onChange(n)
+      }}
+      onBlur={() => {
+        const n = Number(text)
+        if (!isNaN(n)) onChange(n)
+        else setText(String(value))
+      }}
+      style={{ ...selectStyle, width: 60 }}
     />
   )
 }
