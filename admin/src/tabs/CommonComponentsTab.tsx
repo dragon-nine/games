@@ -273,44 +273,16 @@ function EffectCard({ label, desc, bg, text, renderText }: {
    2. COLOR — 팔레트
    ═══════════════════════════════════════════ */
 
-const COLOR_GROUPS: { title: string; desc: string; items: { name: string; hex: string; usage: string }[] }[] = [
-  {
-    title: 'Background',
-    desc: '화면, 모달, 카드의 배경색. 어둡고 무거운 톤으로 게임의 무게감을 표현.',
-    items: [
-      { name: 'dark', hex: colors.dark, usage: '버튼 배경' },
-      { name: 'darker', hex: colors.darker, usage: '카드, 아이콘 버튼 배경' },
-      { name: 'modalBg', hex: colors.modalBg, usage: '모달 배경' },
-      { name: 'black', hex: colors.black, usage: 'CTA, 텍스트 스트로크' },
-      { name: 'gameOverBtnLg', hex: colors.gameOverBtnLg, usage: '게임오버 큰 버튼' },
-      { name: 'gameOverBtnSm', hex: colors.gameOverBtnSm, usage: '게임오버 작은 버튼' },
-      { name: 'gameOverBtnLine', hex: colors.gameOverBtnLine, usage: '게임오버 작은 버튼 더블 라인' },
-    ],
-  },
-  {
-    title: 'Accent',
-    desc: '주요 액션과 하이라이트. Red 계열은 긴박함, Blue 계열은 타이틀 그라데이션.',
-    items: [
-      { name: 'red', hex: colors.red, usage: '부활 버튼 메인' },
-      { name: 'redLight', hex: colors.redLight, usage: '부활 버튼 하이라이트' },
-      { name: 'redDark', hex: colors.redDark, usage: '부활 버튼 그림자' },
-      { name: 'cyan', hex: colors.cyan, usage: '튜토리얼 글로우' },
-      { name: 'blue', hex: colors.blue, usage: '타이틀 그라데이션 시작' },
-      { name: 'blueLight', hex: colors.blueLight, usage: '타이틀 그라데이션 끝' },
-    ],
-  },
-  {
-    title: 'Neutral',
-    desc: '돌 버튼, 원형 버튼, 비활성 텍스트 등. BlueGray 계열이 특징.',
-    items: [
-      { name: 'blueGray', hex: colors.blueGray, usage: '돌 버튼, 원형 버튼' },
-      { name: 'blueGrayLight', hex: colors.blueGrayLight, usage: '하이라이트' },
-      { name: 'blueGrayDark', hex: colors.blueGrayDark, usage: '그림자' },
-      { name: 'gray', hex: colors.gray, usage: '보조 버튼' },
-      { name: 'grayText', hex: colors.grayText, usage: '비활성 텍스트' },
-      { name: 'white', hex: colors.white, usage: '텍스트, 테두리' },
-    ],
-  },
+const COLOR_ITEMS: { name: string; hex: string; usage: string }[] = [
+  { name: 'white', hex: colors.white, usage: '텍스트, 테두리' },
+  { name: 'black', hex: colors.black, usage: '스트로크, CTA 배경' },
+  { name: 'darkGray', hex: colors.darkGray, usage: '카드, 버튼 배경' },
+  { name: 'gray', hex: colors.gray, usage: '보조 버튼' },
+  { name: 'midGray', hex: colors.midGray, usage: '비활성 텍스트' },
+  { name: 'modalBg', hex: colors.modalBg, usage: '모달 배경' },
+  { name: 'gameOverBtnLg', hex: colors.gameOverBtnLg, usage: '게임오버 큰 버튼' },
+  { name: 'gameOverBtnSm', hex: colors.gameOverBtnSm, usage: '게임오버 작은 버튼' },
+  { name: 'gameOverBtnLine', hex: colors.gameOverBtnLine, usage: '더블 라인' },
 ]
 
 function ColorSection() {
@@ -325,46 +297,38 @@ function ColorSection() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
       {/* Full Palette Overview */}
       <section>
-        <SectionHeader title="Color Palette" desc="게임 전체에서 사용하는 컬러 시스템. 클릭하면 HEX 복사." />
+        <SectionHeader title="Color Palette" desc="게임 전체에서 사용하는 컬러. 클릭하면 HEX 복사." />
 
-        {COLOR_GROUPS.map((g) => (
-          <div key={g.title} style={{ marginBottom: 32 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8 }}>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: '#333', margin: 0 }}>{g.title}</h4>
-              <span style={{ fontSize: 12, color: '#999' }}>{g.desc}</span>
+        <div style={{ display: 'flex', gap: 0, borderRadius: 12, overflow: 'hidden', border: '1px solid #e8e8e8' }}>
+          {COLOR_ITEMS.map((c) => (
+            <div
+              key={c.name}
+              onClick={() => handleCopy(c.hex)}
+              style={{
+                flex: 1, cursor: 'pointer',
+                position: 'relative',
+              }}
+            >
+              <div style={{
+                height: 72, background: c.hex,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRight: '1px solid rgba(255,255,255,0.08)',
+              }}>
+                {copied === c.hex && (
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, color: '#fff',
+                    background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4,
+                  }}>Copied!</span>
+                )}
+              </div>
+              <div style={{ padding: '8px 10px', background: '#fafafa' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace', color: '#333' }}>{c.hex}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginTop: 1 }}>{c.name}</div>
+                <div style={{ fontSize: 10, color: '#bbb', marginTop: 1 }}>{c.usage}</div>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 0, borderRadius: 12, overflow: 'hidden', border: '1px solid #e8e8e8' }}>
-              {g.items.map((c) => (
-                <div
-                  key={c.name}
-                  onClick={() => handleCopy(c.hex)}
-                  style={{
-                    flex: 1, cursor: 'pointer', transition: 'transform 0.1s',
-                    position: 'relative',
-                  }}
-                >
-                  <div style={{
-                    height: 72, background: c.hex,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRight: '1px solid rgba(255,255,255,0.08)',
-                  }}>
-                    {copied === c.hex && (
-                      <span style={{
-                        fontSize: 11, fontWeight: 700, color: '#fff',
-                        background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4,
-                      }}>Copied!</span>
-                    )}
-                  </div>
-                  <div style={{ padding: '8px 10px', background: '#fafafa' }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace', color: '#333' }}>{c.hex}</div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginTop: 1 }}>{c.name}</div>
-                    <div style={{ fontSize: 10, color: '#bbb', marginTop: 1 }}>{c.usage}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
       {/* Gradient */}

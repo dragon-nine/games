@@ -25,7 +25,7 @@ export default function IconButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        backgroundColor: colors.darker,
+        backgroundColor: '#1a1a1f',
         color: colors.white,
         fontSize,
         fontWeight: font.weight.black,
@@ -35,7 +35,7 @@ export default function IconButton({
         borderRadius: radius.md,
         padding: '12px 20px',
         cursor: 'pointer',
-        WebkitTextStroke: `2.5px ${colors.stroke}`,
+        WebkitTextStroke: `2.5px ${'#000000'}`,
         paintOrder: 'stroke fill',
         ...style,
       }}

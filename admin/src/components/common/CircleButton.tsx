@@ -49,7 +49,7 @@ export default function CircleButton({
         width: '100%',
         height: '100%',
         borderRadius: '50%',
-        background: `radial-gradient(circle at 40% 35%, ${colors.blueGrayLight}, ${colors.blueGray} 50%, ${colors.blueGrayDark} 100%)`,
+        background: `radial-gradient(circle at 40% 35%, ${'#5a7080'}, ${'#4a5a6a'} 50%, ${'#3a4a5a'} 100%)`,
         boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -2px 4px rgba(0,0,0,0.3)',
         display: 'flex',
         alignItems: 'center',
@@ -79,7 +79,7 @@ export default function CircleButton({
         {/* 아이콘 */}
         {icon === 'play' && (
           <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
-            <path d="M8 5v14l11-7z" fill={colors.white} stroke={colors.blueGrayDark} strokeWidth="1.5" strokeLinejoin="round" />
+            <path d="M8 5v14l11-7z" fill={colors.white} stroke={'#3a4a5a'} strokeWidth="1.5" strokeLinejoin="round" />
           </svg>
         )}
         {icon === 'rotate' && (
@@ -89,8 +89,8 @@ export default function CircleButton({
         )}
         {icon === 'pause' && (
           <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none">
-            <rect x="6" y="4" width="4" height="16" rx="1" fill={colors.white} stroke={colors.blueGrayDark} strokeWidth="1" />
-            <rect x="14" y="4" width="4" height="16" rx="1" fill={colors.white} stroke={colors.blueGrayDark} strokeWidth="1" />
+            <rect x="6" y="4" width="4" height="16" rx="1" fill={colors.white} stroke={'#3a4a5a'} strokeWidth="1" />
+            <rect x="14" y="4" width="4" height="16" rx="1" fill={colors.white} stroke={'#3a4a5a'} strokeWidth="1" />
           </svg>
         )}
       </div>

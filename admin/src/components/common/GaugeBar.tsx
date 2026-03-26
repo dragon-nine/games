@@ -15,7 +15,7 @@ export default function GaugeBar({
   value = 0.7,
   width = 280,
   height = 32,
-  fillColor = colors.red,
+  fillColor = '#c41e1e',
   style,
 }: GaugeBarProps) {
   const stripeSize = height * 0.8
@@ -28,9 +28,9 @@ export default function GaugeBar({
         height,
         borderRadius: radius.sm,
         border: `3px solid ${colors.white}`,
-        backgroundColor: colors.darker,
+        backgroundColor: '#1a1a1f',
         overflow: 'hidden',
-        boxShadow: `0 0 0 2px ${colors.stroke}`,
+        boxShadow: `0 0 0 2px ${'#000000'}`,
         ...style,
       }}
     >
@@ -54,7 +54,7 @@ export default function GaugeBar({
         left: 0,
         bottom: 0,
         width: `${Math.max(0, Math.min(1, value)) * 100}%`,
-        background: `linear-gradient(to bottom, ${fillColor}, ${colors.redDark})`,
+        background: `linear-gradient(to bottom, ${fillColor}, ${'#8b1a1a'})`,
         transition: 'width 0.3s ease-out',
       }}>
         {/* 채움 줄무늬 */}
