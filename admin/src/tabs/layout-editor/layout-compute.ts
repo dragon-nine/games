@@ -86,6 +86,7 @@ export function computePreviewLayout(
           const cleanChildren = children.map((c) => ({ ...c, parentId: undefined }))
           const childPos = computePreviewLayout(cleanChildren, childScreenW, 9999, imageSizes, 'top', { top: 0, right: 0, bottom: 0, left: 0 }, [], childDesignW)
           const childBottom = childPos.length > 0 ? Math.max(...childPos.map((p) => p.y + p.h * (1 - p.originY))) : 0
+          console.log('[card-height]', el.id, { childBottom, ipTop: ip.top, ipBottom: ip.bottom, scale, result: childBottom + (ip.top + ip.bottom) * scale, childPos: childPos.map(p => ({ id: p.id, y: p.y, h: p.h, originY: p.originY })) })
           maxH = Math.max(maxH, childBottom + (ip.top + ip.bottom) * scale)
         } else {
           maxH = Math.max(maxH, (ip.top + ip.bottom + 40) * scale) // 빈 카드 최소 높이
