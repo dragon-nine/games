@@ -7,7 +7,7 @@ import ButtonGuide from '../components/common/ButtonGuide'
 import ChallengeModal from '../components/common/ChallengeModal'
 import ToggleSwitch from '../components/common/ToggleSwitch'
 import { colors, radius, font, spacing, typeScale, typeUsage, buttonStyleDefaults } from '../components/common/design-tokens'
-import { DEFAULT_SPEC, R2_KEY, type DesignSpec, type TypeScaleKey, type ButtonStyleType } from '../components/common/design-spec'
+import { DEFAULT_SPEC, R2_KEY, type DesignSpec, type TypeScaleKey } from '../components/common/design-spec'
 import { getJson, putJson } from '../api'
 
 type Tab = 'typography' | 'color' | 'space' | 'buttons' | 'components' | 'compositions'
@@ -602,104 +602,12 @@ function getScale(key: TypeScaleKey) {
   return typeScale[key]
 }
 
-function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateFn }) {
-  const d = spec.darkButton
-  const r = spec.redButton
-  const ic = spec.iconButton
-  const st = spec.stoneButton
+function ComponentsSection({ spec }: { spec: DesignSpec; update: UpdateFn }) {
   const cb = spec.circleButton
-  const [gaugeVal, setGaugeVal] = useState(0.7)
   const g = spec.gaugeBar
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
-      {/* DarkButton */}
-      <ComponentBlock
-        name="DarkButton"
-        category="Button"
-        desc="어두운 배경의 기본 액션 버튼. 게임오버 화면의 '홈으로 가기'에 사용."
-        preview={
-          <Preview bg="#444">
-            <GameButton variant={d.buttonStyle} scale={d.scale} bgColor={d.bgColor}>홈으로 가기</GameButton>
-          </Preview>
-        }
-        original="/game01/game-over-screen/btn-home.png"
-        controls={
-          <>
-            <ButtonStyleField label="Button Style" value={d.buttonStyle} onChange={(v) => update('darkButton', { buttonStyle: v })} />
-            <ScaleField label="Type Scale" value={d.scale} onChange={(v) => update('darkButton', { scale: v })} />
-            <ColorField label="Background" value={d.bgColor} onChange={(v) => update('darkButton', { bgColor: v })} />
-          </>
-        }
-        tokens={[d.scale, d.buttonStyle]}
-      />
-
-      {/* RedButton */}
-      <ComponentBlock
-        name="RedButton"
-        category="Button"
-        desc="그라데이션 강조 버튼. 긴박한 액션('광고보고 부활')에 사용."
-        preview={
-          <Preview bg="#111">
-            <GameButton variant={r.buttonStyle} scale={r.scale} bgColor={`linear-gradient(135deg, ${r.gradientFrom}, ${r.gradientTo})`}>광고보고 부활</GameButton>
-          </Preview>
-        }
-        original="/game01/game-over-screen/btn-revive.png"
-        controls={
-          <>
-            <ButtonStyleField label="Button Style" value={r.buttonStyle} onChange={(v) => update('redButton', { buttonStyle: v })} />
-            <ScaleField label="Type Scale" value={r.scale} onChange={(v) => update('redButton', { scale: v })} />
-            <ColorField label="Gradient From" value={r.gradientFrom} onChange={(v) => update('redButton', { gradientFrom: v })} />
-            <ColorField label="Gradient To" value={r.gradientTo} onChange={(v) => update('redButton', { gradientTo: v })} />
-          </>
-        }
-        tokens={[r.scale, r.buttonStyle]}
-      />
-
-      {/* IconButton */}
-      <ComponentBlock
-        name="IconButton"
-        category="Button"
-        desc="아이콘 + 텍스트 조합 버튼. '도전장 보내기', '랭킹 보기'에 사용."
-        preview={
-          <Preview bg="#111">
-            <div style={{ display: 'flex', gap: 12 }}>
-              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🔥" bgColor={ic.bgColor}>도전장 보내기</GameButton>
-              <GameButton variant={ic.buttonStyle} scale={ic.scale} icon="🏆" bgColor={ic.bgColor}>랭킹 보기</GameButton>
-            </div>
-          </Preview>
-        }
-        controls={
-          <>
-            <ButtonStyleField label="Button Style" value={ic.buttonStyle} onChange={(v) => update('iconButton', { buttonStyle: v })} />
-            <ScaleField label="Type Scale" value={ic.scale} onChange={(v) => update('iconButton', { scale: v })} />
-            <ColorField label="Background" value={ic.bgColor} onChange={(v) => update('iconButton', { bgColor: v })} />
-          </>
-        }
-        tokens={[ic.scale, ic.buttonStyle]}
-      />
-
-      {/* StoneButton */}
-      <ComponentBlock
-        name="StoneButton"
-        category="Button"
-        desc="돌 텍스처의 메인 CTA 버튼. 메인 화면의 '퇴근하기'에 사용."
-        preview={
-          <Preview bg="#111">
-            <GameButton variant={st.buttonStyle} scale={st.scale} bgColor={st.bgColor}>퇴근하기</GameButton>
-          </Preview>
-        }
-        original="/game01/main-screen/main-btn.png"
-        controls={
-          <>
-            <ButtonStyleField label="Button Style" value={st.buttonStyle} onChange={(v) => update('stoneButton', { buttonStyle: v })} />
-            <ScaleField label="Type Scale" value={st.scale} onChange={(v) => update('stoneButton', { scale: v })} />
-            <ColorField label="Background" value={st.bgColor} onChange={(v) => update('stoneButton', { bgColor: v })} />
-          </>
-        }
-        tokens={[st.scale, st.buttonStyle]}
-      />
-
       {/* CircleButton */}
       <ComponentBlock
         name="CircleButton"
@@ -714,9 +622,7 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
             </div>
           </Preview>
         }
-        controls={
-          <NumField label="Size" value={cb.size} onChange={(v) => update('circleButton', { size: v })} min={40} max={120} />
-        }
+        controls={null}
         tokens={['blueGray', 'radius.full']}
       />
 
@@ -745,16 +651,10 @@ function ComponentsSection({ spec, update }: { spec: DesignSpec; update: UpdateF
         desc="HP/체력 게이지 바. 대각선 줄무늬 패턴으로 진행 상태 표시."
         preview={
           <Preview bg="#111">
-            <GaugeBar value={gaugeVal} width={300} height={g.height} fillColor={g.fillColor} />
+            <GaugeBar value={0.7} width={300} height={g.height} fillColor={g.fillColor} />
           </Preview>
         }
-        controls={
-          <>
-            <NumField label="Value" value={Math.round(gaugeVal * 100)} onChange={(v) => setGaugeVal(v / 100)} max={100} />
-            <NumField label="Height" value={g.height} onChange={(v) => update('gaugeBar', { height: v })} min={16} max={48} />
-            <ColorField label="Fill Color" value={g.fillColor} onChange={(v) => update('gaugeBar', { fillColor: v })} />
-          </>
-        }
+        controls={null}
         tokens={['red', 'radius.sm']}
       />
 
@@ -971,29 +871,6 @@ function NumField({ label, value, onChange, min = 0, max = 100, step = 1 }: {
         onChange={(e) => onChange(+e.target.value)}
         style={{ width: '100%', accentColor: '#111' }}
       />
-    </label>
-  )
-}
-
-const BUTTON_STYLES: { value: ButtonStyleType; label: string }[] = [
-  { value: 'flat', label: 'Flat — 테두리 없음' },
-  { value: 'outline', label: 'Outline — 외곽 테두리' },
-  { value: 'doubleLine', label: 'Double Line — 외곽 + 이너' },
-]
-
-function ButtonStyleField({ label, value, onChange }: { label: string; value: ButtonStyleType; onChange: (v: ButtonStyleType) => void }) {
-  return (
-    <label style={labelStyle}>
-      <span>{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as ButtonStyleType)}
-        style={inputStyle}
-      >
-        {BUTTON_STYLES.map((s) => (
-          <option key={s.value} value={s.value}>{s.label}</option>
-        ))}
-      </select>
     </label>
   )
 }
