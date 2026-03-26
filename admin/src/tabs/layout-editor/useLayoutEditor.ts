@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import type { LayoutElement, ScreenLayout, LayoutIndex, GroupElement, AnchorElement } from './types'
-import { R2_LAYOUT_INDEX_KEY, DESIGN_W, DESIGN_H, DEFAULT_SCREENS, DEFAULT_GAP, DEFAULT_PADDING } from './constants'
+import { R2_LAYOUT_INDEX_KEY, DESIGN_W, PHONE_PREVIEW_W, PHONE_PREVIEW_H, DEFAULT_SCREENS, DEFAULT_GAP, DEFAULT_PADDING } from './constants'
 import { getJson, putJson, uploadBlob } from '../../api'
 
 const R2_PUBLIC = 'https://pub-a6e8e0aec44d4a69ae3ed4e096c5acc5.r2.dev'
@@ -257,7 +257,9 @@ export function useLayoutEditor(gameId: string) {
     setState((prev) => {
       const { padding, imageSizes } = prev
       const contentW = DESIGN_W - padding.left - padding.right
-      const contentH = DESIGN_H - padding.top - padding.bottom
+      // 스케일은 가로 기준이므로, 유효 세로 높이를 프리뷰 비율로 계산
+      const effectiveH = PHONE_PREVIEW_H / (PHONE_PREVIEW_W / DESIGN_W)
+      const contentH = effectiveH - padding.top - padding.bottom
       const MIN_GAP = 8
 
       // 1단계: 너비 맞춤
@@ -351,7 +353,7 @@ export function useLayoutEditor(gameId: string) {
         return el
       }) as LayoutElement[]
 
-      return { ...prev, elements, dirty: true }
+      return { ...prev, elements, groupVAlign: 'top', dirty: true }
     })
   }, [])
 
