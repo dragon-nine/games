@@ -313,36 +313,40 @@ export function useLayoutEditor(gameId: string) {
       }
 
       // 3단계: 전체가 패딩 안에 들어올 때까지 이미지 축소
-      let scale = 1
+      let imgScale = 1
+      const gapSlots = Math.max(0, rowCount - 1)
       for (let i = 0; i < 20; i++) {
-        const heights = calcRowHeights(elements, scale)
-        const totalH = heights.reduce((s, h) => s + h, 0) + Math.max(0, rowCount - 1) * MIN_GAP
+        const heights = calcRowHeights(elements, imgScale)
+        const totalH = heights.reduce((s, h) => s + h, 0) + gapSlots * MIN_GAP
         if (totalH <= contentH) break
-        scale *= 0.9
+        imgScale *= 0.9
       }
 
       // 이미지 축소 적용
-      if (scale < 1) {
+      if (imgScale < 1) {
         elements = elements.map((el) => {
           if (el.positioning === 'group' && el.type === 'image') {
-            return { ...el, widthPx: Math.round(el.widthPx * scale) }
+            return { ...el, widthPx: Math.round(el.widthPx * imgScale) }
           }
           return el
         }) as LayoutElement[]
       }
 
-      // 4단계: 최종 높이로 간격 균등 배분
+      // 4단계: 균등 간격 계산
+      // 첫 번째 행: gapPx=0 (패딩 top이 역할)
+      // 두 번째부터: 남은 공간 / (행수 - 1)
       const finalHeights = calcRowHeights(elements, 1)
       const totalElH = finalHeights.reduce((s, h) => s + h, 0)
-      let gap = DEFAULT_GAP
-      if (rowCount > 1) {
-        gap = Math.max(MIN_GAP, Math.floor((contentH - totalElH) / (rowCount - 1)))
-      }
+      const gap = gapSlots > 0
+        ? Math.max(MIN_GAP, Math.floor((contentH - totalElH) / gapSlots))
+        : 0
 
-      // 5단계: 간격 적용
+      // 5단계: 간격 적용 — 첫 행 0, 나머지 균등
+      const firstOrder = rowOrders[0]
       elements = elements.map((el) => {
         if (el.positioning === 'group') {
-          return { ...el, gapPx: gap }
+          const isFirst = (el as GroupElement).order === firstOrder
+          return { ...el, gapPx: isFirst ? 0 : gap }
         }
         return el
       }) as LayoutElement[]
