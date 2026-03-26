@@ -84,7 +84,7 @@ export function computePreviewLayout(
         const childScreenW = childDesignW * scale
         if (children.length > 0) {
           const cleanChildren = children.map((c) => ({ ...c, parentId: undefined }))
-          const childPos = computePreviewLayout(cleanChildren, childScreenW, 9999, imageSizes, 'top', { top: 0, right: 0, bottom: 0, left: 0 }, allElements, childDesignW)
+          const childPos = computePreviewLayout(cleanChildren, childScreenW, 9999, imageSizes, 'top', { top: 0, right: 0, bottom: 0, left: 0 }, [], childDesignW)
           const childBottom = childPos.length > 0 ? Math.max(...childPos.map((p) => p.y + p.h * (1 - p.originY))) : 0
           maxH = Math.max(maxH, childBottom + (ip.top + ip.bottom) * scale)
         } else {
