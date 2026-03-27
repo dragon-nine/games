@@ -320,7 +320,7 @@ function RenderElement({ el, scale, imageMap, textOverrides, toggleStates, inRow
       <div style={{
         fontFamily: 'GMarketSans, sans-serif', fontWeight: 'bold',
         fontSize, color: gradient ? undefined : color,
-        textAlign: 'left', whiteSpace: 'nowrap', lineHeight: 1.3,
+        textAlign: inRow ? 'left' : 'center', whiteSpace: 'nowrap', lineHeight: 1.3,
         padding: `${4 * scale}px 0`,
         WebkitTextStroke: ts?.strokeWidth ? `${ts.strokeWidth * scale}px ${ts.strokeColor || '#000'}` : undefined,
         paintOrder: ts?.strokeWidth ? 'stroke fill' : undefined,
