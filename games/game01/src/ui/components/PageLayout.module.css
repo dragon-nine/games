@@ -11,3 +11,35 @@
   height: 100dvh;
   background: #000;
 }
+
+/* 모바일 가로 모드 회전 안내 */
+.rotateOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  color: #fff;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.rotateIcon {
+  font-size: 48px;
+  animation: rotateHint 2s ease-in-out infinite;
+}
+
+@keyframes rotateHint {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  75% { transform: rotate(90deg); }
+}
+
+/* 모바일 가로일 때만 표시 (max-height로 데스크탑 제외) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .rotateOverlay { display: flex; }
+}
