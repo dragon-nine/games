@@ -460,7 +460,7 @@ function SpaceShapeSection() {
    4. BUTTONS — 버튼 스타일 유형
    ═══════════════════════════════════════════ */
 
-type ButtonStyle = 'flat' | 'outline' | 'doubleLine'
+type ButtonStyle = 'flat' | 'outline' | 'doubleLine' | 'pill'
 
 function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor }: {
   variant?: ButtonStyle
@@ -479,7 +479,7 @@ function GameButton({ variant = 'flat', children, icon, scale = 'lg', bgColor }:
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      padding: variant === 'doubleLine' ? '4px' : undefined,
+      padding: variant === 'doubleLine' ? '4px' : variant === 'pill' ? '8px 20px' : undefined,
       background: bg,
       borderRadius: d.borderRadius,
       border: d.borderWidth > 0 ? `${d.borderWidth}px solid ${d.borderColor}` : 'none',
@@ -536,9 +536,9 @@ function ButtonStylesSection() {
       <section>
         <SectionHeader
           title="Button Styles"
-          desc="게임에서 사용하는 3가지 버튼 유형. 모든 버튼 컴포넌트는 이 유형 중 하나를 기반으로 구성."
+          desc="게임에서 사용하는 4가지 버튼 유형. 모든 버튼 컴포넌트는 이 유형 중 하나를 기반으로 구성."
         />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
           {/* Flat */}
           <div style={{ border: '1px solid #e8e8e8', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ background: '#333', padding: '40px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -581,6 +581,22 @@ function ButtonStylesSection() {
                 <Tag>배경색</Tag>
                 <Tag>외곽 border</Tag>
                 <Tag>더블 라인</Tag>
+              </div>
+            </div>
+          </div>
+
+          {/* Pill */}
+          <div style={{ border: '1px solid #e8e8e8', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ background: '#333', padding: '40px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <GameButton variant="pill" scale="2xs" bgColor={colors.steel}>↻ 다른 멘트로 바꾸기</GameButton>
+            </div>
+            <div style={{ padding: '16px 20px' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>Pill</div>
+              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>둥근 알약 형태. 보조 액션, 새로고침 등 부수적인 동작에 사용.</p>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                <Tag>뮤트 배경</Tag>
+                <Tag>완전 둥근 모서리</Tag>
+                <Tag>소형 텍스트</Tag>
               </div>
             </div>
           </div>

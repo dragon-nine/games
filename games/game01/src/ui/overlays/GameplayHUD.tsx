@@ -17,7 +17,8 @@ export function GameplayHUD() {
   const [score, setScore] = useState(0);
   const [timerPct, setTimerPct] = useState(1);
   const [pressedBtn, setPressedBtn] = useState<string | null>(null);
-  const [guideHint, setGuideHint] = useState<'forward' | 'switch' | null>('forward');
+  const tutorialDone = localStorage.getItem('tutorialDone') === 'true';
+  const [guideHint, setGuideHint] = useState<'forward' | 'switch' | null>(tutorialDone ? null : 'forward');
 
   useEffect(() => {
     const unsub1 = gameBus.on('score-update', setScore);

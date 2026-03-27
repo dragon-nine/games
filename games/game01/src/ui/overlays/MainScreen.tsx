@@ -25,6 +25,8 @@ function getTextContent(id: string): string | null {
 export function MainScreen() {
   const { positions, elements, scale, ready } = useLayout('main-screen', IMAGE_MAP);
   const [godMode, setGodMode] = useState(localStorage.getItem('godMode') === 'true');
+  const [debugOpen, setDebugOpen] = useState(false);
+  const tutorialDone = localStorage.getItem('tutorialDone') === 'true';
 
   const handleStart = () => {
     gameBus.emit('play-sfx', 'sfx-click');
@@ -36,7 +38,7 @@ export function MainScreen() {
     gameBus.emit('screen-change', 'settings');
   };
 
-  const handleGodMode = () => {
+  const handleToggleGodMode = () => {
     const next = !godMode;
     setGodMode(next);
     localStorage.setItem('godMode', String(next));
@@ -146,7 +148,7 @@ export function MainScreen() {
 
       {/* 디버그 버튼 — 설정 버튼 왼쪽 */}
       <div
-        onClick={handleGodMode}
+        onClick={() => setDebugOpen(true)}
         style={{
           position: 'absolute',
           top: 15 * scale,
@@ -166,6 +168,82 @@ export function MainScreen() {
       >
         🛡️
       </div>
+
+      {/* 디버그 모달 */}
+      {debugOpen && (
+        <div
+          onClick={() => setDebugOpen(false)}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 100,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#2a292e', borderRadius: 16 * scale,
+              padding: `${24 * scale}px`,
+              display: 'flex', flexDirection: 'column', gap: 12 * scale,
+              minWidth: 240 * scale,
+            }}
+          >
+            <div style={{
+              fontFamily: 'GMarketSans, sans-serif', fontWeight: 700,
+              fontSize: 20 * scale, color: '#fff', textAlign: 'center',
+            }}>
+              디버그
+            </div>
+
+            {/* 무적 모드 */}
+            <div
+              onClick={handleToggleGodMode}
+              style={{
+                background: godMode ? '#1a3a1a' : '#1a1a1f',
+                borderRadius: 10 * scale, padding: `${14 * scale}px`,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontFamily: 'GMarketSans, sans-serif', fontWeight: 700, fontSize: 16 * scale, color: '#fff' }}>
+                무적 모드
+              </span>
+              <span style={{ fontSize: 14 * scale, color: godMode ? '#4ade80' : '#666' }}>
+                {godMode ? 'ON' : 'OFF'}
+              </span>
+            </div>
+
+            {/* 튜토리얼 */}
+            <div
+              onClick={() => {
+                if (tutorialDone) {
+                  localStorage.removeItem('tutorialDone');
+                } else {
+                  localStorage.setItem('tutorialDone', 'true');
+                }
+                setDebugOpen(false);
+              }}
+              style={{
+                background: !tutorialDone ? '#1a2a3a' : '#1a1a1f',
+                borderRadius: 10 * scale, padding: `${14 * scale}px`,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontFamily: 'GMarketSans, sans-serif', fontWeight: 700, fontSize: 16 * scale, color: '#fff' }}>
+                튜토리얼
+              </span>
+              <span style={{ fontSize: 14 * scale, color: !tutorialDone ? '#00e5ff' : '#666' }}>
+                {!tutorialDone ? 'ON' : 'OFF'}
+              </span>
+            </div>
+
+            <div style={{ fontSize: 11 * scale, color: '#555', textAlign: 'center' }}>
+              튜토리얼 ON → 다음 게임에 가이드 표시
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

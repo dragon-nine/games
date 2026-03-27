@@ -247,7 +247,12 @@ export class CommuteScene extends Phaser.Scene {
   }
 
   private emitGuideHint() {
+    if (localStorage.getItem('tutorialDone') === 'true') {
+      gameBus.emit('guide-hint', null);
+      return;
+    }
     if (this.guideCount >= 5) {
+      localStorage.setItem('tutorialDone', 'true');
       gameBus.emit('guide-hint', null);
       return;
     }
