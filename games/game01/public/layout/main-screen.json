@@ -9,7 +9,8 @@
       "order": 0,
       "gapPx": 0,
       "widthPx": 342,
-      "widthMode": "fixed"
+      "widthMode": "fixed",
+      "assetKey": "game01/main-screen/main-text.png"
     },
     {
       "id": "main-char",
@@ -18,7 +19,8 @@
       "order": 1,
       "gapPx": 16,
       "widthPx": 175,
-      "widthMode": "fixed"
+      "widthMode": "fixed",
+      "assetKey": "game01/main-screen/main-char.png"
     },
     {
       "id": "bestScore",
@@ -42,7 +44,8 @@
       "order": 3,
       "gapPx": 16,
       "widthPx": 214,
-      "widthMode": "fixed"
+      "widthMode": "fixed",
+      "assetKey": "game01/main-ui/main-btn.png"
     },
     {
       "id": "btn-settings",
@@ -52,7 +55,7 @@
       "visible": true,
       "locked": false,
       "positioning": "anchor",
-      "assetKey": "game01/ui/btn-settings.png",
+      "assetKey": "game01/main-ui/btn-settings.png",
       "anchor": "top-right",
       "offsetX": 15,
       "offsetY": 15

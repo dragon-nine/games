@@ -64,6 +64,24 @@
       "hGapPx": 0
     },
     {
+      "id": "el-ch-btn-refresh",
+      "type": "button",
+      "widthMode": "fixed",
+      "widthPx": 180,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 5,
+      "gapPx": 16,
+      "label": "↻ 다른 멘트로 바꾸기",
+      "buttonStyle": {
+        "styleType": "pill",
+        "bgColor": "#434750",
+        "scaleKey": "2xs"
+      },
+      "parentId": "el-mn77cfh6-qc4q"
+    },
+    {
       "id": "el-mn77csp4-zktq",
       "type": "button",
       "widthMode": "full",
@@ -71,8 +89,8 @@
       "visible": true,
       "locked": false,
       "positioning": "group",
-      "order": 5,
-      "gapPx": 20,
+      "order": 6,
+      "gapPx": 16,
       "label": "카카오톡으로 도전장 보내기",
       "buttonStyle": {
         "styleType": "flat",
@@ -110,7 +128,7 @@
       "positioning": "group",
       "order": 3,
       "gapPx": 20,
-      "assetKey": "game01/challenge/challenge-rabbit.png",
+      "assetKey": "game01/etc-image/challenge-rabbit.png",
       "parentId": "el-mn77cfh6-qc4q"
     }
   ],

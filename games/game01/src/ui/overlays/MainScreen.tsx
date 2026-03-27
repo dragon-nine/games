@@ -189,15 +189,16 @@ function LayoutText({ el, scale, overrideText }: { el: LayoutElement; scale: num
         alignItems: 'center',
         justifyContent: 'center',
         fontFamily: 'GMarketSans, sans-serif',
-        fontWeight: 'bold',
+        fontWeight: 700,
         whiteSpace: 'pre-line',
-        lineHeight: 1.3,
+        lineHeight: 1.4,
         fontSize: `${Math.max(6, fontSizePx * scale)}px`,
         WebkitTextStroke: strokeWidth
           ? `${strokeWidth * scale}px ${strokeColor}`
           : undefined,
+        paintOrder: strokeWidth ? 'stroke fill' : undefined,
         ...(gradient ? {
-          background: `linear-gradient(to right, ${gradient[0]}, ${gradient[1]})`,
+          background: `linear-gradient(to bottom, ${gradient[0]}, ${gradient[1]})`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         } : {}),

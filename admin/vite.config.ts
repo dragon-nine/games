@@ -87,5 +87,11 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    proxy: {
+      '/api/blob-list': 'https://dragon-nine-109.vercel.app',
+      '/api/blob-upload': 'https://dragon-nine-109.vercel.app',
+      '/api/blob-delete': 'https://dragon-nine-109.vercel.app',
+      '/api/json-store': 'https://dragon-nine-109.vercel.app',
+    },
   },
 })

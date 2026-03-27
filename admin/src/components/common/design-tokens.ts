@@ -82,6 +82,13 @@ export const buttonStyleDefaults = {
     innerLineColor: '#4d4340', // bronze
     borderRadius: 12,
   },
+  pill: {
+    borderWidth: 0,
+    borderColor: 'transparent',
+    innerLineWidth: 0,
+    innerLineColor: 'transparent',
+    borderRadius: 9999,
+  },
 } as const
 
 /** 그라데이션 토큰 */

@@ -31,6 +31,8 @@ type EventMap = {
   'action-pause': void;
   // Challenge modal
   'show-challenge': number; // score
+  // Guide hint: which button to press next ('forward' | 'switch' | null)
+  'guide-hint': 'forward' | 'switch' | null;
   // Modals
   'show-ad-remove': void;
   // Debug

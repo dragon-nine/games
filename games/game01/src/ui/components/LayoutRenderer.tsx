@@ -205,7 +205,7 @@ function ElementNode({
 
   const style: React.CSSProperties = {
     width,
-    flex: el.widthMode === 'full' && rowElCount > 1 ? 1 : undefined,
+    flex: el.widthMode === 'full' && rowElCount > 1 && !compSize ? 1 : undefined,
     cursor: onClick ? 'pointer' : undefined,
   };
 
@@ -233,6 +233,7 @@ function ElementNode({
                   display: 'flex',
                   flexDirection: 'row',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   width: '100%',
                   gap: (row.nodes[0]?.el as GroupElement).hGapPx !== undefined
                     ? (row.nodes[0].el as GroupElement).hGapPx! * scale
@@ -266,7 +267,7 @@ function ElementNode({
       style={style}
       onClick={onClick ? (e) => { e.stopPropagation(); onClick(); } : undefined}
     >
-      <RenderElement el={el} scale={scale} imageMap={imageMap} textOverrides={textOverrides} toggleStates={toggleStates} inRow={rowElCount > 1} />
+      <RenderElement el={el} scale={scale} imageMap={imageMap} textOverrides={textOverrides} toggleStates={toggleStates} />
     </div>
   );
 }
@@ -292,7 +293,7 @@ function ContainerWrapper({ el, scale, children }: { el: LayoutElement; scale: n
   if (el.type === 'card') {
     return (
       <div style={{
-        background: el.buttonStyle?.bgColor || '#1a1a1f',
+        background: el.buttonStyle?.bgColor || '#2a292e',
         borderRadius: 16 * scale,
         border: '1px solid rgba(255,255,255,0.08)',
       }}>
@@ -305,11 +306,10 @@ function ContainerWrapper({ el, scale, children }: { el: LayoutElement; scale: n
 }
 
 /** 개별 요소 렌더링 (리프 노드) */
-function RenderElement({ el, scale, imageMap, textOverrides, toggleStates, inRow }: {
+function RenderElement({ el, scale, imageMap, textOverrides, toggleStates }: {
   el: LayoutElement; scale: number;
   imageMap: Record<string, string>; textOverrides: Record<string, string>;
   toggleStates: Record<string, boolean>;
-  inRow?: boolean;
 }) {
   if (el.type === 'text') {
     const ts = el.textStyle;
@@ -320,9 +320,9 @@ function RenderElement({ el, scale, imageMap, textOverrides, toggleStates, inRow
 
     return (
       <div style={{
-        fontFamily: 'GMarketSans, sans-serif', fontWeight: 'bold',
+        fontFamily: 'GMarketSans, sans-serif', fontWeight: 700,
         fontSize, color: gradient ? undefined : color,
-        textAlign: inRow ? 'left' : 'center', whiteSpace: 'nowrap', lineHeight: 1.3,
+        textAlign: 'center', whiteSpace: 'pre-line', lineHeight: 1.4,
         padding: `${4 * scale}px 0`,
         WebkitTextStroke: ts?.strokeWidth ? `${ts.strokeWidth * scale}px ${ts.strokeColor || '#000'}` : undefined,
         paintOrder: ts?.strokeWidth ? 'stroke fill' : undefined,
@@ -345,25 +345,54 @@ function RenderElement({ el, scale, imageMap, textOverrides, toggleStates, inRow
 
   if (el.type === 'button') {
     const bs = el.buttonStyle;
-    const fontSize = (ts_fontSize(bs?.scaleKey) || 18) * scale;
+    const scaleKey = bs?.scaleKey || 'lg';
+    const ts = typeScale[scaleKey] || typeScale.lg;
+    const bsd = buttonStyleDefaults[bs?.styleType || 'outline'];
+    const bgGrad = bs?.bgGradient ? gradientTokens[bs.bgGradient] : null;
+    const bgStyle = bgGrad
+      ? `linear-gradient(${bgGrad.direction}, ${bgGrad.from}, ${bgGrad.to})`
+      : bs?.bgColor || '#24282c';
+    const text = textOverrides[el.id] ?? el.label ?? '버튼';
+
     return (
       <div style={{
-        background: bs?.bgColor || '#24282c',
-        borderRadius: 12 * scale,
-        padding: `${14 * scale}px ${20 * scale}px`,
+        background: bgStyle,
+        borderRadius: bsd.borderRadius * scale,
+        border: bsd.borderWidth > 0 ? `${bsd.borderWidth * scale}px solid ${bsd.borderColor}` : 'none',
+        padding: bs?.styleType === 'doubleLine' ? `${3 * scale}px` : undefined,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'GMarketSans, sans-serif', fontWeight: 'bold',
-        fontSize, color: '#fff',
       }}>
-        {textOverrides[el.id] ?? el.label ?? '버튼'}
+        {bs?.styleType === 'doubleLine' ? (
+          <div style={{
+            width: '100%',
+            border: `${bsd.innerLineWidth * scale}px solid ${bsd.innerLineColor}`,
+            borderRadius: (bsd.borderRadius - 4) * scale,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: `${14 * scale}px ${20 * scale}px`,
+          }}>
+            <span style={{
+              fontFamily: 'GMarketSans, sans-serif', fontSize: ts.fontSize * scale, fontWeight: ts.fontWeight,
+              color: '#fff', WebkitTextStroke: ts.stroke ? `${ts.stroke * scale}px #000` : undefined,
+              paintOrder: 'stroke fill',
+            }}>{text}</span>
+          </div>
+        ) : (
+          <div style={{ padding: `${14 * scale}px ${20 * scale}px` }}>
+            <span style={{
+              fontFamily: 'GMarketSans, sans-serif', fontSize: ts.fontSize * scale, fontWeight: ts.fontWeight,
+              color: '#fff', WebkitTextStroke: ts.stroke ? `${ts.stroke * scale}px #000` : undefined,
+              paintOrder: 'stroke fill',
+            }}>{text}</span>
+          </div>
+        )}
       </div>
     );
   }
 
   if (el.type === 'toggle') {
     const on = toggleStates[el.id] ?? false;
-    const w = 54 * scale;
-    const h = 30 * scale;
+    const h = 44 * scale;
+    const w = 77 * scale;
     const knob = h - 4 * scale;
     return (
       <div style={{
@@ -395,20 +424,59 @@ function RenderElement({ el, scale, imageMap, textOverrides, toggleStates, inRow
     );
   }
 
+  if (el.type === 'gauge') {
+    const h = el.widthPx * 0.15 * scale;
+    return (
+      <div style={{
+        width: '100%', height: h, borderRadius: h / 2,
+        background: '#1a1a1f', border: `${2 * scale}px solid #000`, overflow: 'hidden',
+      }}>
+        <div style={{ width: '70%', height: '100%', background: '#c41e1e', borderRadius: h / 2 }} />
+      </div>
+    );
+  }
+
+  if (el.type === 'circle-btn') {
+    const sz = 80 * scale;
+    const r = sz / 2;
+    return (
+      <div style={{
+        width: sz, height: sz, borderRadius: 999,
+        background: 'radial-gradient(circle at 35% 35%, #5a7080, #4a5a6a 50%, #3a4a5a)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+      }}>
+        <span style={{ fontSize: r * 0.6, color: '#fff' }}>▶</span>
+      </div>
+    );
+  }
+
   return null;
 }
 
-/** buttonStyle.scaleKey → fontSize 변환 */
-function ts_fontSize(scaleKey?: string): number {
-  switch (scaleKey) {
-    case '2xs': return 13;
-    case 'xs': return 14;
-    case 'sm': return 16;
-    case 'md': return 22;
-    case 'lg': return 32;
-    case 'xl': return 40;
-    case '2xl': return 56;
-    case '3xl': return 76;
-    default: return 18;
-  }
+/** 타입 스케일 (에디터 design-tokens와 동일) */
+const typeScale: Record<string, { fontSize: number; fontWeight: number; stroke: number }> = {
+  '3xl': { fontSize: 76, fontWeight: 900, stroke: 6 },
+  '2xl': { fontSize: 56, fontWeight: 900, stroke: 6 },
+  xl: { fontSize: 44, fontWeight: 900, stroke: 4 },
+  lg: { fontSize: 32, fontWeight: 900, stroke: 3 },
+  md: { fontSize: 28, fontWeight: 900, stroke: 3 },
+  sm: { fontSize: 20, fontWeight: 700, stroke: 2 },
+  xs: { fontSize: 16, fontWeight: 700, stroke: 0 },
+  '2xs': { fontSize: 13, fontWeight: 400, stroke: 0 },
+}
+
+/** 버튼 스타일 기본값 (에디터 design-tokens와 동일) */
+const buttonStyleDefaults: Record<string, { borderWidth: number; borderColor: string; innerLineWidth: number; innerLineColor: string; borderRadius: number }> = {
+  flat: { borderWidth: 0, borderColor: 'transparent', innerLineWidth: 0, innerLineColor: 'transparent', borderRadius: 12 },
+  outline: { borderWidth: 3, borderColor: '#000000', innerLineWidth: 0, innerLineColor: 'transparent', borderRadius: 12 },
+  doubleLine: { borderWidth: 3, borderColor: '#000000', innerLineWidth: 2, innerLineColor: '#4d4340', borderRadius: 12 },
+  pill: { borderWidth: 0, borderColor: 'transparent', innerLineWidth: 0, innerLineColor: 'transparent', borderRadius: 9999 },
+}
+
+/** 그라데이션 토큰 (에디터 design-tokens와 동일) */
+const gradientTokens: Record<string, { from: string; to: string; direction: string }> = {
+  'White → Ice Blue': { from: '#ffffff', to: '#c1e5ff', direction: 'to bottom' },
+  'Crimson → Maroon': { from: '#e5332f', to: '#771615', direction: '135deg' },
+  'Wine → Black': { from: '#2a0c10', to: '#000000', direction: 'to bottom' },
 }

@@ -19,6 +19,7 @@ export class CommuteScene extends Phaser.Scene {
   private score = 0;
   private gameOver = false;
   private get godMode() { return localStorage.getItem('godMode') === 'true'; }
+  private guideCount = 0;
   private isFalling = false;
   private comboCount = 0;
   private bestCombo = 0;
@@ -240,6 +241,23 @@ export class CommuteScene extends Phaser.Scene {
 
     logScreen('screen_game');
     logEvent('game_start');
+    this.guideCount = 0;
+    // HUD 마운트 대기 후 가이드 전송
+    this.time.delayedCall(100, () => this.emitGuideHint());
+  }
+
+  private emitGuideHint() {
+    if (this.guideCount >= 5) {
+      gameBus.emit('guide-hint', null);
+      return;
+    }
+    const currentRow = this.road.rows[this.currentRowIdx];
+    // 현재 행이 턴이고, 아직 switch 안 했고, 레인이 다르면 → switch
+    if (currentRow?.isTurn && !this.justSwitched && currentRow.type !== this.player.currentLane) {
+      gameBus.emit('guide-hint', 'switch');
+    } else {
+      gameBus.emit('guide-hint', 'forward');
+    }
   }
 
   /* ── Movement ── */
@@ -266,6 +284,8 @@ export class CommuteScene extends Phaser.Scene {
     this.score++;
     this.hud.updateScore(this.score);
     this.hud.addTime();
+    this.guideCount++;
+    this.emitGuideHint();
 
     // 뷰 패닝 (타겟 레인이 화면 밖이면)
     this.panViewTo(this.calcViewLeft(targetLane));
@@ -297,6 +317,8 @@ export class CommuteScene extends Phaser.Scene {
     this.score++;
     this.hud.updateScore(this.score);
     this.hud.addTime();
+    this.guideCount++;
+    this.emitGuideHint();
     this.comboCount++;
     if (this.comboCount > this.bestCombo) this.bestCombo = this.comboCount;
 

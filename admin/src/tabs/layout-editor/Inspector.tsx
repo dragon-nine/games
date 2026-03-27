@@ -234,6 +234,7 @@ export default function Inspector({
               <option value="flat">Flat</option>
               <option value="outline">Outline</option>
               <option value="doubleLine">Double Line</option>
+              <option value="pill">Pill</option>
             </select>
           </Field>
           <Field label="Type Scale">
