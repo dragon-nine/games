@@ -5,7 +5,7 @@ import { CommuteScene } from './scenes/CommuteScene';
 export function createGameConfig(parent: string): Phaser.Types.Core.GameConfig {
   return {
     type: Phaser.AUTO,
-    width: window.innerWidth,
+    width: Math.min(window.innerWidth, 500),
     height: window.innerHeight,
     parent,
     backgroundColor: '#0a0a14',
