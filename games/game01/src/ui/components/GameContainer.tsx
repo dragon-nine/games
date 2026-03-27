@@ -9,6 +9,7 @@ import { PauseOverlay } from '../overlays/PauseOverlay';
 import { GameOverScreen } from '../overlays/GameOverScreen';
 import { GameplayHUD } from '../overlays/GameplayHUD';
 import { ChallengeOverlay } from '../overlays/ChallengeOverlay';
+import { AdRemoveOverlay } from '../overlays/AdRemoveOverlay';
 
 const GAME_CONTAINER_ID = 'game-container';
 
@@ -17,6 +18,7 @@ export function GameContainer() {
   const [screen, setScreen] = useState<GameScreen>('main');
   const [gameOverData, setGameOverData] = useState<GameOverData | null>(null);
   const [challengeScore, setChallengeScore] = useState<number | null>(null);
+  const [showAdRemove, setShowAdRemove] = useState(false);
 
   useEffect(() => {
     if (gameRef.current) return;
@@ -39,7 +41,8 @@ export function GameContainer() {
       setScreen('game-over');
     });
     const unsub3 = gameBus.on('show-challenge', (score) => setChallengeScore(score));
-    return () => { unsub1(); unsub2(); unsub3(); };
+    const unsub4 = gameBus.on('show-ad-remove', () => setShowAdRemove(true));
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
   }, []);
 
   return (
@@ -61,6 +64,9 @@ export function GameContainer() {
       {screen === 'game-over' && gameOverData && <GameOverScreen data={gameOverData} />}
       {challengeScore !== null && (
         <ChallengeOverlay score={challengeScore} onClose={() => setChallengeScore(null)} />
+      )}
+      {showAdRemove && (
+        <AdRemoveOverlay onClose={() => setShowAdRemove(false)} />
       )}
     </div>
   );

@@ -3,7 +3,6 @@ import { gameBus, type GameOverData } from '../../game/event-bus';
 import { useLayout } from '../hooks/useLayout';
 import { openLeaderboard } from '../../game/services/leaderboard';
 import { logClick } from '../../game/services/analytics';
-import { isGoogle } from '../../game/platform';
 import { getRandomQuote } from '../../game/game-over-quotes';
 import type { LayoutElement } from '../../game/layout-types';
 import styles from './overlay.module.css';
@@ -12,10 +11,6 @@ const BASE = import.meta.env.BASE_URL || '/';
 
 const IMAGE_MAP: Record<string, string> = {
   'go-rabbit': 'game-over-screen/gameover-rabbit.png',
-  'go-btn-revive': 'game-over-screen/btn-revive.png',
-  'go-btn-home': 'game-over-screen/btn-home.png',
-  'go-btn-challenge': 'game-over-screen/btn-challenge.png',
-  'go-btn-ranking': 'game-over-screen/btn-ranking.png',
 };
 
 interface Props {
@@ -27,10 +22,7 @@ export function GameOverScreen({ data }: Props) {
   const excludeIds = useMemo(() => {
     const ids: string[] = [];
     if (!canRevive) ids.push('go-btn-revive');
-    if (isGoogle()) {
-      ids.push('go-btn-revive', 'go-btn-challenge', 'go-btn-ranking');
-    }
-    return [...new Set(ids)];
+    return ids;
   }, [canRevive]);
   const { positions, elements, scale, ready } = useLayout('game-over', IMAGE_MAP, excludeIds);
 
@@ -119,6 +111,8 @@ export function GameOverScreen({ data }: Props) {
                   objectFit: 'contain',
                 }}
               />
+            ) : el.type === 'button' ? (
+              <LayoutButton el={el} scale={scale} />
             ) : (
               <LayoutText el={el} scale={scale} overrideText={textOverrides[el.id]} />
             )}
@@ -162,6 +156,49 @@ function LayoutText({ el, scale, overrideText }: { el: LayoutElement; scale: num
       }}
     >
       {overrideText ?? el.label ?? el.id}
+    </div>
+  );
+}
+
+function LayoutButton({ el, scale }: { el: LayoutElement; scale: number }) {
+  const bs = el.buttonStyle;
+  const scaleKey = bs?.scaleKey || 'md';
+  const fontSizeMap: Record<string, number> = { '2xs': 13, xs: 14, sm: 16, md: 22, lg: 32 };
+  const fontSize = (fontSizeMap[scaleKey] || 18) * scale;
+  const bgGrad = bs?.bgGradient;
+  const bgStyle = bgGrad === 'Crimson → Maroon'
+    ? 'linear-gradient(to bottom, #c41e1e, #5a0f0f)'
+    : bs?.bgColor || '#24282c';
+  const isDoubleLine = bs?.styleType === 'doubleLine';
+  const borderRadius = 12 * scale;
+
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      background: bgStyle,
+      borderRadius,
+      border: isDoubleLine ? `${2 * scale}px solid rgba(255,255,255,0.15)` : `${1 * scale}px solid rgba(255,255,255,0.08)`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: isDoubleLine ? `${3 * scale}px` : undefined,
+    }}>
+      {isDoubleLine ? (
+        <div style={{
+          width: '100%', height: '100%',
+          border: `${1 * scale}px solid rgba(255,255,255,0.1)`,
+          borderRadius: (borderRadius - 4) * scale > 0 ? (borderRadius - 4) : 8,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{
+            fontFamily: 'GMarketSans, sans-serif', fontWeight: 'bold',
+            fontSize, color: '#fff',
+          }}>{el.label || '버튼'}</span>
+        </div>
+      ) : (
+        <span style={{
+          fontFamily: 'GMarketSans, sans-serif', fontWeight: 'bold',
+          fontSize, color: '#fff',
+        }}>{el.label || '버튼'}</span>
+      )}
     </div>
   );
 }

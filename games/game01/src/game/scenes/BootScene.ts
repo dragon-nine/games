@@ -32,10 +32,6 @@ export class BootScene extends Phaser.Scene {
       // 메인 화면 이미지는 React에서 직접 로드하지만,
       // 게임오버에서 사용하는 이미지도 여기서 프리로드
       ['go-rabbit', 'game-over-screen/gameover-rabbit.png'],
-      ['go-btn-revive', 'game-over-screen/btn-revive.png'],
-      ['go-btn-home', 'game-over-screen/btn-home.png'],
-      ['go-btn-challenge', 'game-over-screen/btn-challenge.png'],
-      ['go-btn-ranking', 'game-over-screen/btn-ranking.png'],
     ];
     for (const [key, path] of assets) {
       if (!this.textures.exists(key)) this.load.image(key, path);

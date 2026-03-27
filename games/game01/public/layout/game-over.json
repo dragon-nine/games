@@ -8,85 +8,144 @@
       "type": "text",
       "order": 0,
       "gapPx": 0,
-      "widthPx": 234,
+      "widthPx": 342,
       "label": "최고기록 0",
       "textStyle": {
-        "fontSizePx": 22,
-        "color": "#ffffff"
-      }
+        "fontSizePx": 28,
+        "color": "#ffffff",
+        "scaleKey": "md",
+        "strokeWidth": 3
+      },
+      "widthMode": "full"
     },
     {
       "id": "scoreText",
       "positioning": "group",
       "type": "text",
       "order": 1,
-      "gapPx": 12,
-      "widthPx": 156,
+      "gapPx": 22,
+      "widthPx": 342,
       "label": "0",
       "textStyle": {
-        "fontSizePx": 80,
+        "fontSizePx": 76,
         "color": "#ffffff",
-        "strokeWidth": 3
-      }
-    },
-    {
-      "id": "go-rabbit",
-      "positioning": "group",
-      "type": "image",
-      "order": 2,
-      "gapPx": 16,
-      "widthPx": 175
+        "strokeWidth": 6,
+        "scaleKey": "3xl"
+      },
+      "widthMode": "full"
     },
     {
       "id": "quoteText",
       "positioning": "group",
       "type": "text",
-      "order": 3,
-      "gapPx": 16,
-      "widthPx": 273,
+      "order": 4,
+      "gapPx": 22,
+      "widthPx": 342,
       "label": "퇴근은 쉬운게 아니야...\n인생이 원래 그래",
       "textStyle": {
-        "fontSizePx": 18,
+        "fontSizePx": 20,
         "color": "#ffffff",
         "gradientColors": [
           "#e5332f",
           "#771615"
-        ]
-      }
+        ],
+        "scaleKey": "sm",
+        "strokeWidth": 0
+      },
+      "widthMode": "full"
     },
     {
       "id": "go-btn-revive",
+      "type": "button",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
       "positioning": "group",
-      "type": "image",
-      "order": 4,
-      "gapPx": 24,
-      "widthPx": 331
+      "order": 8,
+      "gapPx": 22,
+      "label": "광고보고 부활",
+      "buttonStyle": {
+        "styleType": "outline",
+        "scaleKey": "md",
+        "bgColor": "#24282c",
+        "bgGradient": "Crimson → Maroon"
+      }
     },
     {
       "id": "go-btn-home",
+      "type": "button",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
       "positioning": "group",
-      "type": "image",
-      "order": 5,
-      "gapPx": 10,
-      "widthPx": 331
+      "order": 9,
+      "gapPx": 8,
+      "label": "홈으로 가기",
+      "buttonStyle": {
+        "styleType": "outline",
+        "bgColor": "#24282c",
+        "scaleKey": "md"
+      }
     },
     {
       "id": "go-btn-challenge",
+      "type": "button",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
       "positioning": "group",
-      "type": "image",
-      "order": 6,
-      "gapPx": 10,
-      "widthPx": 165,
-      "hGapPx": 0
+      "order": 10,
+      "gapPx": 8,
+      "label": "🔥 도전장 보내기",
+      "buttonStyle": {
+        "styleType": "doubleLine",
+        "bgColor": "#231816",
+        "scaleKey": "xs"
+      },
+      "hGapPx": 4
     },
     {
       "id": "go-btn-ranking",
+      "type": "button",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
       "positioning": "group",
+      "order": 10,
+      "gapPx": 22,
+      "label": "🏆 랭킹 보기",
+      "buttonStyle": {
+        "styleType": "doubleLine",
+        "bgColor": "#231816",
+        "scaleKey": "xs"
+      },
+      "hGapPx": 4
+    },
+    {
+      "id": "go-rabbit",
       "type": "image",
-      "order": 6,
-      "gapPx": 10,
-      "widthPx": 165,
-      "hGapPx": 0
+      "widthMode": "fixed",
+      "widthPx": 200,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 3,
+      "gapPx": 22,
+      "assetKey": "game01/game-over-screen/gameover-rabbit.png"
     }
-  ]
+  ],
+  "groupVAlign": "center",
+  "padding": {
+    "top": 80,
+    "right": 24,
+    "bottom": 80,
+    "left": 24
+  },
+  "bgType": "gradient",
+  "bgColor": "#000000",
+  "bgGradient": "Wine → Black"
 }

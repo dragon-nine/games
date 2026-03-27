@@ -1,0 +1,189 @@
+{
+  "screen": "광고제거",
+  "designWidth": 390,
+  "elements": [
+    {
+      "id": "el-mn7e4n4z-lbjj",
+      "type": "modal",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 0,
+      "gapPx": 16,
+      "label": "모달",
+      "innerPadding": {
+        "top": 48,
+        "right": 20,
+        "bottom": 24,
+        "left": 20
+      }
+    },
+    {
+      "id": "el-mn7e53aa-cvig",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 1,
+      "gapPx": 16,
+      "label": "광고 제거",
+      "textStyle": {
+        "fontSizePx": 32,
+        "color": "#ffffff",
+        "scaleKey": "lg",
+        "strokeWidth": 3
+      },
+      "parentId": "el-mn7e4n4z-lbjj"
+    },
+    {
+      "id": "el-mn7e54av-zutx",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 2,
+      "gapPx": 16,
+      "label": "부활 시 광고 없이\n바로 이어서 퇴근할 수 있어요",
+      "textStyle": {
+        "fontSizePx": 22,
+        "color": "#ffffff",
+        "scaleKey": "md",
+        "strokeWidth": 0
+      },
+      "parentId": "el-mn7e4n4z-lbjj"
+    },
+    {
+      "id": "el-mn7e55yg-mnlt",
+      "type": "card",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 3,
+      "gapPx": 16,
+      "label": "카드",
+      "innerPadding": {
+        "top": 20,
+        "right": 16,
+        "bottom": 20,
+        "left": 16
+      },
+      "parentId": "el-mn7e4n4z-lbjj",
+      "buttonStyle": {
+        "styleType": "flat",
+        "bgColor": "#1a1a1f"
+      }
+    },
+    {
+      "id": "el-mn7e58qt-fdki",
+      "type": "button",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 4,
+      "gapPx": 16,
+      "label": "구매하기",
+      "buttonStyle": {
+        "styleType": "flat",
+        "scaleKey": "lg",
+        "bgColor": "#000000"
+      },
+      "parentId": "el-mn7e4n4z-lbjj"
+    },
+    {
+      "id": "el-mn7e6va0-orq1",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 5,
+      "gapPx": 16,
+      "label": "v 부활시 광고 영구 제거",
+      "textStyle": {
+        "fontSizePx": 20,
+        "color": "#ffffff",
+        "scaleKey": "sm",
+        "strokeWidth": 0
+      },
+      "parentId": "el-mn7e55yg-mnlt"
+    },
+    {
+      "id": "el-mn7e6vec-ltz9",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 6,
+      "gapPx": 16,
+      "label": "v 부활시 광고 영구 제거",
+      "textStyle": {
+        "fontSizePx": 20,
+        "color": "#ffffff",
+        "scaleKey": "sm",
+        "strokeWidth": 0
+      },
+      "parentId": "el-mn7e55yg-mnlt"
+    },
+    {
+      "id": "el-mn7e6x6p-g1z7",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 7,
+      "gapPx": 16,
+      "label": "v 부활시 광고 영구 제거",
+      "textStyle": {
+        "fontSizePx": 20,
+        "color": "#ffffff",
+        "scaleKey": "sm",
+        "strokeWidth": 0
+      },
+      "parentId": "el-mn7e55yg-mnlt"
+    },
+    {
+      "id": "el-mn7e6xti-46nq",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 8,
+      "gapPx": 16,
+      "label": "1,900원",
+      "textStyle": {
+        "fontSizePx": 32,
+        "color": "#ffffff",
+        "scaleKey": "lg",
+        "strokeWidth": 0
+      },
+      "parentId": "el-mn7e55yg-mnlt"
+    }
+  ],
+  "groupVAlign": "center",
+  "padding": {
+    "top": 80,
+    "right": 24,
+    "bottom": 80,
+    "left": 24
+  },
+  "bgType": "solid",
+  "bgColor": "#000000",
+  "bgGradient": "Wine → Black"
+}

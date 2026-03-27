@@ -1,0 +1,127 @@
+{
+  "screen": "도전장",
+  "designWidth": 390,
+  "elements": [
+    {
+      "id": "el-mn77cfh6-qc4q",
+      "type": "modal",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 0,
+      "gapPx": 0,
+      "label": "모달",
+      "innerPadding": {
+        "top": 48,
+        "right": 20,
+        "bottom": 24,
+        "left": 20
+      }
+    },
+    {
+      "id": "el-mn77cn6d-10ow",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 1,
+      "gapPx": 4,
+      "label": "1000",
+      "textStyle": {
+        "fontSizePx": 56,
+        "color": "#ffffff",
+        "scaleKey": "2xl",
+        "strokeWidth": 0
+      },
+      "parentId": "el-mn77cfh6-qc4q"
+    },
+    {
+      "id": "el-mn77cp8q-lrvv",
+      "type": "card",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 4,
+      "gapPx": 30,
+      "label": "카드",
+      "innerPadding": {
+        "top": 20,
+        "right": 20,
+        "bottom": 20,
+        "left": 20
+      },
+      "parentId": "el-mn77cfh6-qc4q",
+      "buttonStyle": {
+        "styleType": "flat",
+        "bgColor": "#1a1a1f"
+      },
+      "hGapPx": 0
+    },
+    {
+      "id": "el-mn77csp4-zktq",
+      "type": "button",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 5,
+      "gapPx": 20,
+      "label": "카카오톡으로 도전장 보내기",
+      "buttonStyle": {
+        "styleType": "flat",
+        "bgColor": "#000000",
+        "scaleKey": "sm"
+      },
+      "parentId": "el-mn77cfh6-qc4q"
+    },
+    {
+      "id": "el-mn77d2bq-63xr",
+      "type": "text",
+      "widthMode": "full",
+      "widthPx": 342,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 4,
+      "gapPx": 4,
+      "label": "퇴근 직전 1000에서 '잠깐만' 당했다.\n분하면 도전해봐",
+      "textStyle": {
+        "fontSizePx": 13,
+        "color": "#ffffff",
+        "scaleKey": "2xs",
+        "strokeWidth": 0
+      },
+      "parentId": "el-mn77cp8q-lrvv"
+    },
+    {
+      "id": "el-mn77g1az-eah6",
+      "type": "image",
+      "widthMode": "fixed",
+      "widthPx": 150,
+      "visible": true,
+      "locked": false,
+      "positioning": "group",
+      "order": 3,
+      "gapPx": 20,
+      "assetKey": "game01/challenge/challenge-rabbit.png",
+      "parentId": "el-mn77cfh6-qc4q"
+    }
+  ],
+  "groupVAlign": "center",
+  "padding": {
+    "top": 80,
+    "right": 24,
+    "bottom": 80,
+    "left": 24
+  },
+  "bgType": "solid",
+  "bgColor": "#000000",
+  "bgGradient": "Wine → Black"
+}

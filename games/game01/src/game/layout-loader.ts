@@ -7,6 +7,8 @@ import gameOverLayout from '../../public/layout/game-over.json'
 import gameplayLayout from '../../public/layout/gameplay.json'
 import settingsLayout from '../../public/layout/settings.json'
 import pauseLayout from '../../public/layout/pause.json'
+import challengeLayout from '../../public/layout/challenge.json'
+import adRemoveLayout from '../../public/layout/ad-remove.json'
 
 const BUNDLED_LAYOUTS: Record<string, unknown> = {
   'main-screen': mainScreenLayout,
@@ -14,6 +16,8 @@ const BUNDLED_LAYOUTS: Record<string, unknown> = {
   'gameplay': gameplayLayout,
   'settings': settingsLayout,
   'pause': pauseLayout,
+  'challenge': challengeLayout,
+  'ad-remove': adRemoveLayout,
 }
 
 interface LoadedLayout {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { gameBus } from '../../game/event-bus';
 import { useLayout } from '../hooks/useLayout';
 import type { LayoutElement } from '../../game/layout-types';
@@ -23,6 +24,7 @@ function getTextContent(id: string): string | null {
 
 export function MainScreen() {
   const { positions, elements, scale, ready } = useLayout('main-screen', IMAGE_MAP);
+  const [godMode, setGodMode] = useState(localStorage.getItem('godMode') === 'true');
 
   const handleStart = () => {
     gameBus.emit('play-sfx', 'sfx-click');
@@ -32,6 +34,12 @@ export function MainScreen() {
   const handleSettings = () => {
     gameBus.emit('play-sfx', 'sfx-click');
     gameBus.emit('screen-change', 'settings');
+  };
+
+  const handleGodMode = () => {
+    const next = !godMode;
+    setGodMode(next);
+    localStorage.setItem('godMode', String(next));
   };
 
   if (!ready) return null;
@@ -112,6 +120,52 @@ export function MainScreen() {
           </div>
         );
       })}
+
+      {/* 광고제거 버튼 — 왼쪽 상단 */}
+      <div
+        onClick={() => gameBus.emit('show-ad-remove', undefined)}
+        style={{
+          position: 'absolute',
+          top: 15 * scale,
+          left: 15 * scale,
+          width: 35 * scale,
+          height: 35 * scale,
+          borderRadius: 999,
+          background: 'rgba(255,255,255,0.15)',
+          border: '2px solid rgba(255,255,255,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          fontSize: 14 * scale,
+          zIndex: 10,
+        }}
+      >
+        💎
+      </div>
+
+      {/* 디버그 버튼 — 설정 버튼 왼쪽 */}
+      <div
+        onClick={handleGodMode}
+        style={{
+          position: 'absolute',
+          top: 15 * scale,
+          right: 60 * scale,
+          width: 35 * scale,
+          height: 35 * scale,
+          borderRadius: 999,
+          background: godMode ? '#4ade80' : 'rgba(255,255,255,0.15)',
+          border: `2px solid ${godMode ? '#4ade80' : 'rgba(255,255,255,0.3)'}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          fontSize: 14 * scale,
+          zIndex: 10,
+        }}
+      >
+        🛡️
+      </div>
     </div>
   );
 }

@@ -22,46 +22,40 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   {
-    id: 'new',
-    label: 'NEW',
+    id: 'home',
+    label: '홈',
     categories: [
-      { key: 'new', label: 'NEW', accept: 'image/*,audio/*', darkBg: true },
-    ],
-  },
-  {
-    id: 'common',
-    label: '공통',
-    categories: [
-      { key: 'character', label: '캐릭터', accept: 'image/*', darkBg: true },
-      { key: 'ui', label: 'UI', accept: 'image/*' },
-      { key: 'audio', label: '오디오', accept: 'audio/*' },
+      { key: 'main-screen', label: '홈 화면', accept: 'image/*', darkBg: true },
+      { key: 'ui', label: 'UI 버튼', accept: 'image/*' },
     ],
   },
   {
     id: 'main',
     label: '메인',
     categories: [
-      { key: 'main-screen', label: '메인 화면', accept: 'image/*', darkBg: true },
+      { key: 'character', label: '캐릭터', accept: 'image/*', darkBg: true },
+      { key: 'map', label: '맵 타일', accept: 'image/*', darkBg: true },
+      { key: 'background', label: '배경', accept: 'image/*', darkBg: true },
+      { key: 'audio', label: '오디오', accept: 'audio/*' },
     ],
   },
   {
     id: 'game',
     label: '게임',
     categories: [
-      { key: 'map', label: '맵 타일', accept: 'image/*', darkBg: true },
-      { key: 'background', label: '배경', accept: 'image/*', darkBg: true },
+      { key: 'ui', label: 'UI (게이지/버튼)', accept: 'image/*' },
     ],
   },
   {
     id: 'gameover',
     label: '게임오버',
     categories: [
-      { key: 'game-over-screen', label: '게임오버 스크린', accept: 'image/*', darkBg: true },
+      { key: 'game-over-screen', label: '게임오버', accept: 'image/*', darkBg: true },
     ],
   },
   {
     id: 'challenge',
-    label: '도전',
+    label: '도전장',
     categories: [
       { key: 'challenge', label: '도전장 이미지', accept: 'image/*', darkBg: true },
     ],

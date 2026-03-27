@@ -22,8 +22,8 @@ export function detectPlatform(): Platform {
     return 'toss';
   }
 
-  // 기본값: google
-  return 'google';
+  // 기본값: toss
+  return 'toss';
 }
 
 const currentPlatform: Platform = detectPlatform();

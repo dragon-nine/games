@@ -31,6 +31,10 @@ type EventMap = {
   'action-pause': void;
   // Challenge modal
   'show-challenge': number; // score
+  // Modals
+  'show-ad-remove': void;
+  // Debug
+  'toggle-godmode': void;
 };
 
 type Listener<T> = (data: T) => void;
