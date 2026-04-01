@@ -30,7 +30,7 @@ export function buildGroups(gameId: string): AssetGroup[] {
       maxCount: 1,
       storeWidth: 600, storeHeight: 600,
       exactOnly: true,
-      prefix: `${gameId}/assets/launch/`,
+      prefix: `${gameId}/assets/launch/icon/`,
       downloads: [
         { platform: '토스', width: 600, height: 600, mode: 'resize' },
         { platform: 'Google Play', width: 512, height: 512, mode: 'resize' },
@@ -45,7 +45,7 @@ export function buildGroups(gameId: string): AssetGroup[] {
       maxCount: 1,
       storeWidth: 1932, storeHeight: 828,
       exactOnly: true,
-      prefix: `${gameId}/assets/launch/`,
+      prefix: `${gameId}/assets/launch/feature/`,
       downloads: [
         { platform: '토스', width: 1932, height: 828, mode: 'resize' },
         { platform: 'Google Play', width: 1024, height: 500, mode: 'resize' },
@@ -59,7 +59,7 @@ export function buildGroups(gameId: string): AssetGroup[] {
       accept: 'image/png,image/jpeg',
       maxCount: 8,
       storeWidth: 636, storeHeight: 1048,
-      prefix: `${gameId}/assets/launch/`,
+      prefix: `${gameId}/assets/launch/screenshots/`,
       downloads: [],
     },
   ]

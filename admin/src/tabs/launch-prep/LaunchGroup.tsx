@@ -15,6 +15,7 @@ interface Props {
 
 export default function LaunchGroup({ group, onBanner }: Props) {
   const addRef = useRef<HTMLInputElement>(null)
+  const replaceRef = useRef<HTMLInputElement>(null)
   const [collapsed, setCollapsed] = useState(false)
   const [blobs, setBlobs] = useState<BlobItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,9 +57,14 @@ export default function LaunchGroup({ group, onBanner }: Props) {
     }
   }, [uploading, blobs, group.exactOnly, group.prefix, upload, onBanner, refresh])
 
-  const handleFileSelected = useCallback((files: File[]) => {
+  const handleReplace = useCallback(() => {
     if (uploading) return
-    if (blobs.length + files.length > group.maxCount) {
+    replaceRef.current?.click()
+  }, [uploading])
+
+  const handleFileSelected = useCallback((files: File[], replacing = false) => {
+    if (uploading) return
+    if (!replacing && blobs.length + files.length > group.maxCount) {
       onBanner('error', `최대 ${group.maxCount}개까지`)
       return
     }
@@ -160,6 +166,9 @@ export default function LaunchGroup({ group, onBanner }: Props) {
               onChange={(e) => { if (e.target.files) handleFileSelected(Array.from(e.target.files)); e.target.value = '' }} />
           </>
         )}
+        <input ref={replaceRef} type="file" accept={group.accept}
+          style={{ display: 'none' }}
+          onChange={(e) => { if (e.target.files) handleFileSelected(Array.from(e.target.files), true); e.target.value = '' }} />
       </div>
 
       {!collapsed && (
@@ -174,10 +183,11 @@ export default function LaunchGroup({ group, onBanner }: Props) {
               const isBusyDelete = deleting.has(b.url)
               return (
                 <div key={b.url} className={`lp-card${isBusyDelete ? ' busy' : ''}`}>
-                  <div className="lp-card-preview">
+                  <div className="lp-card-preview clickable" onClick={handleReplace}>
                     <LazyImage src={b.url} alt={fname}
                       style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                    <button className="lp-delete-corner" onClick={() => handleDelete(b.url)}
+                    <div className="replace-overlay">클릭하여 교체</div>
+                    <button className="lp-delete-corner" onClick={(e) => { e.stopPropagation(); handleDelete(b.url) }}
                       disabled={isBusyDelete} title="삭제">&times;</button>
                   </div>
                   <div className="lp-card-body">

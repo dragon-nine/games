@@ -1247,6 +1247,16 @@ body {
   opacity: 0; transition: opacity 0.15s;
 }
 .lp-card-preview:hover .lp-delete-corner { opacity: 1; }
+.lp-card-preview.clickable { cursor: pointer; }
+.lp-card-preview .replace-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.5); color: #fff;
+  font-size: 12px; font-weight: 600;
+  opacity: 0; transition: opacity 0.15s;
+  border-radius: 8px;
+}
+.lp-card-preview.clickable:hover .replace-overlay { opacity: 1; }
 .lp-delete-corner:hover { background: var(--danger); }
 .lp-card-body { flex: 1; min-width: 0; }
 .lp-card-info { margin-bottom: 10px; }

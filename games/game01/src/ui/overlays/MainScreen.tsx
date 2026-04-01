@@ -10,7 +10,6 @@ const BASE = import.meta.env.BASE_URL || '/';
 
 const IMAGE_MAP: Record<string, string> = {
   'main-text': 'main-screen/main-text.png',
-  'main-char': 'main-screen/main-char.png',
   'main-btn': 'main-screen/main-btn.png',
   'btn-settings': 'ui/btn-settings.png',
 };
@@ -57,7 +56,6 @@ export function MainScreen() {
   // fadeIn 딜레이 매핑
   const fadeDelays: Record<string, string> = {
     'main-text': styles.fadeInDelayed1,
-    'main-char': styles.fadeInDelayed2,
     'bestScore': styles.fadeInDelayed3,
     'btn-settings': styles.fadeInDelayed5,
   };

@@ -13,16 +13,6 @@
       "assetKey": "game01/assets/main/main-screen/main-text.png"
     },
     {
-      "id": "main-char",
-      "positioning": "group",
-      "type": "image",
-      "order": 1,
-      "gapPx": 16,
-      "widthPx": 175,
-      "widthMode": "fixed",
-      "assetKey": "game01/assets/main/main-screen/main-char.png"
-    },
-    {
       "id": "bestScore",
       "positioning": "group",
       "type": "text",

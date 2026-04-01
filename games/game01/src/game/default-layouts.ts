@@ -7,8 +7,7 @@ export const DEFAULT_LAYOUTS: Record<string, ScreenLayout> = {
     designWidth: DESIGN_W,
     elements: [
       { id: 'main-text', positioning: 'group', type: 'image', order: 0, gapPx: 0, widthPx: 331 },
-      { id: 'main-char', positioning: 'group', type: 'image', order: 1, gapPx: 24, widthPx: 175 },
-      { id: 'bestScore', positioning: 'group', type: 'text', order: 2, gapPx: 20, widthPx: 200, label: '최고기록 0', textStyle: { fontSizePx: 22, color: '#ffffff', strokeColor: '#000000', strokeWidth: 4 } },
+      { id: 'bestScore', positioning: 'group', type: 'text', order: 1, gapPx: 20, widthPx: 200, label: '최고기록 0', textStyle: { fontSizePx: 22, color: '#ffffff', strokeColor: '#000000', strokeWidth: 4 } },
       { id: 'main-btn', positioning: 'group', type: 'image', order: 3, gapPx: 20, widthPx: 214 },
       { id: 'btn-settings', positioning: 'anchor', type: 'image', anchor: 'top-right', offsetX: 20, offsetY: 20, widthPx: 35 },
     ],

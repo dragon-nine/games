@@ -8,7 +8,6 @@ export const LOCAL_ASSETS: LocalAsset[] = [
   // main-screen
   { path: 'main-screen/main-bg.png', category: 'main-screen', filename: 'main-bg.png' },
   { path: 'main-screen/main-btn.png', category: 'main-ui', filename: 'main-btn.png' },
-  { path: 'main-screen/main-char.png', category: 'main-screen', filename: 'main-char.png' },
   { path: 'main-screen/main-text.png', category: 'main-screen', filename: 'main-text.png' },
   // character
   { path: 'character/rabbit-front.png', category: 'character', filename: 'rabbit-front.png' },

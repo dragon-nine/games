@@ -25,7 +25,7 @@
 ## 에셋 경로
 ```
 public/
-├── main-screen/      — main-bg, main-text, main-char, main-btn
+├── main-screen/      — main-bg, main-text, main-btn
 ├── game-over-screen/ — gameover-rabbit, btn-revive/home/challenge/ranking
 ├── character/        — rabbit-front/back/side
 ├── map/              — straight, corner tiles
