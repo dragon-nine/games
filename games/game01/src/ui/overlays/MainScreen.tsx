@@ -148,7 +148,7 @@ export function MainScreen() {
         className={`${styles.fadeInUp} ${styles.fadeInDelayed5}`}
         style={{
           position: 'absolute',
-          top: `calc(var(--sat, 0px) + ${15 * scale}px)`,
+          top: `calc(var(--sat, 0px) + ${6 * scale}px)`,
           left: 15 * scale,
           width: 44 * scale,
           height: 44 * scale,
@@ -181,7 +181,7 @@ export function MainScreen() {
         className={`${styles.fadeInUp} ${styles.fadeInDelayed5}`}
         style={{
           position: 'absolute',
-          top: `calc(var(--sat, 0px) + ${15 * scale}px)`,
+          top: `calc(var(--sat, 0px) + ${6 * scale}px)`,
           right: 56 * scale,
           width: 44 * scale,
           height: 44 * scale,

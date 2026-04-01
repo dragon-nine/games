@@ -5,11 +5,13 @@ export const DEFAULT_LAYOUTS: Record<string, ScreenLayout> = {
   'main-screen': {
     screen: 'main-screen',
     designWidth: DESIGN_W,
+    groupVAlign: 'top',
+    padding: { top: 140, right: 24, bottom: 80, left: 24 },
     elements: [
       { id: 'main-text', positioning: 'group', type: 'image', order: 0, gapPx: 0, widthPx: 331 },
-      { id: 'bestScore', positioning: 'group', type: 'text', order: 1, gapPx: 20, widthPx: 200, label: '최고기록 0', textStyle: { fontSizePx: 22, color: '#ffffff', strokeColor: '#000000', strokeWidth: 4 } },
-      { id: 'main-btn', positioning: 'group', type: 'image', order: 3, gapPx: 20, widthPx: 214 },
-      { id: 'btn-settings', positioning: 'anchor', type: 'image', anchor: 'top-right', offsetX: 20, offsetY: 20, widthPx: 35 },
+      { id: 'main-btn', positioning: 'group', type: 'image', order: 1, gapPx: 40, widthPx: 214 },
+      { id: 'bestScore', positioning: 'group', type: 'text', order: 2, gapPx: 20, widthPx: 200, label: '최고기록 0', textStyle: { fontSizePx: 22, color: '#ffffff', strokeColor: '#000000', strokeWidth: 4 } },
+      { id: 'btn-settings', positioning: 'anchor', type: 'image', anchor: 'top-right', offsetX: 15, offsetY: 10, widthPx: 40 },
     ],
   },
   'game-over': {

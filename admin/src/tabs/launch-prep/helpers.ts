@@ -46,3 +46,32 @@ export async function downloadResized(url: string, filename: string, targetW: nu
     triggerDownload(URL.createObjectURL(blob), filename)
   }, 'image/png', 0.95)
 }
+
+// Download circular cropped version (투명 배경 원형)
+export async function downloadCircle(url: string, filename: string, size: number) {
+  const res = await fetch(url)
+  const data = await res.blob()
+  const img = new Image()
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve()
+    img.onerror = () => reject()
+    img.src = URL.createObjectURL(data)
+  })
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+
+  // 원형 클리핑
+  ctx.beginPath()
+  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+  ctx.closePath()
+  ctx.clip()
+
+  ctx.drawImage(img, 0, 0, size, size)
+  URL.revokeObjectURL(img.src)
+  canvas.toBlob((blob) => {
+    if (!blob) return
+    triggerDownload(URL.createObjectURL(blob), filename)
+  }, 'image/png')
+}

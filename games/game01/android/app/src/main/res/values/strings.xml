@@ -4,4 +4,5 @@
     <string name="title_activity_main">직장인 잔혹시</string>
     <string name="package_name">com.dragonnine.game01</string>
     <string name="custom_url_scheme">com.dragonnine.game01</string>
+    <string translatable="false" name="game_services_project_id">403133381672</string>
 </resources>

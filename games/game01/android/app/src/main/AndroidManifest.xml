@@ -25,7 +25,12 @@
 
         </activity>
 
-        <!-- AdMob 앱 ID — TODO: AdMob 콘솔에서 발급받은 실제 앱 ID로 교체 -->
+        <!-- Play Games Services 프로젝트 ID -->
+        <meta-data
+            android:name="com.google.android.gms.games.APP_ID"
+            android:value="@string/game_services_project_id" />
+
+        <!-- AdMob 앱 ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3788530115276232~5768824892" />

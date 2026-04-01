@@ -6,7 +6,7 @@ import ImageCropper from '../../components/ImageCropper'
 import DownloadCropper from '../../components/DownloadCropper'
 import LazyImage from '../../components/LazyImage'
 import type { AssetGroup, DownloadOption } from './types'
-import { formatSize, getFilename, downloadOriginal, downloadResized } from './helpers'
+import { formatSize, getFilename, downloadOriginal, downloadResized, downloadCircle } from './helpers'
 
 interface Props {
   group: AssetGroup
@@ -119,9 +119,11 @@ export default function LaunchGroup({ group, onBanner }: Props) {
       const dlUrl = blob.downloadUrl || blob.url
       const origName = getFilename(blob.pathname)
       const ext = origName.match(/\.\w+$/)?.[0] || '.png'
-      const platformTag = opt.platform === '토스' ? 'toss' : 'google_play'
+      const platformTag = opt.platform === '토스' ? 'toss' : opt.platform === 'Google Play 원형' ? 'google_play_round' : 'google_play'
       const dlName = `${group.fileBaseName}_${platformTag}${ext}`
-      if (opt.width === group.storeWidth && opt.height === group.storeHeight) {
+      if (opt.mode === 'circle') {
+        await downloadCircle(dlUrl, dlName.replace(ext, '.png'), opt.width)
+      } else if (opt.width === group.storeWidth && opt.height === group.storeHeight) {
         await downloadOriginal(dlUrl, dlName)
       } else if (opt.mode === 'resize') {
         await downloadResized(dlUrl, dlName, opt.width, opt.height)

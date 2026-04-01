@@ -5,7 +5,7 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
     signingConfigs {
         release {
-            storeFile file('../../../../../dragon-nine-keystore.jks')
+            storeFile file('dragon-nine-keystore.jks')
             storePassword 'dragonnine'
             keyAlias 'game01'
             keyPassword 'dragonnine'

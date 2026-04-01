@@ -2,7 +2,7 @@ export interface DownloadOption {
   platform: string
   width: number
   height: number
-  mode: 'resize' | 'crop'  // resize=자동, crop=크로퍼로 위치 조정
+  mode: 'resize' | 'crop' | 'circle'  // resize=자동, crop=크로퍼로 위치 조정, circle=원형 크롭
 }
 
 export interface AssetGroup {
@@ -34,6 +34,7 @@ export function buildGroups(gameId: string): AssetGroup[] {
       downloads: [
         { platform: '토스', width: 600, height: 600, mode: 'resize' },
         { platform: 'Google Play', width: 512, height: 512, mode: 'resize' },
+        { platform: 'Google Play 원형', width: 192, height: 192, mode: 'circle' },
       ],
     },
     {
