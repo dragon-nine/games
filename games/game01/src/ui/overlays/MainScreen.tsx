@@ -32,7 +32,11 @@ export function MainScreen() {
 
   const handleStart = () => {
     gameBus.emit('play-sfx', 'sfx-click');
-    gameBus.emit('start-game', undefined);
+    if (!tutorialDone) {
+      gameBus.emit('screen-change', 'story');
+    } else {
+      gameBus.emit('start-game', undefined);
+    }
   };
 
   const handleSettings = () => {

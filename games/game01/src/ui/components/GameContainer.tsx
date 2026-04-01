@@ -12,6 +12,7 @@ import { GameOverScreen } from '../overlays/GameOverScreen';
 import { GameplayHUD } from '../overlays/GameplayHUD';
 import { ChallengeOverlay } from '../overlays/ChallengeOverlay';
 import { AdRemoveOverlay } from '../overlays/AdRemoveOverlay';
+import { StoryScreen } from '../overlays/StoryScreen';
 
 const GAME_CONTAINER_ID = 'game-container';
 
@@ -73,6 +74,7 @@ export function GameContainer() {
 
       {/* React DOM 오버레이 */}
       {(screen === 'main' || screen === 'settings') && <MainScreen />}
+      {screen === 'story' && <StoryScreen />}
       {screen === 'settings' && <SettingsOverlay />}
       {(screen === 'playing' || screen === 'paused') && <GameplayHUD />}
       {screen === 'paused' && <PauseOverlay />}
