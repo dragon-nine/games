@@ -21,28 +21,24 @@ function openToss(): void {
 import { gameConfig } from '../game.config';
 const GPGS_LEADERBOARD_ID = gameConfig.gpgsLeaderboardId;
 
-let gpgsSignedIn = false;
-
-/** 앱 시작 시 Google Play Games 자동 로그인 */
+/**
+ * 앱 시작 시 인증 상태 확인 (UI 없음)
+ * PlayGamesSdk.initialize()가 자동 로그인을 처리하므로 결과만 확인
+ */
 export async function initGPGS(): Promise<void> {
   try {
     const { PlayGames } = await import('../plugins/play-games');
-    const result = await PlayGames.signIn();
-    gpgsSignedIn = result.isSignedIn;
-    console.log('[GPGS] 로그인:', gpgsSignedIn ? '성공' : '실패');
+    const result = await PlayGames.signIn(); // isAuthenticated() 확인만
+    console.log('[GPGS] 인증 상태:', result.isSignedIn ? '인증됨' : '미인증');
   } catch (e) {
-    console.warn('[GPGS] 로그인 실패:', e);
+    console.warn('[GPGS] 인증 확인 실패:', e);
   }
 }
 
 async function submitGPGS(score: number): Promise<void> {
-  if (!GPGS_LEADERBOARD_ID) {
-    console.warn('[GPGS] leaderboardId가 설정되지 않았습니다');
-    return;
-  }
+  if (!GPGS_LEADERBOARD_ID) return;
   try {
     const { PlayGames } = await import('../plugins/play-games');
-    if (!gpgsSignedIn) await initGPGS();
     await PlayGames.submitScore({
       leaderboardId: GPGS_LEADERBOARD_ID,
       score,
@@ -53,13 +49,9 @@ async function submitGPGS(score: number): Promise<void> {
 }
 
 async function openGPGS(): Promise<void> {
-  if (!GPGS_LEADERBOARD_ID) {
-    console.warn('[GPGS] leaderboardId가 설정되지 않았습니다');
-    return;
-  }
+  if (!GPGS_LEADERBOARD_ID) return;
   try {
     const { PlayGames } = await import('../plugins/play-games');
-    if (!gpgsSignedIn) await initGPGS();
     await PlayGames.showLeaderboard({ leaderboardId: GPGS_LEADERBOARD_ID });
   } catch (e) {
     console.warn('[GPGS] 리더보드 열기 실패:', e);

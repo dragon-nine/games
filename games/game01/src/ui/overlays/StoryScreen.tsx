@@ -1,5 +1,4 @@
 import { gameBus } from '../../game/event-bus';
-import { StartButton } from '../components/StartButton';
 import styles from './overlay.module.css';
 
 const BASE = import.meta.env.BASE_URL || '/';
@@ -14,7 +13,18 @@ export function StoryScreen() {
   };
 
   return (
-    <div className={styles.overlay} style={{ background: '#000' }}>
+    <div
+      className={styles.overlay}
+      style={{ background: '#000', cursor: 'pointer' }}
+      onClick={handleTap}
+    >
+      <style>{`
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
+
       <div
         className={styles.fadeIn}
         style={{
@@ -32,25 +42,28 @@ export function StoryScreen() {
           draggable={false}
           style={{
             width: '100%',
-            maxHeight: '75%',
+            maxHeight: '70%',
             objectFit: 'contain',
           }}
         />
+        {/* 4컷 만화 바로 아래 깜빡이는 문구 */}
+        <div style={{
+          marginTop: 20 * scale,
+          animation: 'blink 1.5s ease-in-out infinite',
+        }}>
+          <span style={{
+            fontFamily: 'GMarketSans, sans-serif',
+            fontWeight: 700,
+            fontSize: 18 * scale,
+            color: '#fff',
+            WebkitTextStroke: `${2 * scale}px #000`,
+            paintOrder: 'stroke fill',
+          }}>
+            화면을 터치하고 시작
+          </span>
+        </div>
       </div>
 
-      {/* 하단 버튼 — 홈 화면과 동일 위치 */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 80 * scale,
-          left: 0, right: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <StartButton label="퇴근 시작" scale={scale} onClick={handleTap} />
-      </div>
     </div>
   );
 }

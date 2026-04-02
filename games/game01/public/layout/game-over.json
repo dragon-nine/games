@@ -141,9 +141,9 @@
   "groupVAlign": "center",
   "padding": {
     "top": 80,
-    "right": 40,
+    "right": 24,
     "bottom": 80,
-    "left": 40
+    "left": 24
   },
   "bgType": "gradient",
   "bgColor": "#000000",

@@ -170,8 +170,9 @@ export function ChallengeOverlay({ score, onClose }: Props) {
             <span style={{
               fontFamily: 'GMarketSans, sans-serif',
               fontWeight: 700,
-              fontSize: 20 * scale,
+              fontSize: 17 * scale,
               color: '#fff',
+              whiteSpace: 'nowrap',
             }}>
               도전장 보내기
             </span>

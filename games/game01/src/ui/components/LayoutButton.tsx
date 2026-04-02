@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from 'react';
 import type { LayoutElement } from '../../game/layout-types';
 import { typeScale, buttonStyleDefaults, gradientTokens } from './design-tokens';
 
@@ -21,14 +22,52 @@ export function LayoutButton({ el, scale, overrideText, withPadding }: Props) {
   const text = overrideText ?? el.label ?? '버튼';
   const padding = withPadding ? `${14 * scale}px ${20 * scale}px` : undefined;
 
+  const baseFontSize = ts.fontSize * scale;
+  const [fontSize, setFontSize] = useState(baseFontSize);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 텍스트가 넘치면 폰트 축소
+  useEffect(() => {
+    const span = textRef.current;
+    const container = containerRef.current;
+    if (!span || !container) return;
+
+    let size = baseFontSize;
+    span.style.fontSize = `${size}px`;
+
+    while (span.scrollWidth > container.clientWidth && size > 8) {
+      size -= 0.5;
+      span.style.fontSize = `${size}px`;
+    }
+    setFontSize(size);
+  }, [baseFontSize, text]);
+
   const textStyle: React.CSSProperties = {
     fontFamily: 'GMarketSans, sans-serif',
-    fontSize: ts.fontSize * scale,
+    fontSize,
     fontWeight: ts.fontWeight,
     color: '#fff',
     WebkitTextStroke: ts.stroke ? `${ts.stroke * scale}px #000` : undefined,
     paintOrder: 'stroke fill',
+    whiteSpace: 'nowrap',
   };
+
+  const innerContent = (
+    <div
+      ref={containerRef}
+      style={{
+        width: '100%',
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding,
+      }}
+    >
+      <span ref={textRef} style={textStyle}>{text}</span>
+    </div>
+  );
 
   return (
     <div style={{
@@ -46,15 +85,10 @@ export function LayoutButton({ el, scale, overrideText, withPadding }: Props) {
           border: `${bsd.innerLineWidth * scale}px solid ${bsd.innerLineColor}`,
           borderRadius: (bsd.borderRadius - 4) * scale,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding,
         }}>
-          <span style={textStyle}>{text}</span>
+          {innerContent}
         </div>
-      ) : (
-        <div style={{ padding }}>
-          <span style={textStyle}>{text}</span>
-        </div>
-      )}
+      ) : innerContent}
     </div>
   );
 }
