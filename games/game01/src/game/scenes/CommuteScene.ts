@@ -90,7 +90,8 @@ export class CommuteScene extends Phaser.Scene {
     this.road.getContainer().setX(-(this.viewLeft * this.laneW));
 
     const playerScreenX = laneScreenX(this.movementDeps(), startLane);
-    this.player = new Player(this, this.laneW, playerScreenX, playerScreenY, startLane);
+    const characterId = storage.getSelectedCharacter();
+    this.player = new Player(this, this.laneW, playerScreenX, playerScreenY, startLane, characterId);
 
     this.hud = new HUD(this, () => onDeath(this.lifecycleDeps()));
     this.hud.create();

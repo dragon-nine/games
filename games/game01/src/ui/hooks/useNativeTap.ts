@@ -23,24 +23,92 @@ import { useCallback, useRef } from 'react';
  * - https://bugs.webkit.org/show_bug.cgi?id=211521 (WebKit 회귀)
  * - https://patrickhlauke.github.io/getting-touchy-presentation/ (모바일 입력 권장 패턴)
  */
-export function useNativeTap(onTap: () => void) {
+interface Options {
+  /**
+   * 스크롤 가능한 컨테이너 안의 버튼인 경우 true.
+   * - touchstart에서 preventDefault 안 함 → 네이티브 스크롤 허용
+   * - touchend에서 손가락 이동 거리 검사 → 이동 시 onTap 무시 (스크롤로 간주)
+   * - 게임 인풋(즉시 반응 필요)에는 사용 X.
+   */
+  scrollSafe?: boolean;
+}
+
+const SCROLL_THRESHOLD_PX = 8;
+
+export function useNativeTap(onTap: () => void, options: Options = {}) {
   const onTapRef = useRef(onTap);
   onTapRef.current = onTap;
+  const scrollSafe = options.scrollSafe ?? false;
 
   const cleanupRef = useRef<(() => void) | null>(null);
 
   return useCallback((el: HTMLElement | null) => {
-    // 이전 엘리먼트 정리
     cleanupRef.current?.();
     cleanupRef.current = null;
-
     if (!el) return;
 
-    // 모든 touchstart/mousedown을 즉시 처리 (ghost filter 없음)
-    // 사용자의 빠른 연타를 절대 누락하지 않음
     let lastPrimaryFire = 0;
     const CLICK_SUPPRESS_MS = 500;
 
+    if (scrollSafe) {
+      // 스크롤 친화 모드: touchend에서 발사, 이동 거리 검사
+      let startX = 0;
+      let startY = 0;
+      let moved = false;
+
+      const onTouchStart = (e: TouchEvent) => {
+        const t = e.touches[0];
+        startX = t.clientX;
+        startY = t.clientY;
+        moved = false;
+        // preventDefault 호출 안 함 → 브라우저 스크롤 정상 동작
+      };
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (moved) return;
+        const t = e.touches[0];
+        const dx = Math.abs(t.clientX - startX);
+        const dy = Math.abs(t.clientY - startY);
+        if (dx > SCROLL_THRESHOLD_PX || dy > SCROLL_THRESHOLD_PX) {
+          moved = true;
+        }
+      };
+
+      const onTouchEnd = (e: TouchEvent) => {
+        if (moved) return;
+        e.preventDefault(); // 후속 click 차단 (중복 방지)
+        lastPrimaryFire = e.timeStamp;
+        onTapRef.current();
+      };
+
+      const onMouseDown = () => {
+        lastPrimaryFire = performance.now();
+        onTapRef.current();
+      };
+
+      const onClick = () => {
+        const now = performance.now();
+        if (now - lastPrimaryFire < CLICK_SUPPRESS_MS) return;
+        onTapRef.current();
+      };
+
+      el.addEventListener('touchstart', onTouchStart, { passive: true });
+      el.addEventListener('touchmove', onTouchMove, { passive: true });
+      el.addEventListener('touchend', onTouchEnd);
+      el.addEventListener('mousedown', onMouseDown);
+      el.addEventListener('click', onClick);
+
+      cleanupRef.current = () => {
+        el.removeEventListener('touchstart', onTouchStart);
+        el.removeEventListener('touchmove', onTouchMove);
+        el.removeEventListener('touchend', onTouchEnd);
+        el.removeEventListener('mousedown', onMouseDown);
+        el.removeEventListener('click', onClick);
+      };
+      return;
+    }
+
+    // 기본 모드: touchstart 즉시 발사 (게임 인풋용)
     const onTouchStart = (e: TouchEvent) => {
       e.preventDefault();
       lastPrimaryFire = e.timeStamp;
@@ -52,7 +120,6 @@ export function useNativeTap(onTap: () => void) {
       onTapRef.current();
     };
 
-    // click은 touchstart/mousedown 직후 자동 발생하는 중복 차단용
     const onClick = () => {
       const now = performance.now();
       if (now - lastPrimaryFire < CLICK_SUPPRESS_MS) return;
@@ -68,5 +135,5 @@ export function useNativeTap(onTap: () => void) {
       el.removeEventListener('mousedown', onMouseDown);
       el.removeEventListener('click', onClick);
     };
-  }, []);
+  }, [scrollSafe]);
 }

@@ -1,0 +1,504 @@
+import { useState } from 'react';
+import { gameBus } from '../../../game/event-bus';
+import { storage } from '../../../game/services/storage';
+import { CoinIcon, GemIcon } from '../../components/CurrencyIcons';
+import { TapButton } from '../../components/TapButton';
+import styles from '../overlay.module.css';
+
+const BASE = import.meta.env.BASE_URL || '/';
+
+interface Props {
+  scale: number;
+}
+
+interface CharItem {
+  id: string;
+  name: string;
+  desc: string;
+  src: string;
+  /** 에셋 준비 안 된 캐릭터는 false → UI에서 숨김 */
+  available: boolean;
+  price?: number;          // 미지정 시 무료(기본)
+  currency?: 'coin' | 'gem';
+  highlight?: 'best' | 'hot';
+}
+
+/**
+ * 캐릭터 카탈로그 — 직급 순서.
+ * available: false 인 항목은 에셋 미준비 → 잠김 카드로 표시.
+ */
+const CHARACTERS: CharItem[] = [
+  { id: 'rabbit', name: '토끼 인턴',   desc: '기본 캐릭터',           src: 'character/rabbit-front.png', available: true },
+  { id: 'sheep',  name: '양 사원',     desc: '성실한 신입',           src: 'character/sheep-front.png',  available: true,  price: 500,  currency: 'coin', highlight: 'hot' },
+  { id: 'koala',  name: '코알라 대리', desc: '여유로운 중간관리자',   src: 'character/koala-front.png',  available: false, price: 2000, currency: 'coin' },
+  { id: 'lion',   name: '사자 팀장',   desc: '회사의 에이스',         src: 'character/lion-front.png',   available: true,  price: 100,  currency: 'gem',  highlight: 'best' },
+];
+
+export function CharactersTab({ scale }: Props) {
+  // 스토리지 미러링 → 즉시 리렌더
+  const [owned, setOwned] = useState<string[]>(() => storage.getOwnedCharacters());
+  const [selected, setSelected] = useState<string>(() => storage.getSelectedCharacter());
+  const [coins, setCoins] = useState<number>(() => storage.getNum('coins'));
+  const [gems, setGems] = useState<number>(() => storage.getNum('gems'));
+
+  const handleAction = (item: CharItem) => {
+    gameBus.emit('play-sfx', 'sfx-click');
+
+    if (!item.available) {
+      gameBus.emit('toast', '준비 중인 캐릭터입니다');
+      return;
+    }
+
+    const isOwned = owned.includes(item.id);
+
+    if (isOwned) {
+      if (selected === item.id) {
+        gameBus.emit('toast', `${item.name} 이미 선택됨`);
+        return;
+      }
+      storage.setSelectedCharacter(item.id);
+      setSelected(item.id);
+      gameBus.emit('toast', `${item.name} 선택됨`);
+      return;
+    }
+
+    if (item.price === undefined || !item.currency) return;
+    const balance = item.currency === 'coin' ? coins : gems;
+    if (balance < item.price) {
+      gameBus.emit('toast', `${item.currency === 'coin' ? '코인' : '보석'} 부족`);
+      return;
+    }
+
+    const newBalance = storage.addNum(item.currency === 'coin' ? 'coins' : 'gems', -item.price);
+    storage.addOwnedCharacter(item.id);
+    if (item.currency === 'coin') setCoins(newBalance); else setGems(newBalance);
+    setOwned(storage.getOwnedCharacters());
+    gameBus.emit('toast', `${item.name} 구매 완료!`);
+  };
+
+  return (
+    <div
+      className={styles.fadeIn}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        background: `
+          radial-gradient(ellipse at 20% 80%, rgba(60,50,40,0.2) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 20%, rgba(40,35,30,0.2) 0%, transparent 50%),
+          #1a1a1f
+        `,
+        display: 'flex',
+        flexDirection: 'column',
+        pointerEvents: 'auto',
+      }}
+    >
+      {/* ── 상단 헤더 ── */}
+      <div
+        style={{
+          padding: `calc(var(--sat, 0px) + ${10 * scale}px) ${14 * scale}px ${10 * scale}px`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8 * scale,
+          background: 'rgba(12,12,16,0.8)',
+          borderBottom: `1px solid rgba(255,255,255,0.04)`,
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'GMarketSans, sans-serif',
+            fontWeight: 900,
+            fontSize: 20 * scale,
+            color: '#fff',
+            marginRight: 'auto',
+            letterSpacing: 0.3,
+          }}
+        >
+          캐릭터
+        </span>
+        <CurrencyPill kind="coin" amount={coins} scale={scale} />
+        <CurrencyPill kind="gem" amount={gems} scale={scale} />
+      </div>
+
+      {/* ── 스크롤 영역 ── */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          padding: `${16 * scale}px ${14 * scale}px calc(var(--sab, 0px) + ${88 * scale}px)`,
+        }}
+      >
+        {/* 캐릭터 전체 — 단일 섹션 */}
+        <Section
+          title="캐릭터 도감"
+          hint={`${owned.length}/${CHARACTERS.length} 보유`}
+          scale={scale}
+          icon={
+            <svg width={20 * scale} height={20 * scale} viewBox="0 0 24 24" fill="none" stroke="#ffd24a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.4h7.6z" fill="#ffd24a" fillOpacity="0.15" />
+            </svg>
+          }
+        >
+          <CardGrid scale={scale}>
+            {CHARACTERS.map((item) => (
+              <CharCard
+                key={item.id}
+                item={item}
+                isOwned={owned.includes(item.id)}
+                isSelected={selected === item.id}
+                scale={scale}
+                onAction={() => handleAction(item)}
+              />
+            ))}
+          </CardGrid>
+        </Section>
+      </div>
+    </div>
+  );
+}
+
+/* ── Section ── */
+
+function Section({
+  title,
+  hint,
+  icon,
+  scale,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  icon: React.ReactNode;
+  scale: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ marginBottom: 22 * scale }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 * scale, marginBottom: 11 * scale }}>
+        <div style={{ width: 22 * scale, height: 22 * scale, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {icon}
+        </div>
+        <span
+          style={{
+            fontFamily: 'GMarketSans, sans-serif',
+            fontWeight: 900,
+            fontSize: 16 * scale,
+            color: '#fff',
+          }}
+        >
+          {title}
+        </span>
+        {hint && (
+          <span
+            style={{
+              marginLeft: 'auto',
+              fontFamily: 'GMarketSans, sans-serif',
+              fontSize: 11 * scale,
+              color: 'rgba(255,255,255,0.35)',
+            }}
+          >
+            {hint}
+          </span>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ── Card grid wrapper ── */
+
+function CardGrid({ scale, children }: { scale: number; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 10 * scale,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ── Character card (square with large image) ── */
+
+function CharCard({
+  item,
+  isOwned,
+  isSelected,
+  scale,
+  onAction,
+}: {
+  item: CharItem;
+  isOwned: boolean;
+  isSelected: boolean;
+  scale: number;
+  onAction: () => void;
+}) {
+  const isLocked = !item.available;
+  const isHot = item.highlight === 'hot';
+
+  let bg = 'rgba(255,255,255,0.03)';
+  let border = `1px solid rgba(255,255,255,0.06)`;
+  if (isLocked) {
+    bg = 'rgba(0,0,0,0.35)';
+    border = `1px dashed rgba(255,255,255,0.1)`;
+  } else if (isSelected) {
+    bg = 'linear-gradient(180deg, rgba(255,210,74,0.12), rgba(255,210,74,0.02))';
+    border = `${1.5 * scale}px solid rgba(255,210,74,0.5)`;
+  } else if (isHot && !isOwned) {
+    bg = 'linear-gradient(180deg, rgba(250,199,117,0.08), rgba(250,199,117,0.02))';
+    border = `${1.5 * scale}px solid rgba(250,199,117,0.32)`;
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* 라벨 */}
+      {!isLocked && isSelected && (
+        <Tag text="선택됨" color="#ffd24a" textColor="#3a2400" scale={scale} />
+      )}
+      {!isLocked && !isSelected && isHot && !isOwned && (
+        <Tag text="HOT" color="#BA7517" textColor="#fff" scale={scale} />
+      )}
+      {isLocked && (
+        <Tag text="준비 중" color="rgba(60,60,70,0.95)" textColor="rgba(255,255,255,0.7)" scale={scale} />
+      )}
+
+      <TapButton
+        onTap={onAction}
+        pressScale={isLocked ? 0.99 : 0.97}
+        scrollSafe
+        style={{
+          width: '100%',
+          background: bg,
+          border,
+          borderRadius: 14 * scale,
+          padding: `${12 * scale}px ${10 * scale}px ${10 * scale}px`,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 8 * scale,
+          boxSizing: 'border-box',
+          boxShadow: isSelected
+            ? `0 0 ${14 * scale}px rgba(255,210,74,0.25)`
+            : `inset 0 ${1.5 * scale}px 0 rgba(255,255,255,0.04)`,
+          opacity: isLocked ? 0.65 : 1,
+        }}
+      >
+        {/* 큰 캐릭터 이미지 영역 */}
+        <div
+          style={{
+            width: '100%',
+            aspectRatio: '1 / 1',
+            borderRadius: 12 * scale,
+            background: 'rgba(0,0,0,0.25)',
+            border: `1px solid rgba(255,255,255,0.05)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {isLocked ? (
+            <svg width="40%" height="40%" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+          ) : (
+            <img
+              src={`${BASE}${item.src}`}
+              alt={item.name}
+              draggable={false}
+              style={{
+                width: '85%',
+                height: '85%',
+                objectFit: 'contain',
+              }}
+            />
+          )}
+        </div>
+
+        {/* 이름 */}
+        <div
+          style={{
+            fontFamily: 'GMarketSans, sans-serif',
+            fontWeight: 900,
+            fontSize: 15 * scale,
+            color: isLocked ? 'rgba(255,255,255,0.55)' : '#fff',
+            textAlign: 'center',
+          }}
+        >
+          {item.name}
+        </div>
+
+        {/* 액션 버튼 */}
+        <ActionButton
+          isLocked={isLocked}
+          isOwned={isOwned}
+          isSelected={isSelected}
+          item={item}
+          scale={scale}
+        />
+      </TapButton>
+    </div>
+  );
+}
+
+function ActionButton({
+  isLocked,
+  isOwned,
+  isSelected,
+  item,
+  scale,
+}: {
+  isLocked: boolean;
+  isOwned: boolean;
+  isSelected: boolean;
+  item: CharItem;
+  scale: number;
+}) {
+  const baseStyle: React.CSSProperties = {
+    width: '100%',
+    padding: `${8 * scale}px`,
+    borderRadius: 9 * scale,
+    fontFamily: 'GMarketSans, sans-serif',
+    fontSize: 12 * scale,
+    fontWeight: 900,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4 * scale,
+    boxSizing: 'border-box',
+  };
+
+  if (isLocked) {
+    return (
+      <div
+        style={{
+          ...baseStyle,
+          background: 'rgba(255,255,255,0.04)',
+          border: `${1 * scale}px solid rgba(255,255,255,0.1)`,
+          color: 'rgba(255,255,255,0.45)',
+        }}
+      >
+        🔒 잠김
+      </div>
+    );
+  }
+  if (isSelected) {
+    return (
+      <div
+        style={{
+          ...baseStyle,
+          background: 'rgba(255,210,74,0.18)',
+          border: `${1 * scale}px solid rgba(255,210,74,0.5)`,
+          color: '#ffd24a',
+        }}
+      >
+        ✓ 사용중
+      </div>
+    );
+  }
+  if (isOwned) {
+    return (
+      <div
+        style={{
+          ...baseStyle,
+          background: '#3fdcb0',
+          color: '#0a3a28',
+          boxShadow: `0 ${2 * scale}px ${8 * scale}px rgba(63,220,176,0.3)`,
+        }}
+      >
+        선택
+      </div>
+    );
+  }
+  // 미보유 → 구매 버튼
+  return (
+    <div
+      style={{
+        ...baseStyle,
+        background: '#e8593c',
+        color: '#fff',
+        boxShadow: `0 ${2 * scale}px ${8 * scale}px rgba(232,89,60,0.25)`,
+      }}
+    >
+      {item.currency === 'gem' ? <GemIcon size={14 * scale} /> : <CoinIcon size={14 * scale} />}
+      {item.price}
+    </div>
+  );
+}
+
+function Tag({
+  text,
+  color,
+  textColor,
+  scale,
+}: {
+  text: string;
+  color: string;
+  textColor: string;
+  scale: number;
+}) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: -8 * scale,
+        right: 16 * scale,
+        background: color,
+        color: textColor,
+        fontSize: 9 * scale,
+        fontWeight: 700,
+        padding: `${3 * scale}px ${8 * scale}px`,
+        borderRadius: 10 * scale,
+        letterSpacing: 0.5,
+        zIndex: 2,
+        fontFamily: 'GMarketSans, sans-serif',
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+/* ── Currency icons ── */
+
+function CurrencyPill({
+  kind,
+  amount,
+  scale,
+}: {
+  kind: 'coin' | 'gem';
+  amount: number;
+  scale: number;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4 * scale,
+        padding: `${5 * scale}px ${10 * scale}px ${5 * scale}px ${5 * scale}px`,
+        borderRadius: 20 * scale,
+        background: 'rgba(255,255,255,0.05)',
+        border: `1px solid rgba(255,255,255,0.08)`,
+        fontFamily: 'GMarketSans, sans-serif',
+        fontWeight: 700,
+        fontSize: 13 * scale,
+        color: '#fff',
+      }}
+    >
+      {kind === 'coin' ? <CoinIcon size={20 * scale} /> : <GemIcon size={20 * scale} />}
+      <span>{amount.toLocaleString()}</span>
+    </div>
+  );
+}
+

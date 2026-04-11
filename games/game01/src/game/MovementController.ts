@@ -184,15 +184,13 @@ export function moveForward(deps: MovementDeps) {
     deps.road.addNextRow();
   }
 
-  // 코인 수집
+  // 코인 수집 — 잔액만 충전. 점수/시간엔 영향 없음.
   if (nextRow.coin && !nextRow.coinCollected) {
     nextRow.coinCollected = true;
     const coin = nextRow.coin;
     deps.scene.tweens.killTweensOf(coin);
     deps.playSfx('sfx-combo', 0.5);
-    deps.setScore(deps.getScore() + 2);
-    deps.hud.updateScore(deps.getScore());
-    deps.hud.addTime();
+    storage.addNum('coins', 1);
     deps.scene.tweens.add({
       targets: coin,
       y: coin.y - deps.tileH * 0.6,

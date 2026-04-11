@@ -12,6 +12,12 @@ interface Props {
   className?: string;
   /** 누름 효과 강도 (기본 0.92) */
   pressScale?: number;
+  /**
+   * 스크롤 가능한 컨테이너(상점, 리스트 등) 안에 있을 때 true.
+   * 스크롤 시 클릭이 실행되지 않도록 touchend + 이동거리 검사를 사용.
+   * 게임 인풋(즉시 반응 필요)에는 사용하지 말 것.
+   */
+  scrollSafe?: boolean;
 }
 
 /**
@@ -29,13 +35,16 @@ interface Props {
  * </TapButton>
  * ```
  */
-export function TapButton({ onTap, style, children, className, pressScale = 0.92 }: Props) {
+export function TapButton({ onTap, style, children, className, pressScale = 0.92, scrollSafe = false }: Props) {
   const [pressed, setPressed] = useState(false);
-  const tapRef = useNativeTap(() => {
-    setPressed(true);
-    setTimeout(() => setPressed(false), 100);
-    onTap();
-  });
+  const tapRef = useNativeTap(
+    () => {
+      setPressed(true);
+      setTimeout(() => setPressed(false), 100);
+      onTap();
+    },
+    { scrollSafe },
+  );
 
   return (
     <div
