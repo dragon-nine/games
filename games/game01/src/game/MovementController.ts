@@ -22,10 +22,6 @@ export interface MovementDeps {
   setScore(s: number): void;
   getJustSwitched(): boolean;
   setJustSwitched(v: boolean): void;
-  getComboCount(): number;
-  setComboCount(c: number): void;
-  getBestCombo(): number;
-  setBestCombo(b: number): void;
   getGodMode(): boolean;
   getIsFalling(): boolean;
   setIsFalling(v: boolean): void;
@@ -35,6 +31,10 @@ export interface MovementDeps {
   onForwardCrash(): void;
   playSfx(key: string, volume: number): void;
   vibrate(pattern: number | number[]): void;
+  /** 이번 판에서 획득한 코인 수 */
+  getCoinsEarnedThisGame(): number;
+  /** 코인 픽업 시 호출 — 카운터 +1 */
+  incrementCoinsEarnedThisGame(): void;
 }
 
 /* ── View helpers ── */
@@ -177,8 +177,6 @@ export function moveForward(deps: MovementDeps) {
   deps.hud.addTime();
   deps.setGuideCount(deps.getGuideCount() + 1);
   emitGuideHint(deps);
-  deps.setComboCount(deps.getComboCount() + 1);
-  if (deps.getComboCount() > deps.getBestCombo()) deps.setBestCombo(deps.getComboCount());
 
   while (deps.road.rows.length - deps.getCurrentRowIdx() < 15) {
     deps.road.addNextRow();
@@ -189,8 +187,9 @@ export function moveForward(deps: MovementDeps) {
     nextRow.coinCollected = true;
     const coin = nextRow.coin;
     deps.scene.tweens.killTweensOf(coin);
-    deps.playSfx('sfx-combo', 0.5);
+    deps.playSfx('sfx-coin', 0.5);
     storage.addNum('coins', 1);
+    deps.incrementCoinsEarnedThisGame();
     deps.scene.tweens.add({
       targets: coin,
       y: coin.y - deps.tileH * 0.6,
@@ -203,11 +202,6 @@ export function moveForward(deps: MovementDeps) {
   }
 
   deps.player.animateForward(() => scrollToCurrentRow(deps));
-
-  if (deps.getComboCount() > 0 && deps.getComboCount() % 10 === 0) {
-    deps.playSfx('sfx-combo', 0.7);
-    deps.vibrate([12, 40, 12]);
-  }
 
   deps.setCurrentRowIdx(deps.road.cleanupOldRows(deps.getCurrentRowIdx()));
 }

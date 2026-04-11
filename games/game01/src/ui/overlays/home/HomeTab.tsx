@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gameBus } from '../../../game/event-bus';
 import { storage } from '../../../game/services/storage';
+import { getClaimableMissionCount } from '../../../game/services/missions';
 import { CoinIcon, GemIcon } from '../../components/CurrencyIcons';
 import { StartButton } from '../../components/StartButton';
 import { TapButton } from '../../components/TapButton';
@@ -29,6 +30,24 @@ export function HomeTab({ scale }: Props) {
   const coins = storage.getNum('coins');
   const gems = storage.getNum('gems');
   const [openModal, setOpenModal] = useState<'attendance' | 'mission' | 'debug' | null>(null);
+
+  // 뱃지 — 모달 닫힐 때마다 재계산 (claim 후 즉시 반영)
+  const [attendanceBadge, setAttendanceBadge] = useState<string | undefined>(
+    () => (storage.isAttendanceClaimedToday() ? undefined : '!'),
+  );
+  const [missionBadge, setMissionBadge] = useState<string | undefined>(() => {
+    const n = getClaimableMissionCount();
+    return n > 0 ? String(n) : undefined;
+  });
+  const refreshBadges = () => {
+    setAttendanceBadge(storage.isAttendanceClaimedToday() ? undefined : '!');
+    const n = getClaimableMissionCount();
+    setMissionBadge(n > 0 ? String(n) : undefined);
+  };
+  const closeModal = () => {
+    setOpenModal(null);
+    refreshBadges();
+  };
 
   // 첫 마운트에서만 인트로 애니메이션 재생
   const playIntroRef = useRef(!homeIntroPlayed);
@@ -147,7 +166,7 @@ export function HomeTab({ scale }: Props) {
           }
           label="출석"
           accent="#ffffff"
-          badge="!"
+          badge={attendanceBadge}
           scale={scale}
           onTap={() => {
             gameBus.emit('play-sfx', 'sfx-click');
@@ -163,7 +182,7 @@ export function HomeTab({ scale }: Props) {
           }
           label="미션"
           accent="#ffffff"
-          badge="2"
+          badge={missionBadge}
           scale={scale}
           onTap={() => {
             gameBus.emit('play-sfx', 'sfx-click');
@@ -173,9 +192,9 @@ export function HomeTab({ scale }: Props) {
       </div>
 
       {/* 모달 */}
-      {openModal === 'attendance' && <AttendanceModal onClose={() => setOpenModal(null)} />}
-      {openModal === 'mission' && <MissionModal onClose={() => setOpenModal(null)} />}
-      {openModal === 'debug' && <DebugModal onClose={() => setOpenModal(null)} />}
+      {openModal === 'attendance' && <AttendanceModal onClose={closeModal} />}
+      {openModal === 'mission' && <MissionModal onClose={closeModal} />}
+      {openModal === 'debug' && <DebugModal onClose={closeModal} />}
 
       {/* 우측 플로팅: 디버그 (DEV 전용) — 설정 아래 */}
       {import.meta.env.DEV && (

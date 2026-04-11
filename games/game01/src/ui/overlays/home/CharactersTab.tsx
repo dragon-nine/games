@@ -13,25 +13,65 @@ interface Props {
 
 interface CharItem {
   id: string;
+  /** 캐릭터 닉네임 (예: 토실이) */
   name: string;
+  /** 직책 (예: 인턴) — 성능 차이 없음, 순수 서사 */
+  jobTitle: string;
+  /** 한 줄 캐릭터 소개 */
   desc: string;
   src: string;
-  /** 에셋 준비 안 된 캐릭터는 false → UI에서 숨김 */
+  /** 에셋 준비 안 된 캐릭터는 false → 잠김 카드로 표시 */
   available: boolean;
-  price?: number;          // 미지정 시 무료(기본)
+  price?: number;
   currency?: 'coin' | 'gem';
   highlight?: 'best' | 'hot';
 }
 
 /**
- * 캐릭터 카탈로그 — 직급 순서.
- * available: false 인 항목은 에셋 미준비 → 잠김 카드로 표시.
+ * 캐릭터 카탈로그 — 직급 순서 (인턴 → 팀장).
+ * 성능 차이 없음. 외형/서사만 다름.
  */
 const CHARACTERS: CharItem[] = [
-  { id: 'rabbit', name: '토끼 인턴',   desc: '기본 캐릭터',           src: 'character/rabbit-front.png', available: true },
-  { id: 'sheep',  name: '양 사원',     desc: '성실한 신입',           src: 'character/sheep-front.png',  available: true,  price: 500,  currency: 'coin', highlight: 'hot' },
-  { id: 'koala',  name: '코알라 대리', desc: '여유로운 중간관리자',   src: 'character/koala-front.png',  available: false, price: 2000, currency: 'coin' },
-  { id: 'lion',   name: '사자 팀장',   desc: '회사의 에이스',         src: 'character/lion-front.png',   available: true,  price: 100,  currency: 'gem',  highlight: 'best' },
+  {
+    id: 'rabbit',
+    name: '토실이',
+    jobTitle: '인턴',
+    desc: '출근 첫날부터 야근. 눈빛이 이미 죽어있다.',
+    src: 'character/rabbit-front.png',
+    available: true,
+  },
+  {
+    id: 'sheep',
+    name: '메에리',
+    jobTitle: '사원',
+    desc: '"네네 알겠습니다" 자동응답기. 시키면 다 한다.',
+    src: 'character/sheep-front.png',
+    available: true,
+    price: 2500,
+    currency: 'coin',
+    highlight: 'hot',
+  },
+  {
+    id: 'koala',
+    name: '졸림이',
+    jobTitle: '대리',
+    desc: '회의 중 눈 뜨고 자는 스킬 보유. 근데 일은 다 함.',
+    src: 'character/koala-front.png',
+    available: true,
+    price: 6000,
+    currency: 'coin',
+  },
+  {
+    id: 'lion',
+    name: '으르렁',
+    jobTitle: '팀장',
+    desc: '"이것만 하고 퇴근해." 본인은 칼퇴한다.',
+    src: 'character/lion-front.png',
+    available: true,
+    price: 150,
+    currency: 'gem',
+    highlight: 'best',
+  },
 ];
 
 export function CharactersTab({ scale }: Props) {
@@ -323,17 +363,41 @@ function CharCard({
           )}
         </div>
 
-        {/* 이름 */}
+        {/* 이름 + 직책 */}
         <div
           style={{
-            fontFamily: 'GMarketSans, sans-serif',
-            fontWeight: 900,
-            fontSize: 15 * scale,
-            color: isLocked ? 'rgba(255,255,255,0.55)' : '#fff',
-            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1 * scale,
+            width: '100%',
           }}
         >
-          {item.name}
+          <div
+            style={{
+              fontFamily: 'GMarketSans, sans-serif',
+              fontWeight: 900,
+              fontSize: 15 * scale,
+              color: isLocked ? 'rgba(255,255,255,0.55)' : '#fff',
+              textAlign: 'center',
+              lineHeight: 1.1,
+            }}
+          >
+            {item.name}
+          </div>
+          <div
+            style={{
+              fontFamily: 'GMarketSans, sans-serif',
+              fontWeight: 700,
+              fontSize: 10 * scale,
+              color: isLocked ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)',
+              textAlign: 'center',
+              letterSpacing: 0.3,
+              lineHeight: 1.1,
+            }}
+          >
+            {item.jobTitle}
+          </div>
         </div>
 
         {/* 액션 버튼 */}

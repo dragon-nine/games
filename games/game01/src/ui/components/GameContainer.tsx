@@ -14,6 +14,7 @@ import { ChallengeOverlay } from '../overlays/ChallengeOverlay';
 import { AdRemoveOverlay } from '../overlays/AdRemoveOverlay';
 import { StoryScreen } from '../overlays/StoryScreen';
 import { ReviveFailModal } from '../overlays/ReviveFailModal';
+import { ReviveScreen } from '../overlays/ReviveScreen';
 import { MockAdModal } from '../overlays/MockAdModal';
 import { Toast } from './Toast';
 
@@ -81,7 +82,8 @@ export function GameContainer() {
     });
     const unsub2 = gameBus.on('game-over-data', (data) => {
       setGameOverData(data);
-      setScreen('game-over');
+      // 부활 가능하면 부활 모달 먼저, 아니면 바로 보상/종료 화면
+      setScreen(data.canRevive ? 'revive-prompt' : 'game-over');
     });
     const unsub3 = gameBus.on('show-challenge', (score) => setChallengeScore(score));
     const unsub4 = gameBus.on('show-ad-remove', () => setShowAdRemove(true));
@@ -106,6 +108,9 @@ export function GameContainer() {
       {screen === 'settings' && <SettingsOverlay />}
       {(screen === 'playing' || screen === 'paused') && <GameplayHUD />}
       {screen === 'paused' && <PauseOverlay />}
+      {screen === 'revive-prompt' && gameOverData && (
+        <ReviveScreen data={gameOverData} onSkip={() => setScreen('game-over')} />
+      )}
       {(screen === 'game-over' || screen === 'revive-ad') && gameOverData && <GameOverScreen data={gameOverData} />}
       {challengeScore !== null && (
         <ChallengeOverlay score={challengeScore} onClose={() => setChallengeScore(null)} />

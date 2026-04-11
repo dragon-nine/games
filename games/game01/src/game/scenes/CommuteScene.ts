@@ -31,12 +31,11 @@ export class CommuteScene extends Phaser.Scene {
 
   private currentRowIdx = 0;
   private score = 0;
+  private coinsEarnedThisGame = 0;
   private gameOver = false;
   private get godMode() { return storage.getBool('godMode'); }
   private guideCount = 0;
   private isFalling = false;
-  private comboCount = 0;
-  private bestCombo = 0;
   private justSwitched = false;
   private gameStarted = false;
   private hasRevived = false;
@@ -54,11 +53,10 @@ export class CommuteScene extends Phaser.Scene {
 
   init() {
     this.score = 0;
+    this.coinsEarnedThisGame = 0;
     this.gameOver = false;
     this.currentRowIdx = 0;
     this.isFalling = false;
-    this.comboCount = 0;
-    this.bestCombo = 0;
     this.justSwitched = false;
     this.gameStarted = false;
     this.hasRevived = false;
@@ -131,6 +129,7 @@ export class CommuteScene extends Phaser.Scene {
 
     logScreen('screen_game');
     logEvent('game_start');
+    storage.recordPlayStart();
     this.guideCount = 0;
 
     const tutorialDone = storage.getBool('tutorialDone');
@@ -187,10 +186,6 @@ export class CommuteScene extends Phaser.Scene {
       setScore: (s) => { this.score = s; },
       getJustSwitched: () => this.justSwitched,
       setJustSwitched: (v) => { this.justSwitched = v; },
-      getComboCount: () => this.comboCount,
-      setComboCount: (c) => { this.comboCount = c; },
-      getBestCombo: () => this.bestCombo,
-      setBestCombo: (b) => { this.bestCombo = b; },
       getGodMode: () => this.godMode,
       getIsFalling: () => this.isFalling,
       setIsFalling: (v) => { this.isFalling = v; },
@@ -200,6 +195,8 @@ export class CommuteScene extends Phaser.Scene {
       onForwardCrash: () => onForwardCrash(this.lifecycleDeps()),
       playSfx: (key, vol) => this.playSfx(key, vol),
       vibrate: (p) => this.vibrate(p),
+      getCoinsEarnedThisGame: () => this.coinsEarnedThisGame,
+      incrementCoinsEarnedThisGame: () => { this.coinsEarnedThisGame += 1; },
     };
   }
 

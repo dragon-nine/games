@@ -5,56 +5,88 @@ import { TapButton } from '../../components/TapButton';
 import { Text } from '../../components/Text';
 import { useResponsiveScale } from '../../hooks/useResponsiveScale';
 import { gameBus } from '../../../game/event-bus';
+import { storage } from '../../../game/services/storage';
 
 interface Props {
   onClose: () => void;
 }
 
-interface DayReward {
-  day: number;
+interface RewardItem {
   kind: 'coin' | 'gem';
   amount: number;
 }
 
+interface DayReward {
+  day: number;
+  rewards: RewardItem[];
+}
+
 const REWARDS: DayReward[] = [
-  { day: 1, kind: 'coin', amount: 100 },
-  { day: 2, kind: 'coin', amount: 200 },
-  { day: 3, kind: 'gem',  amount: 5 },
-  { day: 4, kind: 'coin', amount: 500 },
-  { day: 5, kind: 'gem',  amount: 10 },
-  { day: 6, kind: 'coin', amount: 800 },
-  { day: 7, kind: 'gem',  amount: 30 },
+  { day: 1, rewards: [{ kind: 'coin', amount: 50 }] },
+  { day: 2, rewards: [{ kind: 'coin', amount: 80 }] },
+  { day: 3, rewards: [{ kind: 'coin', amount: 100 }] },
+  { day: 4, rewards: [{ kind: 'coin', amount: 150 }] },
+  { day: 5, rewards: [{ kind: 'coin', amount: 200 }] },
+  { day: 6, rewards: [{ kind: 'coin', amount: 300 }] },
+  { day: 7, rewards: [{ kind: 'coin', amount: 500 }, { kind: 'gem', amount: 5 }] },
 ];
 
 export function AttendanceModal({ onClose }: Props) {
   const scale = useResponsiveScale();
-  // 더미: 오늘 4일차, 1~3일은 받음
-  const [currentDay] = useState(4);
-  const [claimedDays, setClaimedDays] = useState<Set<number>>(new Set([1, 2, 3]));
-  const todayClaimed = claimedDays.has(currentDay);
+  // 스토리지 미러링 — 모달 열 때 한 번 읽고, 받기 후 갱신
+  const [attendance, setAttendance] = useState(() => storage.getAttendance());
+  const [todayClaimed, setTodayClaimed] = useState(() => storage.isAttendanceClaimedToday());
+
+  /**
+   * 화면 표시용 일차 계산.
+   * - 오늘 아직 안 받았으면 → nextDay가 "현재 받을 일차"
+   * - 오늘 이미 받았으면 → 직전에 받은 일차를 "현재"로 표시 (없으면 7→1로 순환했을 때)
+   */
+  const currentDay = todayClaimed
+    ? attendance.nextDay === 1 ? 7 : attendance.nextDay - 1
+    : attendance.nextDay;
+
+  /** 현재 사이클에서 이미 받은 일차들 */
+  const claimedDays = new Set<number>();
+  // nextDay가 4면 1,2,3은 받음. nextDay가 1이면 사이클 리셋된 직후라 아무도 받지 않음.
+  for (let d = 1; d < attendance.nextDay; d++) {
+    claimedDays.add(d);
+  }
+  // 오늘 막 받았다면 currentDay도 받은 것으로 표시
+  if (todayClaimed) claimedDays.add(currentDay);
 
   const handleClaim = () => {
     if (todayClaimed) {
       gameBus.emit('toast', '오늘 보상은 이미 받았어요');
       return;
     }
+    const result = storage.claimAttendance();
+    if (!result) return;
+    const reward = REWARDS[result.day - 1];
+    // 잔액 충전
+    for (const r of reward.rewards) {
+      storage.addNum(r.kind === 'coin' ? 'coins' : 'gems', r.amount);
+    }
     gameBus.emit('play-sfx', 'sfx-click');
-    setClaimedDays((prev) => new Set(prev).add(currentDay));
-    const reward = REWARDS[currentDay - 1];
-    gameBus.emit('toast', `${reward.kind === 'coin' ? '코인' : '보석'} +${reward.amount} 받음!`);
+    setAttendance(storage.getAttendance());
+    setTodayClaimed(true);
+    const summary = reward.rewards
+      .map((r) => `${r.kind === 'coin' ? '코인' : '보석'} +${r.amount}`)
+      .join(', ');
+    gameBus.emit('toast', `${summary} 받음!`);
   };
 
   return (
     <ModalShell onClose={onClose} maxWidth={360}>
       <Text size={22 * scale} weight={900} align="center" style={{ marginBottom: 4 * scale }}>
-        일일 출석 보상
+        출석 보상
       </Text>
       <Text size={11 * scale} color="rgba(255,255,255,0.55)" align="center" style={{ marginBottom: 16 * scale }}>
-        매일 접속하고 보상을 받으세요
+        출석할 때마다 다음 일차 · 7일 후 1일차로 순환
       </Text>
 
-      {/* 7일 그리드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 * scale, marginBottom: 14 * scale }}>
+      {/* 7일 그리드 — 3열 × 2행 + 7일차 wide */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 * scale, marginBottom: 14 * scale }}>
         {REWARDS.slice(0, 6).map((r) => (
           <DayCard
             key={r.day}
@@ -64,7 +96,7 @@ export function AttendanceModal({ onClose }: Props) {
             scale={scale}
           />
         ))}
-        <div style={{ gridColumn: 'span 4' }}>
+        <div style={{ gridColumn: 'span 3' }}>
           <DayCard
             reward={REWARDS[6]}
             isClaimed={claimedDays.has(7)}
@@ -99,7 +131,7 @@ export function AttendanceModal({ onClose }: Props) {
             letterSpacing: 0.5,
           }}
         >
-          {todayClaimed ? '오늘 받음 ✓' : `${currentDay}일차 보상 받기`}
+          {todayClaimed ? '오늘 받음 ✓' : `${attendance.nextDay}일차 보상 받기`}
         </span>
       </TapButton>
     </ModalShell>
@@ -161,18 +193,40 @@ function DayCard({
         DAY {reward.day}
       </span>
 
-      {reward.kind === 'coin' ? <CoinIcon size={iconSize} /> : <GemIcon size={iconSize} />}
-
-      <span
+      {/* 보상 아이템들 (여러 개 있을 수 있음) */}
+      <div
         style={{
-          fontFamily: 'GMarketSans, sans-serif',
-          fontWeight: 900,
-          fontSize: wide ? 17 * scale : 11 * scale,
-          color: '#fff',
+          display: 'flex',
+          flexDirection: wide ? 'row' : 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: wide ? 14 * scale : 3 * scale,
         }}
       >
-        +{reward.amount}
-      </span>
+        {reward.rewards.map((r, i) => (
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              flexDirection: wide ? 'row' : 'column',
+              alignItems: 'center',
+              gap: wide ? 6 * scale : 2 * scale,
+            }}
+          >
+            {r.kind === 'coin' ? <CoinIcon size={iconSize} /> : <GemIcon size={iconSize} />}
+            <span
+              style={{
+                fontFamily: 'GMarketSans, sans-serif',
+                fontWeight: 900,
+                fontSize: wide ? 17 * scale : 11 * scale,
+                color: '#fff',
+              }}
+            >
+              +{r.amount}
+            </span>
+          </div>
+        ))}
+      </div>
 
       {isClaimed && (
         <div

@@ -1,5 +1,6 @@
 import { gameBus } from '../../../game/event-bus';
 import { storage } from '../../../game/services/storage';
+import { AdRewardButton } from '../../components/AdRewardButton';
 import { CoinIcon, GemIcon } from '../../components/CurrencyIcons';
 import { TapButton } from '../../components/TapButton';
 import styles from '../overlay.module.css';
@@ -19,7 +20,7 @@ interface FreeReward {
 
 const FREE_REWARDS: FreeReward[] = [
   { id: 'free-coin', kind: 'coin', amount: 50, badge: '일 5회' },
-  { id: 'free-gem',  kind: 'gem',  amount: 2,  badge: '일 3회' },
+  { id: 'free-gem',  kind: 'gem',  amount: 3,  badge: '일 3회' },
 ];
 
 interface PkgItem {
@@ -37,7 +38,6 @@ const GEM_PACKAGES: PkgItem[] = [
   { id: 'g1', amount: 30,   amountLabel: '보석 30개',    extra: '기본 상품',          extraNeutral: true, price: '₩1,100' },
   { id: 'g2', amount: 165,  amountLabel: '보석 165개',   bonusPct: 10, extra: '150 + 보너스 15',  price: '₩5,500',  highlight: 'hot' },
   { id: 'g3', amount: 500,  amountLabel: '보석 500개',   bonusPct: 25, extra: '400 + 보너스 100', price: '₩11,000', highlight: 'best' },
-  { id: 'g4', amount: 1400, amountLabel: '보석 1,400개', bonusPct: 40, extra: '1000 + 보너스 400', price: '₩22,000' },
 ];
 
 const COIN_PACKAGES: PkgItem[] = [
@@ -58,8 +58,8 @@ export function ShopTab({ scale }: Props) {
   };
 
   const handleFreeReward = (r: FreeReward) => {
-    gameBus.emit('play-sfx', 'sfx-click');
-    gameBus.emit('toast', `광고 시청 (${r.kind === 'coin' ? '코인' : '보석'} +${r.amount})`);
+    storage.addNum(r.kind === 'coin' ? 'coins' : 'gems', r.amount);
+    gameBus.emit('toast', `${r.kind === 'coin' ? '코인' : '보석'} +${r.amount} 받음!`);
   };
 
   const handlePackage = (p: PkgItem, kind: 'gem' | 'coin') => {
@@ -238,7 +238,7 @@ export function ShopTab({ scale }: Props) {
             }}
           >
             {FREE_REWARDS.map((r) => (
-              <FreeRewardCard key={r.id} reward={r} scale={scale} onClick={() => handleFreeReward(r)} />
+              <FreeRewardCard key={r.id} reward={r} scale={scale} onReward={() => handleFreeReward(r)} />
             ))}
           </div>
         </Section>
@@ -319,15 +319,15 @@ function Section({
 function FreeRewardCard({
   reward,
   scale,
-  onClick,
+  onReward,
 }: {
   reward: FreeReward;
   scale: number;
-  onClick: () => void;
+  onReward: () => void;
 }) {
   return (
-    <TapButton
-      onTap={onClick}
+    <AdRewardButton
+      onReward={onReward}
       pressScale={0.95}
       scrollSafe
       style={{
@@ -407,7 +407,7 @@ function FreeRewardCard({
         </svg>
         광고 보기
       </div>
-    </TapButton>
+    </AdRewardButton>
   );
 }
 

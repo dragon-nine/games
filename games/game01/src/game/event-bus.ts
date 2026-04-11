@@ -3,12 +3,23 @@
  * Phaser 씬에서 emit → React 컴포넌트에서 subscribe
  */
 
-export type GameScreen = 'loading' | 'main' | 'story' | 'playing' | 'paused' | 'settings' | 'game-over' | 'revive-ad';
+export type GameScreen =
+  | 'loading'
+  | 'main'
+  | 'story'
+  | 'playing'
+  | 'paused'
+  | 'settings'
+  | 'revive-prompt' // 부활 옵션 모달 (게임오버 직후)
+  | 'game-over'      // 보상/종료 화면
+  | 'revive-ad';     // 부활 광고 시청 중
 
 export interface GameOverData {
   score: number;
   bestScore: number;
   canRevive: boolean;
+  /** 이번 판에서 획득한 코인 수 */
+  coinsEarned: number;
 }
 
 type EventMap = {
@@ -17,7 +28,8 @@ type EventMap = {
   // React → Phaser actions
   'start-game': void;
   'resume-game': void;
-  'revive': void;
+  'revive': void;            // 광고 시청 → 부활
+  'revive-with-gems': void;  // 보석 차감 → 부활 (광고 X)
   'go-home': void;
   'toggle-bgm': void;
   'toggle-sfx': void;

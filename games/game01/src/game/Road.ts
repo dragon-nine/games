@@ -151,20 +151,11 @@ export class Road {
     this.container.add(coin);
     row.coin = coin;
 
-    // 회전 효과 (scaleX flip)
-    this.scene.tweens.add({
-      targets: coin,
-      scaleX: { from: coin.scaleX, to: -coin.scaleX },
-      duration: 700,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
-    // 살짝 위아래로 흔들기
+    // 위아래로 둥둥 뜨는 효과만 (회전 없음)
     this.scene.tweens.add({
       targets: coin,
       y: y - this.tileH * 0.18,
-      duration: 600,
+      duration: 700,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
